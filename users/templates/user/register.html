@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %} {{ block.super }} | Registro {% endblock title %}
+
+{% block layout %}
+	<header class="header">
+
+		<!-- Header Main -->
+		{% block header %}
+			{% include 'mozlaserapp/partials/header.html' %}
+		{% endblock header %}
+
+		<!-- Menu -->
+		{% block menu %}
+			{% include 'mozlaserapp/partials/menu.html' %}
+		{% endblock menu %}
+	</header>
+
+    <!-- Contact Info -->
+     <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4 offset-4" style="margin: 50px; padding: 10px; border-radius: 5px; border: 1px solid #b5aec4;">
+            <form id="register_form" method="post" class="form-stacked">
+                {% csrf_token %}
+    			{{ form.as_p }}
+				<button name="registration_submit" type="submit" value="Registre-se"
+						class="btn btn-primary btn-lg" data-loading-text="Registando..."> Registre-se
+				</button>
+                {% if cancel_url %}
+                    ou <a href="{{ cancel_url }}">Cancelar</a>.
+                {% endif %}
+            </form>
+    	</div>
+	 </div>
+
+	<!-- Footer -->
+	{% block footer %}
+		{% include 'mozlaserapp/partials/copy.html' %}
+	{% endblock footer %}
+
+{% endblock layout %}

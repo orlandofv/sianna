@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %} {{ block.super }} | Entrada {% endblock title %}
+
+{% block layout %}
+	<header class="header">
+
+		<!-- Header Main -->
+		{% block mainheader %}
+			{% include 'mozlaserapp/partials/header.html' %}
+		{% endblock mainheader %}
+
+		<!-- Menu -->
+		{% block menu %}
+			{% include 'mozlaserapp/partials/menu.html' %}
+		{% endblock menu %}
+	</header>
+
+    <!-- Contact Info -->
+    <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4 offset-4" style="margin: 50px; padding: 10px; border-radius: 5px; border: 1px solid #b5aec4;">
+            <form id="login_form" action="{{ request.get_full_path }}" method="post" class="well">
+                <h2>Log In</h2>
+                <hr>
+
+                {% csrf_token %}
+                {{ form.as_p }}
+                <p><a href="{% url 'password-reset' %}">Esqueci a minha senha</a></p>
+                <button name="login_submit"
+                        type="submit" value="Log In" class="btn btn-lg btn-primary"
+                        data-loading-text="Logging in...">Log In
+                </button>
+            </form>
+        </div>
+    </div>
+
+	<!-- Footer -->
+	{% block footer %}
+		{% include 'mozlaserapp/partials/copy.html' %}
+	{% endblock footer %}
+
+{% endblock layout %}
+
