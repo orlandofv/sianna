@@ -5,7 +5,6 @@ from django.contrib.auth import login, authenticate, logout
 from django.views.generic import FormView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_protect
-from django.shortcuts import render_to_response
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.mixins import (LoginRequiredMixin,)
@@ -18,13 +17,12 @@ from django.views.defaults import page_not_found, server_error
 
 
 from .models import User, Profile
-from .forms import UserForm, ProfileForm, ProfileEditForm
+from .forms import UserForm, ProfileForm, ProfileEditForm, LoginForm
 from django.conf import settings
 
 
 class Login(LoginView):
     template_name = 'user/login.html'
-    model = User
 
     def get_context_data(self, **kwargs):
         context = super(Login, self).get_context_data(**kwargs)
@@ -39,21 +37,26 @@ class Login(LoginView):
         # Redirect staff members to dashboard as that's the most likely place
         # they'll want to visit if they're logging in.
         if self.request.user.is_staff:
-            return reverse('mozlaserapp:home')
+            return reverse('/')
 
         return settings.LOGIN_REDIRECT_URL
+
+
+def login_view(request):
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            form.save()
 
 
 def signup(request):
     if request.method == 'POST':
         form = UserForm(request.POST)
         if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            raw_password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)
-            return redirect('home')
+            user = form.save()
+            user.set_password(user.password)
+            user.save()
+            return redirect('/')
     else:
         form = UserForm()
     return render(request, 'user/register.html', {'form': form})
@@ -61,7 +64,7 @@ def signup(request):
 
 def logout_view(request):
     logout(request)
-    return HttpResponseRedirect(reverse('mozlaserapp:home'))
+    return HttpResponseRedirect(reverse('/'))
 
 
 

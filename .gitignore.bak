@@ -1,0 +1,25 @@
+# ignore a single file
+
+
+# ignore an entire directory
+
+
+# ignore a file type
+*.spec
+*.exe
+*.json
+*.png
+*.jpg
+*.css
+*.ico
+*.spec
+*.md
+*.txt
+*.pyc
+*.qrc
+*.svg
+*.ui
+*.qss
+*.bmp
+*.INFO
+

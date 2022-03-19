@@ -1,0 +1,35 @@
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+{% for message in messages %}
+    <div class="container-fluid p-0 m-0" style="background-color: #fff; height: 100%" id="alerta">
+        <div class="alert {{ message.tags }} alert-dismissible" role="alert" 
+        style="margin:0px; padding:0px;">
+            <button type="button" class="btn close" style="vertical-align: center; 
+            horizontal-align: right;" data-dismiss="alert" aria-label="Close"
+            <span aria-hidden="True" onclick="Hide(alerta)">&times;</span>
+            </button>
+            {{ message }}
+        </div>
+    </div>
+{% endfor %}
+
+<div class="page-breadcrumb">
+    <div class="row align-items-center">
+        <div class="col-md-6 col-8 align-self-center">
+            <h3 class="page-title mb-0 p-0">{{ title }}</h3>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ path }}</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->

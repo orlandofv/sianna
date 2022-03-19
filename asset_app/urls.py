@@ -1,41 +1,25 @@
 from django.urls import path
 from django.conf.urls import url
-from .views import (
-    AssetsListView,
-    AssetsDetailView,
-    AssetsCreateView,
-    AssetsUpdateView,
-    AssetsDeleteView,
-)
-from . import views
+from .views import (home_view, component_create_view, maintenance_create_view, 
+maintenance_schedule_create_view, company_create_view, division_create_view, 
+branch_create_view, position_create_view, group_create_view, system_create_view, 
+type_create_view, subtype_create_view, component_allocation_create_view)
+
+app_name = 'asset_app'
 
 urlpatterns = [
-    path('', AssetsListView.as_view(), name='assets_app_home'),
-    path('asset/<slug:slug>/', AssetsDetailView.as_view(), name='asset_detail'),
-    path('asset/new/', AssetsCreateView.as_view(), name='assets_create'),
-    path('asset/<slug:slug>/update/', AssetsUpdateView.as_view(), name='asset_detail_update'),
-    path('asset/<slug:slug>/delete/', AssetsDeleteView.as_view(), name='asset_detail_delete'),
-
-    # path('location/<slug:slug>/', locationDetailView.as_view(), name='location_detail'),
-    # path('location/new/', locationCreateView.as_view(), name='location_create'),
-    # path('location/<slug:slug>/update/', locationUpdateView.as_view(), name='location_detail_update'),
-    # path('location/<slug:slug>/delete/', locationDeleteView.as_view(), name='location_detail_delete'),
-
-    # path('system/<slug:slug>/', systemDetailView.as_view(), name='system_detail'),
-    # path('system/new/', systemCreateView.as_view(), name='system_create'),
-    # path('system/<slug:slug>/update/', systemUpdateView.as_view(), name='system_detail_update'),
-    # path('system/<slug:slug>/delete/', systemDeleteView.as_view(), name='system_detail_delete'),
-
-    # path('category/<slug:slug>/', categoryDetailView.as_view(), name='category_detail'),
-    # path('category/new/', categoryCreateView.as_view(), name='category_create'),
-    # path('category/<slug:slug>/update/', categoryUpdateView.as_view(), name='category_detail_update'),
-    # path('category/<slug:slug>/delete/', categoryDeleteView.as_view(), name='category_detail_delete'),
-
-    # path('issuance/<slug:slug>/', issuanceDetailView.as_view(), name='issuance_detail'),
-    # path('issuance/new/', issuanceCreateView.as_view(), name='issuance_create'),
-    # path('issuance/<slug:slug>/update/', issuanceUpdateView.as_view(), name='issuance_detail_update'),
-    # path('issuance/<slug:slug>/delete/', issuanceDeleteView.as_view(), name='issuance_detail_delete'),
-
-    path('about/', views.about, name='app_about'),
-    url(r'^searchassets/$', views.assetssearch, name='assetssearch'),
+    path('', home_view, name='asset_app_home'),
+    path('component/new', component_create_view, name='component_create'),
+    path('maintenance/new', maintenance_create_view, name='maintenance_create'),
+    path('maintenance_schedule/new', maintenance_schedule_create_view, name='maintenance_schedule_create'),
+    path('company/new', company_create_view, name='company_create'),
+    path('division/new', division_create_view, name='division_create'),
+    path('branch/new', branch_create_view, name='branch_create'),
+    path('position/new', position_create_view, name='position_create'),
+    path('group/new', group_create_view, name='group_create'),
+    path('system/new', system_create_view, name='system_create'),
+    path('type/new', type_create_view, name='type_create'),
+    path('subtype/new', subtype_create_view, name='subtype_create'),
+    path('component_allocation/new', component_allocation_create_view, name='component_allocation_create'),
 ]
+

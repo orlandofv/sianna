@@ -1,13 +1,6 @@
 {% extends 'base.html' %}
 
 {% load static %}
-{% load widget_tweaks %}
-
-{% block title %} {{ block.super }} - Logout
-{% endblock %}
-
-{% block menu_categorias %}
-{% endblock %}
 
 {% block content %}
     <p>User has logged Out</p>
@@ -15,36 +8,3 @@
     <p>Click <a href="{% url 'user:login' %}"> here </a> Login Again</p>
     <meta http-equiv="Refresh" content="0; url={% url 'user:login' %}"/>
 {% endblock %}
-
-{% block vistos %}
-{% endblock %}
-{% block banner %}
-{% endblock %}
-
-{% block negocio_da_semana %}
-{% endblock %}
-
-{% block categorias %}
-{% endblock %}
-
-{% block ratings %}
-{% endblock %}
-
-{% block novidades %}
-{% endblock %}
-
-{% block melhores_vendas %}
-{% endblock %}
-
-{% block anuncios %}
-{% endblock %}
-
-{% block trends %}
-{% endblock %}
-
-{% block reviews %}
-{% endblock %}
-
-{% block marcas %}
-{% endblock %}
-

@@ -1,9 +1,9 @@
 from django.contrib.auth.models import User
 import django_filters
-from .models import Assets
+from .models import Component
 
-class AssetsFilter(django_filters.FilterSet):
+class ComponentFilter(django_filters.FilterSet):
     class Meta:
-        model = Assets
-        fields = ['asset_name']
+        model = Component
+        fields = ['component_name']
 

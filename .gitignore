@@ -2,22 +2,19 @@
 
 
 # ignore an entire directory
-media/
-env/
+app_env/
 .vscode/
 .git/
-virtual/
+media/
 
 # ignore a file type
 *.spec
 *.exe
-*.json
 *.png
 *.jpg
 *.css
 *.ico
 *.spec
-*.md
 *.txt
 *.pyc
 *.qrc

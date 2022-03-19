@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class UserConfig(AppConfig):
-    name = 'user'
+    name = 'users'
     verbose_name = "User auth Module"

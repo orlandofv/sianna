@@ -1,3 +1,5 @@
+from email.mime import image
+from operator import mod
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import ugettext as _
@@ -54,7 +56,8 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     """We change the default user auth by email auth"""
 
-    username = None
+    username = models.CharField(_('Username'), max_length=20, blank=True)
+    image = models.ImageField(_('Image'), default="default.jpeg", upload_to = 'images/% Y/% m/% d/')
     email = models.EmailField(_('Email'), unique=True, help_text=False)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

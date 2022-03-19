@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% load i18n %}
+
+{% block title %} {{ block.super }} | {% trans 'New Company' %} {% endblock title %}
+
+{% block breadcrumb %}
+    {% include 'breadcrumb.html' with title='New Company' path='New Company' %}
+{% endblock breadcrumb %}
+
+{% block content %}
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                {% csrf_token %}
+                {% crispy form %}
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

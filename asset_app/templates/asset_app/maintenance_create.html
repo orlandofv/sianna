@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% load i18n %}
+
+{% block title %} {{ block.super }} | {% trans 'New Maintenance' %} {% endblock title %}
+
+{% block breadcrumb %}
+    {% include 'breadcrumb.html' with title='New Maintenance' path='New Maintenance' %}
+{% endblock breadcrumb %}
+            
+{% block content %}
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                {% csrf_token %}
+                {% if form.errors %}
+                {% for field in form %}
+                    {% for error in field.errors %} 
+                       <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                       </div>
+                    {% endfor %}
+                {% endfor %}
+                {% endif %}
+                {% crispy form %}
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

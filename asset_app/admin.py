@@ -1,25 +1,69 @@
 from django.contrib import admin
-from .models import Assets, Location, AssetsIssuance, Category, System
+from .models import (Component, Company, ComponentAllocation, 
+Maintenance, MaintenanceSchedule, Division, Branch, Position, 
+Group, System, Type, SubType)
+
+
+class ComponentAdmin(admin.ModelAdmin):
+    list_display = ('component_name', 'component_manufacturer', 'component_stock_code', 'notes',)
+    
+
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ('company_name', 'company_address', 'company_manager', 'company_contacts', 'notes',)
+  
+
+class ComponentAllocationAdmin(admin.ModelAdmin):
+    list_display = ('component_name', 'company_name', 'date_allocated','component_serial_number', 
+    'component_status', 'notes',)
+
+
+class MaintenanceAdmin(admin.ModelAdmin):
+    list_display = ('maintenance_frequency', 'maintenance_schedule', 'maintenance_type', 
+    'time_allocated', 'maintenance_action')
+
+
+class MaintenanceScheduleAdmin(admin.ModelAdmin):
+    list_display = ('schedule_name', 'maintenance_name')
+
+
+class DivisionAdmin(admin.ModelAdmin):
+    list_display = ('division_name', 'company_name', 'division_address', 'division_contacts', 'notes',)
+
+
+class BranchAdmin(admin.ModelAdmin):
+    list_display = ('branch_name', 'division_name', 'notes',)
+
+
+class PositionAdmin(admin.ModelAdmin):
+    list_display = ('position_name', 'branch_name', 'notes',)
+
+
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ('group_name', 'notes',)
 
 
 class SystemAdmin(admin.ModelAdmin):
-    list_display = ('system_name', 'category_id', 'notes',)
-   
+    list_display = ('system_name', 'group_name', 'notes',)
 
-class AssetAdmin(admin.ModelAdmin):
-    list_display = ('asset_name', 'category_id', 'system_id', 'asset_serial_no', 'notes',)
-    
 
-class LocationAdmin(admin.ModelAdmin):
-    list_display = ('location_name', 'location_address', 'location_manager', 'location_contacts', 'notes',)
-  
+class TypeAdmin(admin.ModelAdmin):
+    list_display = ('type_name', 'system_name', 'notes',)
 
-class AssetIssuanceAdmin(admin.ModelAdmin):
-    list_display = ('asset_id', 'asset_location', 'date_issued', 'asset_assignee', 'notes',)
-  
 
-admin.site.register(Assets, AssetAdmin)
-admin.site.register(Location, LocationAdmin)
+class SubtypeAdmin(admin.ModelAdmin):
+    list_display = ('subtype_name', 'type_name', 'notes',)
+
+
+admin.site.register(Component, ComponentAdmin)
+admin.site.register(Company, CompanyAdmin)
+admin.site.register(Division, DivisionAdmin)
+admin.site.register(Branch, BranchAdmin)
+admin.site.register(Position, PositionAdmin)
+admin.site.register(Group, GroupAdmin)
 admin.site.register(System, SystemAdmin)
-admin.site.register(Category)
-admin.site.register(AssetsIssuance, AssetIssuanceAdmin)
+admin.site.register(Type, TypeAdmin)
+admin.site.register(SubType, SubtypeAdmin)
+admin.site.register(ComponentAllocation, ComponentAllocationAdmin)
+admin.site.register(Maintenance, MaintenanceAdmin)
+admin.site.register(MaintenanceSchedule, MaintenanceScheduleAdmin)
+

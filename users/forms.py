@@ -4,13 +4,46 @@ from django.utils.translation import ugettext_lazy as _
 from django import forms
 from .models import User, Profile
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Submit, Row, Column
 
-class UserForm(forms.ModelForm):
+
+class LoginForm(forms.ModelForm):
+    email = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Email'}))
     password = forms.CharField(widget=forms.PasswordInput())
     confirm_password = forms.CharField(widget=forms.PasswordInput())
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column('email', css_class='form-group col-md-6 mb-0'),
+                Column('password', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            Submit('submit', 'Sign in'),
+        )
+
     class Meta:
-        model=User
+        model = User
+        fields=('email', 'password')
+
+
+class UserForm(forms.ModelForm):
+    email = forms.CharField(label='', max_length=100, widget=forms.EmailInput(attrs={'placeholder': _('Enter Email')}))
+    password = forms.CharField(label='', widget=forms.PasswordInput(attrs={'placeholder': _('Enter Password')}))
+    confirm_password = forms.CharField(label='', widget=forms.PasswordInput(attrs={'placeholder': _('Confirm Password')}))
+    
+    def __init__(self, *args, **kwargs):
+        super(UserForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper(self)
+        # You can dynamically adjust your layout
+        self.helper.layout.append(Submit('registration_submit', _('Sign Up')))
+       
+    class Meta:
+        model = User
         fields=('email', 'password', 'confirm_password')
 
     def clean(self):
@@ -20,15 +53,17 @@ class UserForm(forms.ModelForm):
 
         if password != confirm_password:
             raise forms.ValidationError(
-                "password and confirm password does not match"
+                _("password and confirm password does not match")
             )
 
 
 class ProfileForm(forms.ModelForm):
     t = """By checking the above button you agree with our <a href="/legality/"> Terms and Conditions </a>"""
-    terms = forms.BooleanField(error_messages={'required': 'Please accept our terms and conditions to create account!'},
+    terms = forms.BooleanField(error_messages={'required': 
+    'Please accept our terms and conditions to create account!'},
                                help_text=t)
-    user_name = forms.CharField(error_messages={'exists': 'Username exists, please enter a different name.'},
+    user_name = forms.CharField(error_messages={'exists': 
+    'Username exists, please enter a different name.'},
                                 max_length=20,)
 
     class Meta:
