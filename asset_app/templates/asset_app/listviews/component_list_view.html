@@ -1,0 +1,56 @@
+{% extends 'index.html' %}
+
+{% load static %}
+{% load i18n %}
+
+{% block breadcrumb %}
+    {% include 'breadcrumb.html' with title='List of Components' path='Components' %}
+{% endblock breadcrumb %}
+
+{% block content %}
+    {% csrf_token %}
+
+    <div class="container">
+        <a href="{% url 'asset_app:component_create' %} " class="btn btn-success fa fa-plus-square">
+            {% trans 'New' %} 
+        </a>
+      
+        <button class="btn btn-danger delete-btn fa fa-pencil-square" data-toggle="modal">
+            {% trans 'Delete Selected' %} 
+        </button>
+
+        <table id="sampleTableA" class="table table-striped sampleTable">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="checkall" name="main_Checkbox" 
+                        value="" style="vertical-align: middle"></th>
+                    <th></th>
+                    <th>System No.</th>
+                    <th>Name</th>
+                    <th>Manufacturer</th>
+                    <th>Stock Cod.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in object_list %}
+                    <tr data-id="{{ obj.id }}" class="clickable-row" 
+                    data-href="{% url 'asset_app:component_update_view' obj.slug %}">
+                        
+                            <td> <input type="checkbox" id="{{ obj.id }}" name="{{ obj.component_name }}" 
+                                value="" style="vertical-align: middle"> </td>
+                            <td> </td>
+                            <td> {{ obj.component_system_no }}</td>
+                            <td> {{ obj.component_name }} </td>
+                            <td> {{ obj.component_manufacturer }} </td>
+                            <td> {{ obj.component_stock_code }} </td>
+                    </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <p>
+            <button id="loadDataSimulation" class="btn btn-primary">Refresh Table</button>
+        </p>
+    </div>
+
+{% endblock content %}
+    

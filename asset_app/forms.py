@@ -29,7 +29,7 @@ class ComponentForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
              HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New Component'),)),
             BS5Accordion(
@@ -46,7 +46,7 @@ class ComponentForm(forms.ModelForm):
                 ),
                 "component_image"),
         AccordionGroup(_('Maintenance Schedule'),
-            FieldWithButtons('maintenance_schedule', StrictButton('',  css_class="btn-success fa fa-plus",
+            FieldWithButtons('maintenance_schedule', StrictButton('',  css_class="btn fa fa-plus",
             data_bs_toggle="modal", data_bs_target="#staticBackdrop"))),
             flush=True,
             always_open=True),
@@ -100,7 +100,7 @@ class MaintenanceForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New Maintenance'),)),
             BS5Accordion(
@@ -156,14 +156,14 @@ class MaintenanceScheduleForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New Maintenance Schedule'),)),
             BS5Accordion(
             AccordionGroup(_('Schedule Data'),
             Row(Column('schedule_name', css_class='form-group col-md-12 mb-0'),),
-            FieldWithButtons('maintenance_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#exampleModalCenter")),
+            FieldWithButtons('maintenance_name', StrictButton('',  css_class="btn fa fa-plus",
+            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
             Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
             ),
              flush=True,
@@ -192,7 +192,7 @@ class CompanyForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New Company'),)),
             BS5Accordion(
@@ -231,14 +231,14 @@ class DivisionForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New Division'),)),
             BS5Accordion(
             AccordionGroup(_('Division Data'),
             Row(Column('division_name', css_class='form-group col-md-12 mb-0'),),
-            FieldWithButtons('company_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#exampleModalCenter")),
+            FieldWithButtons('company_name', StrictButton('',  css_class="btn fa fa-plus",
+            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
             Row(Column('division_address', css_class='form-group col-md-12 mb-0'),),
             Row(Column('division_contacts', css_class='form-group col-md-12 mb-0'),),
             Row(Column('division_manager', css_class='form-group col-md-12 mb-0'),),
@@ -268,14 +268,14 @@ class BranchForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New Branch'),)),
             BS5Accordion(
             AccordionGroup(_('Branch Data'),
             Row(Column('branch_name', css_class='form-group col-md-12 mb-0'),),
-            FieldWithButtons('division_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#exampleModalCenter")),
+            FieldWithButtons('division_name', StrictButton('',  css_class="btn fa fa-plus",
+            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
             Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
             ),
              flush=True,
@@ -301,14 +301,14 @@ class PositionForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New Position'),)),
             BS5Accordion(
             AccordionGroup(_('Position Data'),
             Row(Column('position_name', css_class='form-group col-md-12 mb-0'),),
-            FieldWithButtons('branch_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#exampleModalCenter")),
+            FieldWithButtons('branch_name', StrictButton('',  css_class="btn fa fa-plus",
+            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
             Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
             ),
              flush=True,
@@ -333,7 +333,7 @@ class GroupForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New Group'),)),
             BS5Accordion(
@@ -365,14 +365,14 @@ class SystemForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New System'),)),
             BS5Accordion(
             AccordionGroup(_('System Data'),
             Row(Column('system_name', css_class='form-group col-md-12 mb-0'),),
-            FieldWithButtons('group_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#exampleModalCenter")),
+            FieldWithButtons('group_name', StrictButton('',  css_class="btn fa fa-plus",
+            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
             Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
             ),
              flush=True,
@@ -399,14 +399,14 @@ class TypeForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New Type'),)),
             BS5Accordion(
             AccordionGroup(_('Type Data'),
             Row(Column('type_name', css_class='form-group col-md-12 mb-0'),),
-            FieldWithButtons('system_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#exampleModalCenter")),
+            FieldWithButtons('system_name', StrictButton('',  css_class="btn fa fa-plus",
+            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
             Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
             ),
              flush=True,
@@ -433,14 +433,14 @@ class SubTypeForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New SubType'),)),
             BS5Accordion(
             AccordionGroup(_('SubType Data'),
             Row(Column('subtype_name', css_class='form-group col-md-12 mb-0'),),
-            FieldWithButtons('type_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#exampleModalCenter")),
+            FieldWithButtons('type_name', StrictButton('',  css_class="btn fa fa-plus",
+            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
             Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
             ),
              flush=True,
@@ -500,16 +500,16 @@ class ComponentAllocationForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 36px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
         """.format(_('Add New Component Allocation'),)),
             BS5Accordion(
             AccordionGroup(_('ALLOCATE COMPONENT'),
-                FieldWithButtons('component_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-                data_bs_toggle="modal", data_bs_target="#exampleModalCenter"), css_class='form-group col-md-12 mb-0'),
+                FieldWithButtons('component_name', StrictButton('',  css_class="btn fa fa-plus",
+                data_bs_toggle="modal", data_bs_target="#component"), css_class='form-group col-md-12 mb-0'),
                 Row(
-                    FieldWithButtons('vendor_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-                    data_bs_toggle="modal", data_bs_target="#exampleModalCenter"), 
+                    FieldWithButtons('vendor_name', StrictButton('',  css_class="btn fa fa-plus",
+                    data_bs_toggle="modal", data_bs_target="#staticBackdrop"), 
                     css_class='form-group col-md-6 mb-0'),
                     Column('component_serial_number', css_class='form-group col-md-6 mb-0'),
                 ),
@@ -543,31 +543,31 @@ class ComponentAllocationForm(forms.ModelForm):
             ),
             AccordionGroup(_('ATTACH TO SYSTEM'),
                 Row(
-                        FieldWithButtons('group_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#exampleModalCenter"), css_class='form-group col-md-6 mb-0'),
-                        FieldWithButtons('vendor_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#exampleModalCenter"), css_class='form-group col-md-6 mb-0'),
+                        FieldWithButtons('group_name', StrictButton('',  css_class="btn fa fa-plus",
+                        data_bs_toggle="modal", data_bs_target="#group"), css_class='form-group col-md-6 mb-0'),
+                        FieldWithButtons('system_name', StrictButton('',  css_class="btn fa fa-plus",
+                        data_bs_toggle="modal", data_bs_target="#system"), css_class='form-group col-md-6 mb-0'),
                     ),
                 Row(
-                        FieldWithButtons('type_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#exampleModalCenter"), css_class='form-group col-md-6 mb-0'),
-                        FieldWithButtons('subtype_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#exampleModalCenter"), css_class='form-group col-md-6 mb-0'),
+                        FieldWithButtons('type_name', StrictButton('',  css_class="btn fa fa-plus",
+                        data_bs_toggle="modal", data_bs_target="#type"), css_class='form-group col-md-6 mb-0'),
+                        FieldWithButtons('subtype_name', StrictButton('',  css_class="btn fa fa-plus",
+                        data_bs_toggle="modal", data_bs_target="#subtype"), css_class='form-group col-md-6 mb-0'),
 
                     ),
             ),
             AccordionGroup(_('ATTACH TO LOCATION'),
                 Row(
-                        FieldWithButtons('company_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#exampleModalCenter"), css_class='form-group col-md-6 mb-0'),
-                        FieldWithButtons('division_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#exampleModalCenter"), css_class='form-group col-md-6 mb-0'),
+                        FieldWithButtons('company_name', StrictButton('',  css_class="btn fa fa-plus",
+                        data_bs_toggle="modal", data_bs_target="#company"), css_class='form-group col-md-6 mb-0'),
+                        FieldWithButtons('division_name', StrictButton('',  css_class="btn fa fa-plus",
+                        data_bs_toggle="modal", data_bs_target="#division"), css_class='form-group col-md-6 mb-0'),
                     ),
                 Row(
-                        FieldWithButtons('branch_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#exampleModalCenter"), css_class='form-group col-md-6 mb-0'),
-                        FieldWithButtons('position_name', StrictButton('',  css_class="btn-primary fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#exampleModalCenter"), css_class='form-group col-md-6 mb-0'),
+                        FieldWithButtons('branch_name', StrictButton('',  css_class="btn fa fa-plus",
+                        data_bs_toggle="modal", data_bs_target="#branch"), css_class='form-group col-md-6 mb-0'),
+                        FieldWithButtons('position_name', StrictButton('',  css_class="btn fa fa-plus",
+                        data_bs_toggle="modal", data_bs_target="#position"), css_class='form-group col-md-6 mb-0'),
                     ),   
             ),
             Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
@@ -579,5 +579,43 @@ class ComponentAllocationForm(forms.ModelForm):
     
     class Meta:
         model = ComponentAllocation
+        exclude = ('date_created', 'date_modified', 'slug')
+
+
+class VendorForm(forms.ModelForm):
+    vendor_name = forms.CharField(label=_('Vendor Name'), 
+    widget=forms.TextInput, max_length=100)
+    vendor_address = forms.CharField(required=False, max_length=255)
+    vendor_contacts = forms.CharField(required=False, max_length=255)
+    vendor_manager = forms.CharField(max_length=100, required=False)
+    vendor_email = forms.EmailField(max_length = 254, required=False)
+    notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(VendorForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+                HTML("""
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <hr>
+        """.format(_('Add New Vendor'),)),
+            BS5Accordion(
+            AccordionGroup(_('Vendor Data'),
+            Row(Column('vendor_name', css_class='form-group col-md-12 mb-0'),),
+            Row(Column('vendor_address', css_class='form-group col-md-12 mb-0'),),
+            Row(Column('vendor_contacts', css_class='form-group col-md-12 mb-0'),),
+            Row(Column('vendor_manager', css_class='form-group col-md-12 mb-0'),),
+            Row(Column('vendor_email', css_class='form-group col-md-12 mb-0'),),
+            Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            ),
+             flush=True,
+            always_open=True),
+            Submit('submit', _('Save & Close'),),
+            Reset('reset', 'Clear', css_class='btn btn-danger'),
+        )
+    
+    class Meta:
+        model = Vendor
         exclude = ('date_created', 'date_modified', 'slug')
 

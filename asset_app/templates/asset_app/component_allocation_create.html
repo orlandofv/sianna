@@ -22,4 +22,15 @@
         </div>
     </div>
 
+    {% include 'asset_app/modal.html' with title="Add Vendor" template='asset_app/partials/maintenance_schedule_modal.html' %}
+    {% include 'asset_app/group_modal.html' with title="Add Group" template='asset_app/partials/group_modal.html' %}
+    {% include 'asset_app/system_modal.html' with title="Add System" template='asset_app/partials/system_modal.html' %}
+    {% include 'asset_app/type_modal.html' with title="Add Type" template='asset_app/partials/type_modal.html' %}
+    {% include 'asset_app/subtype_modal.html' with title="Add SubType" template='asset_app/partials/subtype_modal.html' %}
+    {% include 'asset_app/company_modal.html' with title="Add Company" template='asset_app/partials/company_modal.html' %}
+    {% include 'asset_app/division_modal.html' with title="Add Division" template='asset_app/partials/division_modal.html' %}
+    {% include 'asset_app/branch_modal.html' with title="Add Branch" template='asset_app/partials/branch_modal.html' %}
+    {% include 'asset_app/position_modal.html' with title="Add Position" template='asset_app/partials/position_modal.html' %}
+    {% include 'asset_app/component_modal.html' with title="Add Component" template='asset_app/partials/component_modal.html' %}
+    
 {% endblock content %}

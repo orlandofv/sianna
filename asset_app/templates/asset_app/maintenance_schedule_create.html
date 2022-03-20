@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'index.html' %}
 
 {% load static %}
 {% load crispy_forms_tags %}
@@ -20,4 +20,7 @@
             </div>
         </div>
     </div>
+
+    {% include 'asset_app/modal.html' with title="Maintenance Schedule" template='asset_app/partials/maintenance_schedule_modal.html' %}
+    
 {% endblock content %}
