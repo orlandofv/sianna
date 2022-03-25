@@ -369,7 +369,8 @@ class ComponentAllocation(models.Model):
     component_serial_number = models.CharField(_('Component Serial No.'), max_length=50)
     component_status = models.IntegerField(_('Component Status'), choices=STATUS, 
     default=GOOD)
-    component_image = models.ImageField(_('Image'), default="default.jpeg", upload_to = 'images/% Y/% m/% d/')
+    component_image = models.ImageField(_('Image'), default="default.jpeg", 
+    upload_to = 'images/% Y/% m/% d/', blank=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
     purchase_amount = models.DecimalField(default=0, max_digits=9, decimal_places=2)
     date_purchased = models.DateTimeField(default=timezone.now)

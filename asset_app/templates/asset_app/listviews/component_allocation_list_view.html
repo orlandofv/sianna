@@ -1,0 +1,75 @@
+{% extends 'index.html' %}
+
+{% load static %}
+{% load i18n %}
+
+{% block breadcrumb %}
+    {% include 'breadcrumb.html' with title='Component Allocations' path='Component Allocations' %}
+{% endblock breadcrumb %}
+
+{% block content %}
+    {% csrf_token %}
+
+    <div class="contentContainer">
+        <a href="{% url 'asset_app:component_allocation_create' %} " class="btn btn-success fa fa-plus-square">
+            {% trans 'New' %} 
+        </a>
+      
+        <button class="btn btn-danger delete-btn fa fa-minus-square" data-toggle="modal">
+            {% trans 'Delete Selected' %} 
+        </button>
+        
+        <hr>
+        
+        {% if object_list %}
+        <table id="sortTable" class="table table-striped display" style="width:100%">
+            <thead>
+                <tr>
+                    <th style="vertical-align:left;" class="sortable:false;">
+                        <input type="checkbox" id="checkall" name="main_Checkbox" 
+                        value="" style="vertical-align: middle"> 
+                    </th>
+
+                    <th></th>
+                    <th>Serial No.</th>
+                    <th>Location</th>
+                    <th>Vendor</th>
+                    <th>Start Values</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in object_list %}
+                    <tr data-id="{{ obj.id }}"  
+                    >
+                        
+                            <td> <input type="checkbox" id="{{ obj.id }}" name="{{ obj.component_name }}" 
+                                value="" style="vertical-align: middle"> </td>
+                            <td> </td>
+
+                            <td> {{ obj.component_system_no }}</td>
+                            <td> {{ obj.component_name }} </td>
+                            <td> {{ obj.component_manufacturer }} </td>
+                            <td> {{ obj.component_stock_code }} </td>
+                            <td> <a href="{% url 'asset_app:component_update_view' obj.slug %}" 
+                                    class="fa fa-pencil">
+                                    {% trans 'Update' %} 
+                                </a> 
+                            </td>
+                            <td> <a href="{% url 'asset_app:component_detail_view' obj.slug %}" 
+                                class="fa fa-eye">
+                                    {% trans 'Details' %} 
+                                </a> 
+                            </td>
+                    </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        {% else %}
+            <p>{% trans 'No Items to Show' %} </p>
+        {% endif %}        
+    </div>
+{% endblock content %}
+    

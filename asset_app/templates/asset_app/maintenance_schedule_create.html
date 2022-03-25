@@ -12,7 +12,10 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-    <div class="container">
+
+    {% csrf_token %}
+
+    <div class="contentContainer">
         <div class="row">
             <div class="col-md-12">
                 {% csrf_token %}

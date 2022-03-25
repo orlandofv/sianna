@@ -1,4 +1,5 @@
 import json
+import pstats
 
 from django.shortcuts import render, redirect, HttpResponseRedirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -10,7 +11,7 @@ from django.views.generic import (
     DeleteView
 )
 from django.contrib.auth.models import User
-from .models import Component, MaintenanceSchedule
+from .models import Component, MaintenanceSchedule, ComponentAllocation
 from .filters import ComponentFilter
 from users.models import User
 from .forms import (ComponentForm, MaintenanceForm, MaintenanceScheduleForm, 
@@ -53,9 +54,8 @@ def component_create_view(request):
 
 
 def maintenance_create_view(request):
-    if request.method == 'POST':
+    if request.method == 'POST' and 'save_maintenance':
         form = MaintenanceForm(request.POST)
-        print(form.errors)
         if form.is_valid():
             form.save()
             messages.success(request, _("Maintenance added successfully!"))
@@ -70,24 +70,20 @@ def maintenance_create_view(request):
 
 def maintenance_schedule_create_view(request):
     
-    if request.method == 'POST':
-        form = MaintenanceScheduleForm(request.POST)
+    if request.POST.get('save_maintenance'):
         modal_form = MaintenanceForm(request.POST)
-
         if modal_form.is_valid():
+            print(modal_form.errors)
             modal_form.save()
-            modal_opened = True
-        else:
-            modal_opened = False
+            return redirect("asset_app:maintenance_schedule_create")
 
+    if request.POST.get('save_maintenance_schedule'):  
+        form = MaintenanceScheduleForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, _("Maintenance Schedule added successfully!"))
             return redirect('/')
-        else:
-            if modal_opened is False:
-                messages.error(request, list(form.errors.values()))
-
+       
     form = MaintenanceScheduleForm()
     modal_form = MaintenanceForm()
     context = {'form': form, 'modal_form': modal_form}
@@ -274,11 +270,25 @@ def subtype_create_view(request):
     return render(request, 'asset_app/subtype_create.html', context)
 
 
+def vendor_create_view(request):
+    if request.method == 'POST' and 'save_vendor':
+        form = VendorForm(request.POST)
+       
+        if form.is_valid() and 'save_vendor':
+            form.save()
+            messages.success(request, _("Vendor added successfully!"))
+            return redirect('/')
+      
+    form = VendorForm()
+    context = {'form': form,}
+    return render(request, 'asset_app/vendor_create.html', context)
+
+
 def component_allocation_create_view(request):
     if request.method == 'POST':
         form = ComponentAllocationForm(request.POST)
         component_form = ComponentForm(request.POST)
-        modal_form = VendorForm(request.POST)
+        vendor_form = VendorForm(request.POST)
         group_form = GroupForm(request.POST)
         system_form = SystemForm(request.POST)
         type_form = TypeForm(request.POST)
@@ -288,77 +298,47 @@ def component_allocation_create_view(request):
         branch_form = BranchForm(request.POST)
         position_form = PositionForm(request.POST)
 
-        if modal_form.is_valid():
-            modal_form.save()
-            modal_opened = True
-        else:
-            modal_opened = False
-
-        if component_form.is_valid():
+        if vendor_form.is_valid() and 'save_vendor':
+            vendor_form.save()
+           
+        if component_form.is_valid() and 'save_component':
             component_form.save()
-            modal_opened = True
-        else:
-            modal_opened = False
-
-        if group_form.is_valid():
+           
+        if group_form.is_valid() and 'save_group':
             group_form.save()
-            modal_opened = True
-        else:
-            modal_opened = False
-        
-        if system_form.is_valid():
+            
+        if system_form.is_valid() and 'save_system':
             system_form.save()
-            modal_opened = True
-        else:
-            modal_opened = False
-
-        if type_form.is_valid():
+          
+        if type_form.is_valid() and 'save_type':
             type_form.save()
-            modal_opened = True
-        else:
-            modal_opened = False
-        
-        if subtype_form.is_valid():
+           
+        if subtype_form.is_valid() and 'save_subtype':
             subtype_form.save()
-            modal_opened = True
-        else:
-            modal_opened = False
-        
-        if company_form.is_valid():
+            
+        if company_form.is_valid() and 'save_company':
             company_form.save()
-            modal_opened = True
-        else:
-            modal_opened = False
         
-        if division_form.is_valid():
+        if division_form.is_valid() and 'save_division':
             division_form.save()
-            modal_opened = True
-        else:
-            modal_opened = False
-        
-        if branch_form.is_valid():
+           
+        if branch_form.is_valid() and 'save_branch':
             branch_form.save()
-            modal_opened = True
-        else:
-            modal_opened = False
         
-        if position_form.is_valid():
+        if position_form.is_valid() and 'save_position':
             position_form.save()
-            modal_opened = True
-        else:
-            modal_opened = False
-
-        if form.is_valid():
-            form.save()
-            messages.success(request, _("Component Allocation added successfully!"))
-            return redirect('/')
-        else:
-            if modal_opened is False:
-                messages.error(request, list(form.errors.values()))
-
+       
+        if form.is_valid() and 'save_componentallocation':
+            try:
+                form.save()
+                messages.success(request, _("Component Allocation added successfully!"))
+                return redirect('asset_app:')
+            except Exception as e:
+                messages.error(request, list(form.errors))
+       
     form = ComponentAllocationForm()
     component_form = ComponentForm()
-    modal_form = VendorForm()
+    vendor_form = VendorForm()
     group_form = GroupForm()
     system_form = SystemForm()
     type_form = TypeForm()
@@ -367,7 +347,7 @@ def component_allocation_create_view(request):
     division_form = DivisionForm()
     branch_form = BranchForm()
     position_form = PositionForm()
-    context = {'form': form, 'modal_form': modal_form, "group_form": group_form,
+    context = {'form': form, 'modal_form': vendor_form, "group_form": group_form,
     "system_form": system_form, "type_form": type_form, "subtype_form": subtype_form,
     "company_form": company_form, "division_form": division_form, "branch_form": branch_form ,
     "position_form": position_form, 'component_form': component_form}
@@ -379,19 +359,44 @@ class ComponentListView(ListView):
     model = Component
     template_name = 'asset_app/listviews/component_list_view.html'
 
+
+class MaintenanceScheduleListView(ListView):
+    model = MaintenanceSchedule
+    template_name = 'asset_app/listviews/maintenance_schedule_list_view.html'
+
+
+class ComponentAllocationListView(ListView):
+    model = ComponentAllocation
+    template_name = 'asset_app/listviews/component_allocation_list_view.html'
+
+
 ###################### ************ DELETE VIEWS ************  ######################
 
 def delete_component_view(request):
 
     if request.is_ajax():
-        selected_tests = request.POST['test_list_ids']
-        selected_tests = json.loads(selected_tests)
-        for i, test in enumerate(selected_tests):
-            if test != '':
-                Component.objects.filter(id__in=selected_tests).delete()
+        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = json.loads(selected_ids)
+        for i, id in enumerate(selected_ids):
+            if id != '':
+                Component.objects.filter(id__in=selected_ids).delete()
         
         messages.success(request, _("Component(s) delete successfully!"))
         return redirect('asset_app:component_list_view')
+
+def delete_maintenance_schedule_view(request):
+
+    if request.is_ajax():
+        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = json.loads(selected_ids)
+        print(selected_ids)
+
+        for i, id in enumerate(selected_ids):
+            if id != '':
+                MaintenanceSchedule.objects.filter(id__in=selected_ids).delete()
+        
+        messages.success(request, _("Schedule(s) delete successfully!"))
+        return redirect('asset_app:maintenance_schedule_list_view')
 
 ###################### ************ UPDATE VIEWS ************  ######################
 
@@ -442,3 +447,4 @@ def component_detail_view(request, slug):
     context["data"] = Component.objects.get(slug=slug)
           
     return render(request, "asset_app/component_detail_view.html", context)
+

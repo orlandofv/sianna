@@ -1,0 +1,67 @@
+{% extends 'index.html' %}
+
+{% load static %}
+{% load i18n %}
+
+{% block breadcrumb %}
+    {% include 'breadcrumb.html' with title='List of Schedules' path='Maintenance Schedule' %}
+{% endblock breadcrumb %}
+
+{% block content %}
+    
+    {% csrf_token %}
+
+    <div class="contentContainer">
+        <a href="{% url 'asset_app:maintenance_schedule_create' %} " class="btn btn-success fa fa-plus-square">
+            {% trans 'New' %} 
+        </a>
+
+        <button class="btn btn-danger delete-btn fa fa-minus-square" data-toggle="modal" 
+        onclick="DeleteItems('#sortTableMedium', '{% url 'asset_app:maintenance_schedule_delete_view' %}')">
+            {% trans 'Delete Selected' %} 
+        </button>
+        <hr>
+
+        <table id="sortTableMedium" class="table table-striped display">
+            <thead>
+                <tr class="p-0 m-0">
+                    <th style="padding-left: 11px;">
+                        <input type="checkbox" id="checkall" name="main_Checkbox" 
+                        value="" style="vertical-align: middle"> 
+                    </th>
+                    <th style="text-align: left;">Schedule</th>
+                    <th>Maintenance</th>
+                    <th>Notes</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {% for obj in object_list %}
+                    <tr data-id="{{ obj.id }}">
+                        
+                        <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
+                            value="" style="vertical-align: middle">
+                        </td>
+                        <td> {{ obj.schedule_name }}</td>
+                        <td> {{ obj.maintenance_name }}</td>
+                        <td> {{ obj.notes }}</td>
+                        <td>
+                            <a href="{% url 'asset_app:component_update_view' obj.slug %}" 
+                                class="fa fa-pencil btn btn-primary">{% trans 'Update' %} 
+                            </a> 
+                            <a href="{% url 'asset_app:component_detail_view' obj.slug %}" 
+                                class="fa fa-eye btn btn-primary">
+                                {% trans 'Details' %} 
+                            </a> 
+                        </td>
+                        
+                    </tr>
+            {% empty %}
+                    <p>{% trans 'No Items to Show' %} </p>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}
+    

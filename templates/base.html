@@ -27,6 +27,7 @@
     <!-- Custom CSS -->
     <link href="{% static 'css/style.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static '/DataTables/datatables.min.css' %}">
     <!-- HTML5 Shim and Respond.js' %} IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js' %} doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -40,9 +41,23 @@
         HideID.style.display = "none"; 
     }
 </script>
+
+
+<style>
+    .contentContainer
+    {
+        border-radius: 10px;
+        background-color: #fff;
+        padding: 15px;
+        margin-left: 20px;
+        margin-right: 20px;
+        margin-bottom: 20px;
+    }
+</style>
+
 </head>
 
-<body>
+<body style="background-color: white;">
     <!-- ============================================================== -->
     <!-- Preloader - style you can find in spinners.css -->
     <!-- ============================================================== -->
@@ -64,26 +79,16 @@
         {% include 'scripts.html' %}
     {% endblock jsscripts %}
 
-    <script src="{% static 'src/fancyTable.js' %}"> </script>
-
     <script type="text/javascript">
-       
-        $(document).ready(function() {
-            // And make them fancy
-            var fancyTableA = $("#sampleTableA").fancyTable({
-                sortColumn:0,
-                pagination: true,
-                perPage:20,
-                globalSearch:true
-            });
-        });
         
         // Delete view
-        $(".delete-btn").click(function(){
-        
+        function DeleteItems(element_id, current_url){
+            
+            alert(current_url);
+
             var selected_rows=[];
             
-            $('.sampleTable').find('tr').each(function(){
+            $(element_id).find('tr').each(function(){
                 var row=$(this);
                 console.log(row.find('input[type="checkbox"]').is(':checked'));
                 if (row.find('input[type="checkbox"]').is(':checked')) {
@@ -91,19 +96,66 @@
                     selected_rows.push(row.attr('data-id'));
                     };
             });
+
             var selected_rows = JSON.stringify(selected_rows);
+            alert(selected_rows);
             alert("{% trans "Selected rows Deleted" %}");
 
             $.ajax({
-                url: "{% url 'asset_app:component_delete_view' %}",
+                url: current_url,
                 type: 'POST',
-                data: {'test_list_ids': selected_rows,'csrfmiddlewaretoken': $("[name=csrfmiddlewaretoken]").val()},
+                data: {'ckeck_box_item_ids': selected_rows,'csrfmiddlewaretoken': $("[name=csrfmiddlewaretoken]").val()},
             })
-        });
+        };
+       
+        $(document).ready(function() {
+            $('#checkall').click(function () {
+                $('.rowcheckbox').prop('checked', this.checked);
+            });
 
-        $(".clickable-row").click(function() {
-            window.location = $(this).data("href");
+            $('.rowcheckbox').click(function () {
+                if ($('#checkall').prop('checked', true)) {
+                    $('#checkall').prop('checked', false)
+                }
+
+            });
+
+  
+            // Use DataTables to display table
+            $('#sortTableLarge').DataTable({
+                columnDefs: [
+                    { orderable: false, targets: 0 },
+                    { orderable: false, targets: 5 },
+                    { "width": "1%", "targets": 0 }
+                ],
+                order: [[2, 'asc']]
+            });
+
+             // Use DataTables to display table
+             $('#sortTableMedium').DataTable({
+                stateSave: true,
+                "bFilter" : true,
+                "responsive" : true,
+                "iDisplayLength": 10,
+                columnDefs: [
+                    { orderable: false, targets: 0 },
+                    { orderable: false, targets: 4 },
+                    { "width": "1%", "targets": 0 }
+                ],
+                order: [[2, 'asc']]
+            });
+
+             // Use DataTables to display table
+             $('#sortTableSmall').DataTable({
+                columnDefs: [
+                    { orderable: false, targets: 0 },
+                    { orderable: false, targets: 3 },
+                    { "width": "1%", "targets": 0 }
+                ],
+                order: [[2, 'asc']]
+            });
         });
+        
     </script>
 
 </body>

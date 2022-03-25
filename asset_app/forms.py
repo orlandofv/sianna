@@ -51,7 +51,7 @@ class ComponentForm(forms.ModelForm):
             flush=True,
             always_open=True),
             'notes',
-            Submit('submit', 'Save and Close'),
+            Submit('save_component', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
 
@@ -116,14 +116,14 @@ class MaintenanceForm(forms.ModelForm):
             Row(
                 Column('maintenance_action', css_class='form-group col-md-12 mb-0'),),
             Row(
-                Column('item_used', css_class='form-group col-md-10'),
-                Column('quantity', css_class='form-group col-md-2')
+                Column('item_used', css_class='form-group col-md-9'),
+                Column('quantity', css_class='form-group col-md-3')
             ),
             Row(Column('notes', css_class='form-group col-md-12')),
             flush=True,
             always_open=True)
             ),
-            Submit('submit', _('Save & Close'),),
+            Submit('save_maintenance', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
 
@@ -168,7 +168,8 @@ class MaintenanceScheduleForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('submit', _('Save & Close'),),
+            
+            Submit('save_maintenance_schedule', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -206,7 +207,7 @@ class CompanyForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('submit', _('Save & Close'),),
+            Submit('save_company', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -247,7 +248,7 @@ class DivisionForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('submit', _('Save & Close'),),
+            Submit('save_division', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -280,7 +281,7 @@ class BranchForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('submit', _('Save & Close'),),
+            Submit('save_branch', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -313,7 +314,7 @@ class PositionForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('submit', _('Save & Close'),),
+            Submit('save_position', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -343,7 +344,7 @@ class GroupForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('submit', _('Save & Close'),),
+            Submit('save_group', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -377,7 +378,7 @@ class SystemForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('submit', _('Save & Close'),),
+            Submit('save_system', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -411,7 +412,7 @@ class TypeForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('submit', _('Save & Close'),),
+            Submit('save_type', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -445,7 +446,7 @@ class SubTypeForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('submit', _('Save & Close'),),
+            Submit('save_subtype', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -470,7 +471,7 @@ class ComponentAllocationForm(forms.ModelForm):
     component_serial_number = forms.CharField(label=_('Component Serial No.'), max_length=50)
     component_status = forms.ChoiceField(label=_('Component Status'), choices=STATUS, 
     initial=GOOD)
-    component_image = forms.ImageField(label=_('Image'), initial="default.jpeg")
+    component_image = forms.ImageField(label=_('Image'), initial="default.jpeg", required=False)
     purchase_amount = forms.DecimalField(widget=forms.NumberInput, initial=0, max_digits=9, decimal_places=2)
     date_purchased = forms.DateTimeField(widget=forms.DateTimeInput, initial=timezone.now)
     date_allocated = forms.DateTimeField(widget=forms.DateTimeInput, initial=timezone.now)
@@ -573,7 +574,7 @@ class ComponentAllocationForm(forms.ModelForm):
             Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
             flush=True,
             always_open=True),
-            Submit('submit', ('Save & Close'),),
+            Submit('save_componentallocation', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -611,7 +612,7 @@ class VendorForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('submit', _('Save & Close'),),
+            Submit('save_vendor', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     

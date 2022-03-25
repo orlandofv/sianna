@@ -4,7 +4,9 @@ from .views import (home_view, component_create_view, maintenance_create_view,
 maintenance_schedule_create_view, company_create_view, division_create_view, 
 branch_create_view, position_create_view, group_create_view, system_create_view, 
 type_create_view, subtype_create_view, component_allocation_create_view, 
-ComponentListView, delete_component_view, component_update_view, component_detail_view)
+delete_component_view, component_update_view, vendor_create_view,
+component_detail_view, delete_maintenance_schedule_view, ComponentListView, MaintenanceScheduleListView, 
+ComponentAllocationListView, )
 
 app_name = 'asset_app'
 
@@ -23,14 +25,18 @@ urlpatterns = [
     path('systems/new', system_create_view, name='system_create'),
     path('types/new', type_create_view, name='type_create'),
     path('subtypes/new', subtype_create_view, name='subtype_create'),
+    path('vendors/new', vendor_create_view, name='vendor_create'),
     path('component_allocations/new', component_allocation_create_view, name='component_allocation_create'),
     
     ################### List Views
     path('components/', ComponentListView.as_view(), name='component_list_view'),
+    path('maintenance_schedules/', MaintenanceScheduleListView.as_view(), name='maintenance_schedule_list_view'),
+    path('component_allocations/', ComponentAllocationListView.as_view(), name='component_allocations_list_view'),
    
     ################### Delete Views
-    path('components/delete/', delete_component_view, name='component_delete_view'),
-   
+    path('components/delete', delete_component_view, name='component_delete_view'),
+    path('maintenance_schedules/delete', delete_maintenance_schedule_view, name='maintenance_schedule_delete_view'),
+
     ################### Update Views
     path('components/<slug:slug>/update', component_update_view, name='component_update_view'),
     
