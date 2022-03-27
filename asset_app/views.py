@@ -11,14 +11,17 @@ from django.views.generic import (
     DeleteView
 )
 from django.contrib.auth.models import User
-from .models import Component, MaintenanceSchedule, ComponentAllocation
+from .models import Component, MaintenanceSchedule, Allocation
 from .filters import ComponentFilter
 from users.models import User
 from .forms import (ComponentForm, MaintenanceForm, MaintenanceScheduleForm, 
 CompanyForm, DivisionForm, BranchForm, PositionForm, GroupForm, SystemForm, 
-TypeForm, SubTypeForm, ComponentAllocationForm, VendorForm)
+TypeForm, SubTypeForm, AllocationForm, VendorForm)
 from django.contrib import messages #import messages
 from django.utils.translation import ugettext_lazy as _
+from config.settings import MEDIA_URL
+
+from utilities.utilities import handle_uploaded_file
 
 
 def home_view(request):
@@ -27,10 +30,11 @@ def home_view(request):
     }
     return render(request, 'index.html', context)
 
+
 def component_create_view(request):
 
     if request.method == 'POST':
-        form = ComponentForm(request.POST)
+        form = ComponentForm(request.POST, request.FILES)
         modal_form = MaintenanceScheduleForm(request.POST)
 
         if modal_form.is_valid():
@@ -40,9 +44,14 @@ def component_create_view(request):
             modal_opened = False
 
         if form.is_valid():
-            form.save()
-            messages.success(request, _("Component added successfully!"))
-            return redirect('asset_app:component_list_view')
+            try:
+                handle_uploaded_file(request.FILES['file'], '{}/% Y/% m/% d/'.format(MEDIA_URL))
+                form.save()
+                messages.success(request, _("Component added successfully!"))
+                return redirect('asset_app:component_list_view')
+            except Exception as e:
+                messages.error(request, _("Error: {}.".format(e.args)))
+
         else:
             if modal_opened is False:
                 messages.error(request, list(form.errors.values()))
@@ -54,15 +63,31 @@ def component_create_view(request):
 
 
 def maintenance_create_view(request):
+    msg = ""
     if request.method == 'POST' and 'save_maintenance':
         form = MaintenanceForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, _("Maintenance added successfully!"))
-            return redirect('/')
+            try:
+                form.save()
+                messages.success(request, _("Maintenance added successfully!"))
+                return redirect('/')
+            except Exception as e:
+                for i, m in enumerate(e):
+                    if i == 0:
+                        msg = "- {}.".format(m)
+                    else:
+                        msg += "\n- {}.".format(m)
+                messages.error(request, _("Error(s):\n{}.".format(msg)), extra_tags='safe')
         else:
-            messages.error(request, list(form.errors.values()))
+            e = form.errors.as_data()
+            print(e.values())
 
+            for m in e.values():
+                for x in m:
+                    print(''.join(x.messages))
+              
+            messages.error(request, _("Error(s):\n{}.".format(msg)))
+            
     form = MaintenanceForm()
     context = {'form': form}
     return render(request, 'asset_app/maintenance_create.html', context)
@@ -72,18 +97,25 @@ def maintenance_schedule_create_view(request):
     
     if request.POST.get('save_maintenance'):
         modal_form = MaintenanceForm(request.POST)
-        if modal_form.is_valid():
-            print(modal_form.errors)
-            modal_form.save()
-            return redirect("asset_app:maintenance_schedule_create")
+        if modal_form.is_valid() and request.is_ajax():
+            try:
+                modal_form.save()
+                return redirect("asset_app:maintenance_schedule_create")
+            except Exception as e:
+                modal_form = MaintenanceForm()
+                return redirect("asset_app:maintenance_schedule_create")
 
     if request.POST.get('save_maintenance_schedule'):  
         form = MaintenanceScheduleForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, _("Maintenance Schedule added successfully!"))
-            return redirect('/')
-       
+            try:
+                form.save()
+                messages.success(request, _("Maintenance Schedule added successfully!"))
+                return redirect('asset_app:maintenance_schedule_list_view')
+            except Exception as e:
+                messages.error(request, _("Error: {}".format(e.args)))
+                return redirect('asset_app:maintenance_schedule_create')
+            
     form = MaintenanceScheduleForm()
     modal_form = MaintenanceForm()
     context = {'form': form, 'modal_form': modal_form}
@@ -286,7 +318,7 @@ def vendor_create_view(request):
 
 def component_allocation_create_view(request):
     if request.method == 'POST':
-        form = ComponentAllocationForm(request.POST)
+        form = AllocationForm(request.POST)
         component_form = ComponentForm(request.POST)
         vendor_form = VendorForm(request.POST)
         group_form = GroupForm(request.POST)
@@ -336,7 +368,7 @@ def component_allocation_create_view(request):
             except Exception as e:
                 messages.error(request, list(form.errors))
        
-    form = ComponentAllocationForm()
+    form = AllocationForm()
     component_form = ComponentForm()
     vendor_form = VendorForm()
     group_form = GroupForm()
@@ -365,8 +397,8 @@ class MaintenanceScheduleListView(ListView):
     template_name = 'asset_app/listviews/maintenance_schedule_list_view.html'
 
 
-class ComponentAllocationListView(ListView):
-    model = ComponentAllocation
+class AllocationListView(ListView):
+    model = Allocation
     template_name = 'asset_app/listviews/component_allocation_list_view.html'
 
 
@@ -389,14 +421,17 @@ def delete_maintenance_schedule_view(request):
     if request.is_ajax():
         selected_ids = request.POST['ckeck_box_item_ids']
         selected_ids = json.loads(selected_ids)
-        print(selected_ids)
-
+        
         for i, id in enumerate(selected_ids):
             if id != '':
                 MaintenanceSchedule.objects.filter(id__in=selected_ids).delete()
-        
-        messages.success(request, _("Schedule(s) delete successfully!"))
-        return redirect('asset_app:maintenance_schedule_list_view')
+       
+        if len(selected_ids) == 1:
+            messages.success(request, _("Schedule delete successfully!"))
+        else:
+            messages.success(request, _("{} Schedule(s) delete successfully!".format(len(selected_ids))))
+
+    return redirect('asset_app:asset_app_home')
 
 ###################### ************ UPDATE VIEWS ************  ######################
 

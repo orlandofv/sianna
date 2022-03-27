@@ -1,57 +1,62 @@
 from django.contrib import admin
-from .models import (Component, Company, ComponentAllocation, 
+from .models import (Component, Company, 
 Maintenance, MaintenanceSchedule, Division, Branch, Position, 
-Group, System, Type, SubType)
+Group, System, Type, SubType, Vendor, Allocation)
 
 
 class ComponentAdmin(admin.ModelAdmin):
-    list_display = ('component_name', 'component_manufacturer', 'component_stock_code', 'notes',)
+    list_display = ('name', 'manufacturer', 'stock_code', 'notes',)
     
 
-class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('company_name', 'company_address', 'company_manager', 'company_contacts', 'notes',)
-  
-
-class ComponentAllocationAdmin(admin.ModelAdmin):
-    list_display = ('component_name', 'company_name', 'date_allocated','component_serial_number', 
-    'component_status', 'notes',)
-
-
 class MaintenanceAdmin(admin.ModelAdmin):
-    list_display = ('maintenance_frequency', 'maintenance_schedule', 'maintenance_type', 
-    'time_allocated', 'maintenance_action')
+    list_display = ('frequency', 'schedule', 'type', 
+    'time_allocated', 'action')
 
 
 class MaintenanceScheduleAdmin(admin.ModelAdmin):
-    list_display = ('schedule_name', 'maintenance_name')
+    list_display = ('name', 'maintenance')
+
+
+
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'address', 'manager', 'contacts', 'notes',)
 
 
 class DivisionAdmin(admin.ModelAdmin):
-    list_display = ('division_name', 'company_name', 'division_address', 'division_contacts', 'notes',)
+    list_display = ('name', 'company', 'address', 'contacts', 'notes',)
 
 
 class BranchAdmin(admin.ModelAdmin):
-    list_display = ('branch_name', 'division_name', 'notes',)
+    list_display = ('name', 'division', 'notes',)
 
 
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ('position_name', 'branch_name', 'notes',)
+    list_display = ('name', 'branch', 'notes',)
 
 
 class GroupAdmin(admin.ModelAdmin):
-    list_display = ('group_name', 'notes',)
+    list_display = ('name', 'notes',)
 
 
 class SystemAdmin(admin.ModelAdmin):
-    list_display = ('system_name', 'group_name', 'notes',)
+    list_display = ('name', 'group', 'notes',)
 
 
 class TypeAdmin(admin.ModelAdmin):
-    list_display = ('type_name', 'system_name', 'notes',)
+    list_display = ('name', 'system', 'notes',)
 
 
 class SubtypeAdmin(admin.ModelAdmin):
-    list_display = ('subtype_name', 'type_name', 'notes',)
+    list_display = ('name', 'type', 'notes',)
+
+
+class AllocationAdmin(admin.ModelAdmin):
+    list_display = ('allocation_no', 'component', 'date_allocated','serial_number', 
+    'status')
+
+
+class VendorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'notes')
 
 
 admin.site.register(Component, ComponentAdmin)
@@ -63,7 +68,9 @@ admin.site.register(Group, GroupAdmin)
 admin.site.register(System, SystemAdmin)
 admin.site.register(Type, TypeAdmin)
 admin.site.register(SubType, SubtypeAdmin)
-admin.site.register(ComponentAllocation, ComponentAllocationAdmin)
+admin.site.register(Allocation, AllocationAdmin)
 admin.site.register(Maintenance, MaintenanceAdmin)
 admin.site.register(MaintenanceSchedule, MaintenanceScheduleAdmin)
+admin.site.register(Vendor, VendorAdmin)
+
 

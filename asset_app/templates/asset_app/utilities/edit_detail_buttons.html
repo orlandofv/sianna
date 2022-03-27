@@ -1,0 +1,10 @@
+{% load i18n %}
+
+<a href="{% url 'asset_app:component_update_view' obj.slug %}" 
+    class="fa fa-pencil btn btn-primary">
+    {% trans 'Update' %} 
+</a> 
+<a href="{% url 'asset_app:component_detail_view' obj.slug %}" 
+    class="fa fa-eye btn btn-primary">
+    {% trans 'Details' %} 
+</a>

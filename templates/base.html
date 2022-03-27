@@ -82,9 +82,8 @@
     <script type="text/javascript">
         
         // Delete view
+        // Get table tr elements 
         function DeleteItems(element_id, current_url){
-            
-            alert(current_url);
 
             var selected_rows=[];
             
@@ -98,17 +97,24 @@
             });
 
             var selected_rows = JSON.stringify(selected_rows);
-            alert(selected_rows);
-            alert("{% trans "Selected rows Deleted" %}");
-
+           
             $.ajax({
                 url: current_url,
                 type: 'POST',
-                data: {'ckeck_box_item_ids': selected_rows,'csrfmiddlewaretoken': $("[name=csrfmiddlewaretoken]").val()},
+                data: {'ckeck_box_item_ids': selected_rows,
+                'csrfmiddlewaretoken': $("[name=csrfmiddlewaretoken]").val()},
+                success: function () {
+                    window.location.href = "{% url 'asset_app:maintenance_schedule_list_view' %}"
+                 }
             })
+        
         };
        
         $(document).ready(function() {
+            var random_number = Math.floor(100000000 + Math.random() * 900000000);
+            $('#id_component_system_no').val(random_number);
+            $('#id_allocation_no').val(random_number);
+            
             $('#checkall').click(function () {
                 $('.rowcheckbox').prop('checked', this.checked);
             });

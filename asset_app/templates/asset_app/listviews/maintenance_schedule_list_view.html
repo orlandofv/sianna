@@ -12,16 +12,8 @@
     {% csrf_token %}
 
     <div class="contentContainer">
-        <a href="{% url 'asset_app:maintenance_schedule_create' %} " class="btn btn-success fa fa-plus-square">
-            {% trans 'New' %} 
-        </a>
-
-        <button class="btn btn-danger delete-btn fa fa-minus-square" data-toggle="modal" 
-        onclick="DeleteItems('#sortTableMedium', '{% url 'asset_app:maintenance_schedule_delete_view' %}')">
-            {% trans 'Delete Selected' %} 
-        </button>
+        {% include 'asset_app/utilities/new_detete_extra_buttons.html' with table_id='#sortTableMedium' %}
         <hr>
-
         <table id="sortTableMedium" class="table table-striped display">
             <thead>
                 <tr class="p-0 m-0">
@@ -47,13 +39,7 @@
                         <td> {{ obj.maintenance_name }}</td>
                         <td> {{ obj.notes }}</td>
                         <td>
-                            <a href="{% url 'asset_app:component_update_view' obj.slug %}" 
-                                class="fa fa-pencil btn btn-primary">{% trans 'Update' %} 
-                            </a> 
-                            <a href="{% url 'asset_app:component_detail_view' obj.slug %}" 
-                                class="fa fa-eye btn btn-primary">
-                                {% trans 'Details' %} 
-                            </a> 
+                            {% include 'asset_app/utilities/edit_detail_buttons.html' %}
                         </td>
                         
                     </tr>

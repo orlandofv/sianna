@@ -5,5 +5,5 @@ from .models import Component
 class ComponentFilter(django_filters.FilterSet):
     class Meta:
         model = Component
-        fields = ['component_name']
+        fields = ['name']
 
