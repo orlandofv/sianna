@@ -54,7 +54,7 @@ class ComponentForm(forms.ModelForm):
             flush=True,
             always_open=True),
             'notes',
-            Submit('save_component', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_component', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
 
@@ -91,16 +91,17 @@ class MaintenanceForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), max_length=50)
     type = forms.ChoiceField(choices=MAINTENANCE_CHOICES)
     schedule = forms.ChoiceField(choices=MAINTENANCE_SCHEDULE)
-    frequency = forms.IntegerField(widget=forms.NumberInput)
-    time_allocated = forms.FloatField(widget=forms.NumberInput)
+    frequency = forms.IntegerField(widget=forms.NumberInput, initial=1)
+    time_allocated = forms.FloatField(widget=forms.NumberInput, initial=1)
     action = forms.CharField(widget=forms.TextInput, max_length=255)
-    item_used = forms.CharField(widget=forms.TextInput, max_length=20)
-    quantity = forms.FloatField(widget=forms.NumberInput)
     notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self.helper = FormHelper(self)
+        self.helper.form_show_errors = False
+        self.helper.attrs = {"novalidate": ''}
         self.helper.form_id = "maintenance-form-id"
         self.helper.form_class = "maintenance-form-class"
         self.helper.layout = Layout(
@@ -120,30 +121,50 @@ class MaintenanceForm(forms.ModelForm):
             ),
             Row(
                 Column('action', css_class='form-group col-md-12 mb-0'),),
-            Row(
-                Column('item_used', css_class='form-group col-md-9'),
-                Column('quantity', css_class='form-group col-md-3')
-            ),
-            Row(Column('notes', css_class='form-group col-md-12')),
+            Row(Column('notes', css_class='form-group col-md-12 mb-0')),
+            Submit('save_maintenance', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_maintenance_clone', _('Save and Clone'), css_class='btn btn-secondary fas fa-save'),
+            Submit('save_maintenance_new', _('Save and New'), css_class='btn btn-success fas fa-save'),
+            Reset('reset', 'Clear', css_class='btn btn-danger'),
             flush=True,
             always_open=True)
             ),
-            Submit('save_maintenance', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
-            Reset('reset', 'Clear', css_class='btn btn-danger'),
+           
         )
 
     def clean(self):
-        super(MaintenanceForm, self).clean()
+        print('Executando o Clean')
+        cleaned_data = super().clean()
+        frequency = cleaned_data.get('frequency')
 
-        frequency = self.cleaned_data.get('frequency')
-        time_allocated = self.cleaned_data.get('time_allocated')
-        quantity = self.cleaned_data.get('quantity')
-
-        if frequency <= 0:
+        name = cleaned_data.get('name')
+        action = cleaned_data.get('action')
+        time_allocated = cleaned_data.get('time_allocated')
+       
+        if frequency in (None, ""):
+            self.errors['frequency'] = self.error_class([_('Maintenance frequency must not be ' 
+            'empty.')])
+        elif frequency <= 0:
             self.errors['frequency'] = self.error_class([_('Maintenance frequency must be ' 
-            'greater than zero')])
-        
-        return self.cleaned_data
+            'greater than zero.')])
+
+        if time_allocated in (None, ""):
+            self.errors['time_allocated'] = self.error_class([_('Maintenance Time allocated must not be ' 
+            'empty.')])
+
+        elif time_allocated <= 0:
+             self.errors['time_allocated'] = self.error_class([_('Maintenance Time allocated must be ' 
+            'greater than zero.')])
+
+        if name in (None, ""):
+             self.errors['name'] = self.error_class([_('Maintenance name must no be ' 
+            'empty.')])
+
+        if action in (None, ""):
+             self.errors['action'] = self.error_class([_('Maintenance Action must no be ' 
+            'empty.')])
+
+        return cleaned_data
 
     class Meta:
         model = Maintenance
@@ -175,8 +196,7 @@ class MaintenanceScheduleForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            
-            Submit('save_schedule', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_schedule', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -216,7 +236,7 @@ class CompanyForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('save_company', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_company', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -259,7 +279,7 @@ class DivisionForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('save_division', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_division', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -294,7 +314,7 @@ class BranchForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('save_branch', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_branch', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -329,7 +349,7 @@ class PositionForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('save_position', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_position', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -361,7 +381,7 @@ class GroupForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('save_group', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_group', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -397,7 +417,7 @@ class SystemForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('save_system', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_system', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -433,7 +453,7 @@ class TypeForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('save_type', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_type', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -469,7 +489,7 @@ class SubTypeForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('save_subtype', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_subtype', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -606,7 +626,7 @@ class AllocationForm(forms.ModelForm):
             Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
             flush=True,
             always_open=True),
-            Submit('save_componentallocation', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_componentallocation', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     
@@ -646,7 +666,7 @@ class VendorForm(forms.ModelForm):
             ),
              flush=True,
             always_open=True),
-            Submit('save_vendor', _('Save and Close'), css_class='btn btn-primary fas fa-save', type='submit'),
+            Submit('save_vendor', _('Save and Close'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
     

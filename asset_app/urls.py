@@ -7,7 +7,7 @@ type_create_view, subtype_create_view, component_allocation_create_view,
 delete_component_view, component_update_view, vendor_create_view,
 component_detail_view, delete_maintenance_schedule_view, ComponentListView, 
 MaintenanceScheduleListView, 
-AllocationListView, )
+AllocationListView,  maintenance_ajax_view)
 
 app_name = 'asset_app'
 
@@ -29,6 +29,9 @@ urlpatterns = [
     path('vendors/new', vendor_create_view, name='vendor_create'),
     path('allocations/new', component_allocation_create_view, name='component_allocation_create'),
     
+    ################### AJAX CREATE VIEWS ####################
+    path('maintenance/ajax/save', maintenance_ajax_view, name='maintenance_ajax_save'),
+
     ################### List Views
     path('components/', ComponentListView.as_view(), name='component_list_view'),
     path('maintenance_schedules/', MaintenanceScheduleListView.as_view(), name='maintenance_schedule_list_view'),

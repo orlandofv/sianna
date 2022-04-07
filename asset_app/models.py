@@ -47,8 +47,6 @@ class Maintenance(models.Model):
     frequency = models.IntegerField(default=0)
     time_allocated = models.FloatField(default=0)
     action = models.CharField(max_length=255)
-    item_used = models.CharField(max_length=20)
-    quantity = models.FloatField(default=0)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
@@ -58,7 +56,7 @@ class Maintenance(models.Model):
     modified_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
 
     def get_absolute_url(self):
-        return reverse('detail', kwargs={'slug': self.slug})
+        return reverse('maintenance_detail', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs): # new
         if not self.slug:
@@ -120,7 +118,7 @@ class Component(models.Model):
         return "{} - {}".format(self.component_no, self.name)
 
     def get_absolute_url(self):
-        return reverse('detail', kwargs={'slug': self.slug})
+        return reverse('component_detail', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs): # new
         if not self.slug:
@@ -154,7 +152,7 @@ class Company(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('detail', kwargs={'slug': self.slug})
+        return reverse('company_detail', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs): # new
         if not self.slug:
@@ -188,7 +186,7 @@ class Division(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('detail', kwargs={'slug': self.slug})
+        return reverse('division_detail', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs): # new
         if not self.slug:
@@ -218,7 +216,7 @@ class Branch(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('detail', kwargs={'slug': self.slug})
+        return reverse('branch_detail', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs): # new
         if not self.slug:
@@ -249,7 +247,7 @@ class Position(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('detail', kwargs={'slug': self.slug})
+        return reverse('position_detail', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs): # new
         if not self.slug:
@@ -271,6 +269,8 @@ class Group(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
     modified_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
 
+    def get_absolute_url(self):
+        return reverse('group_detail', kwargs={'slug': self.slug})
 
     def __str__(self):
         return self.name
@@ -293,6 +293,8 @@ class System(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
     modified_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
 
+    def get_absolute_url(self):
+        return reverse('system_detail', kwargs={'slug': self.slug})
 
     def __str__(self):
         return self.name
@@ -315,6 +317,8 @@ class Type(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
     modified_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
 
+    def get_absolute_url(self):
+        return reverse('type_detail', kwargs={'slug': self.slug})
 
     def __str__(self):
         return self.name
@@ -337,6 +341,8 @@ class SubType(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
     modified_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
 
+    def get_absolute_url(self):
+        return reverse('subtype_detail', kwargs={'slug': self.slug})
 
     def __str__(self):
         return self.name
@@ -373,7 +379,7 @@ class Vendor(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('detail', kwargs={'slug': self.slug})
+        return reverse('vendor_detail', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs): # new
         if not self.slug:
@@ -450,5 +456,31 @@ class Allocation(models.Model):
         ordering = ("-date_allocated",)
 
 
+class Item(models.Model):
     
+    name = models.CharField(_('Name'), max_length=50, unique=True)
+    slug = models.SlugField(unique=True, null=False, editable=False)
+    quantity = models.IntegerField(_('Quantity'),)
+    maintenance = models.ForeignKey(Maintenance, on_delete=models.CASCADE)
+    notes = models.TextField(blank=True)
+    date_created = models.DateTimeField(editable=False, 
+    default=timezone.now)
+    date_modified = models.DateTimeField(editable=False, 
+    default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
+    modified_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
+    
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('item_detail', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs): # new
+        if not self.slug:
+            self.slug = slugify(self.name)
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ("name",)
 

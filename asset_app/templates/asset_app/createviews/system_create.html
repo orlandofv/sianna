@@ -5,10 +5,10 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'New Position' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'New Branch' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='New Position' path='New Position' %}
+    {% include 'breadcrumb.html' with title='New Branch' path='New Branch' %}
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -22,6 +22,6 @@
         </div>
     </div>
 
-    {% include 'asset_app/modal.html' with title="Add Branch" template='asset_app/partials/maintenance_schedule_modal.html' %}
-    
+    {% include 'asset_app/modals/modal.html' with title="Add Group" template='asset_app/modals/maintenance_schedule_modal.html' %}
+
 {% endblock content %}

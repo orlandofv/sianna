@@ -1,7 +1,9 @@
 import json
+from multiprocessing import context
 import pstats
+import datetime
 
-from django.shortcuts import render, redirect, HttpResponseRedirect, get_object_or_404
+from django.shortcuts import render, redirect, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView,
@@ -11,7 +13,7 @@ from django.views.generic import (
     DeleteView
 )
 from django.contrib.auth.models import User
-from .models import Component, MaintenanceSchedule, Allocation
+from .models import Component, MaintenanceSchedule, Allocation, Maintenance
 from .filters import ComponentFilter
 from users.models import User
 from .forms import (ComponentForm, MaintenanceForm, MaintenanceScheduleForm, 
@@ -20,6 +22,10 @@ TypeForm, SubTypeForm, AllocationForm, VendorForm)
 from django.contrib import messages #import messages
 from django.utils.translation import ugettext_lazy as _
 from config.settings import MEDIA_URL
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from django.http import JsonResponse
+from django.core import serializers
 
 from utilities.utilities import handle_uploaded_file
 
@@ -31,6 +37,7 @@ def home_view(request):
     return render(request, 'index.html', context)
 
 
+@login_required
 def component_create_view(request):
 
     if request.method == 'POST':
@@ -59,38 +66,110 @@ def component_create_view(request):
     form = ComponentForm()
     modal_form = MaintenanceScheduleForm()
     context = {'form': form, 'modal_form': modal_form}
-    return render(request, 'asset_app/component_create.html', context)
+    return render(request, 'asset_app/createviews/component_create.html', context)
 
 
-def maintenance_create_view(request):
-    msg = ""
-    if request.method == 'POST' and 'save_maintenance':
+@login_required
+def maintenance_create_view_old(request):
+ 
+    if request.method == 'POST': 
         form = MaintenanceForm(request.POST)
-        if form.is_valid():
-            try:
-                form.save()
-                messages.success(request, _("Maintenance added successfully!"))
-                return redirect('/')
-            except Exception as e:
-                for i, m in enumerate(e):
-                    if i == 0:
-                        msg = "- {}.".format(m)
-                    else:
-                        msg += "\n- {}.".format(m)
-                messages.error(request, _("Error(s):\n{}.".format(msg)), extra_tags='safe')
-        else:
-            e = form.errors.as_data()
-            print(e.values())
 
-            for m in e.values():
-                for x in m:
-                    print(''.join(x.messages))
-              
-            messages.error(request, _("Error(s):\n{}.".format(msg)))
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.created_by =  instance.modified_by = request.user
+            instance.created = instance.modified = datetime.datetime.now()
+            instance = instance.save()
+            messages.success(request, _("'{}' added successfully!".format(request.POST.get('name'))))
+            return redirect('/')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+            return render(request, 'asset_app/createviews/maintenance_create.html', {'form': form})
+    else:
+        form = MaintenanceForm()
+
+        maintenance = Maintenance.objects.all()
+        context = {'form': form, 'maintenance': maintenance}
+        return render(request, 'asset_app/createviews/maintenance_create.html', context)
+
+@login_required
+def maintenance_create_view(request):
+    
+    # request should be ajax and method should be POST.
+    if request.method == "POST":
+        form = MaintenanceForm(request.POST)
+        
+        # save the data and after fetch the object in instance
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.created_by =  instance.modified_by = request.user
+            instance.created = instance.modified = datetime.datetime.now()
+            instance = instance.save()
             
-    form = MaintenanceForm()
-    context = {'form': form}
-    return render(request, 'asset_app/maintenance_create.html', context)
+            if request.POST.get('save_maintenance'):
+                messages.success(request, _("'{}' added successfully!".format(request.POST.get('name'))))
+                return redirect('/')
+            else:
+                return JsonResponse({"instance": instance}, status=200)
+        
+        else:
+            if request.POST.get('save_maintenance'):
+                for error in form.errors.values():
+                    messages.error(request, error)
+                return render(request, 'asset_app/createviews/maintenance_create.html', {'form': form})
+            else:
+                return JsonResponse({"error": form.errors}, status=400) 
+    else:
+        # If request is not POST    
+        form = MaintenanceForm()
+
+        maintenance = Maintenance.objects.all()
+        context = {'form': form, 'maintenance': maintenance}
+        return render(request, 'asset_app/createviews/maintenance_create.html', context)
+
+
+def maintenance_ajax_view(request):
+    
+    print('Estou a correr')
+    # request should be ajax and method should be POST.
+    if request.is_ajax and request.method == "POST":
+        # get the form data
+        form = MaintenanceForm(request.POST)
+        # save the data and after fetch the object in instance
+        if form.is_valid():
+            name = request.POST.get('id_name')
+            type = request.POST.get('id_type')
+            schedule = request.POST.get('id_schedule')
+            frequency = request.POST.get('id_frequency')
+            time_allocated = request.POST.get('id_time_allocated')
+            action = request.POST.get('id_action')
+            item_used = request.POST.get('id_item_used')
+            quantity = request.POST.get('id_quantity')
+            notes = request.POST.get('id_notes')
+            
+            instance = instance.save(commit=False)
+            instance.created_by =  instance.modified_by = request.user
+            instance.name = name
+            instance.type = type
+            instance.schedule = schedule
+            instance.frequency = frequency
+            instance.time_allocated = time_allocated
+            instance.action = action
+            instance.item_used = item_used
+            instance.quantity = quantity
+            instance.notes = notes
+            instance.created = instance.modified = datetime.datetime.now()
+            instance = instance.save()
+            instance = form.save()
+            
+            return JsonResponse({"instance": instance}, status=200)
+        else:
+            # some form errors occured.
+            return JsonResponse({"error": form.errors}, status=400)
+
+    # some error occured
+    return JsonResponse({"error": ""}, status=400)
 
 
 def maintenance_schedule_create_view(request):

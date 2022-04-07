@@ -5,10 +5,10 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'New Component' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'New Type' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='New Component' path='New Component' %}
+    {% include 'breadcrumb.html' with title='New Type' path='New Type' %}
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -22,6 +22,6 @@
         </div>
     </div>
 
-    {% include 'asset_app/modal.html' with title="Add Maintenance Schedule" template='asset_app/partials/maintenance_schedule_modal.html' %}
-
+    {% include 'asset_app/modals/modal.html' with title="Add System" template='asset_app/modals/maintenance_schedule_modal.html' %}
+    
 {% endblock content %}

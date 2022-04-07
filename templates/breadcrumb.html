@@ -2,14 +2,14 @@
 <!-- Bread crumb and right sidebar toggle -->
 <!-- ============================================================== -->
 {% for message in messages %}
-    <div class="container p-0 m-0" id="alerta">
+    <div class="container p-0 m-0" id="alerta{{ forloop.counter }}">
         <div class="alert {{ message.tags }} alert-dismissible" role="alert" 
         style="margin:0px; padding:0px;">
             <button type="button" class="btn close" style="vertical-align: center; 
             horizontal-align: right;" data-dismiss="alert" aria-label="Close"
-            <span aria-hidden="True" onclick="Hide(alerta)">&times;</span>
+            <span aria-hidden="True" onclick="Hide(alerta{{ forloop.counter }})">&times;</span>
             </button>
-            {{ message }}
+            {{ message|striptags }}
         </div>
     </div>
 {% endfor %}

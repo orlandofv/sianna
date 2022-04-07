@@ -5,10 +5,10 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'New SubType' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'New Company' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='New SubType' path='New SubType' %}
+    {% include 'breadcrumb.html' with title='New Company' path='New Company' %}
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -22,6 +22,6 @@
         </div>
     </div>
 
-    {% include 'asset_app/modal.html' with title="Add Type" template='asset_app/partials/maintenance_schedule_modal.html' %}
-
+    {% include 'asset_app/modals/modal.html' with title="Add Company" template='asset_app/modals/maintenance_schedule_modal.html' %}
+    
 {% endblock content %}

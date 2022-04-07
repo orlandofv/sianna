@@ -52,6 +52,7 @@ $(function () {
                 }
             }
         };
+        
         var plotObj = $.plot($("#flot-line-chart"), [{
             data: sin,
             label: "sin(x)",
