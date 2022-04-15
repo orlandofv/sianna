@@ -80,39 +80,69 @@
     {% endblock jsscripts %}
 
     <script type="text/javascript">
-        
+        var random_number = Math.floor(100000000 + Math.random() * 900000000);
         // Delete view
         // Get table tr elements 
-        function DeleteItems(element_id, current_url){
-
+        function DeleteItems(element_id, delete_url, redirect_url){
+            
             var selected_rows=[];
+            var array_rows=[];
             
             $(element_id).find('tr').each(function(){
                 var row=$(this);
                 console.log(row.find('input[type="checkbox"]').is(':checked'));
                 if (row.find('input[type="checkbox"]').is(':checked')) {
-                    console.log(row.attr('data-id'));
+                    // console.log(row.attr('data-id'));
                     selected_rows.push(row.attr('data-id'));
+                    array_rows = selected_rows;
+        
                     };
             });
 
             var selected_rows = JSON.stringify(selected_rows);
            
             $.ajax({
-                url: current_url,
+                url: delete_url,
                 type: 'POST',
                 data: {'ckeck_box_item_ids': selected_rows,
                 'csrfmiddlewaretoken': $("[name=csrfmiddlewaretoken]").val()},
                 success: function () {
-                    window.location.href = "{% url 'asset_app:maintenance_schedule_list_view' %}"
-                 }
+                    
+                    /*
+                    for (var row of array_rows){
+                        var element = "row" + row;
+                        console.log(random_number);
+                        $('.' + element).hide();
+                        random_number = Math.floor(100000000 + Math.random() * 900000000);
+                    }
+                    */
+
+                    // Refreh element
+                    $(element_id).load(location.href + " " + element_id);
+
+                    console.log('Item apagado');
+                    // window.location.href = redirect_url;
+
+                    if (array_rows.length > 0){
+                        $( "<div class='alert alert-warning p-0 m-0' id='alerta" + random_number + "' role='alert'>" + 
+                            " <button type='button' class='btn close' style='vertical-align: center;" + 
+                            "horizontal-align: right;' data-dismiss='alert' aria-label='Close' " +
+                            "<span aria-hidden='True' onclick='Hide(alerta" + random_number + ")'>&times;</span>" +
+                            "</button> Item(s) deleted successfully</div>" ).insertBefore( ".page-breadcrumb" );
+                    };
+
+                    $("#alerta" + random_number).delay(3200).hide(300);
+                    random_number = Math.floor(100000000 + Math.random() * 900000000);
+                }
             })
-        
         };
        
         $(document).ready(function() {
             var random_number = Math.floor(100000000 + Math.random() * 900000000);
-            $('#id_component_system_no').val(random_number);
+            if ($('#id_component_no').val() == ""){ 
+                $('#id_component_no').val(random_number);
+            }
+            
             $('#id_allocation_no').val(random_number);
             
             $('#checkall').click(function () {
@@ -125,7 +155,6 @@
                 }
 
             });
-
   
             // Use DataTables to display table
             $('#sortTableLarge').DataTable({
@@ -158,7 +187,16 @@
                     { orderable: false, targets: 3 },
                     { "width": "1%", "targets": 0 }
                 ],
-                order: [[2, 'asc']]
+                order: [[1, 'asc']]
+            });
+
+             // Use DataTables to display table
+             $('#sortTableSmaller').DataTable({
+                columnDefs: [
+                    { orderable: false, targets: 0 },
+                    { "width": "1%", "targets": 0 }
+                ],
+                order: [[1, 'asc']]
             });
         });
         

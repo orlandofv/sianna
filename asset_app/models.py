@@ -107,7 +107,7 @@ class Component(models.Model):
     manufacturer = models.CharField(_('Manufacturer'), max_length=100, blank=True)
     stock_code = models.CharField(_('Stock Code'), max_length=100, blank=True)
     maintenanceschedule= models.ForeignKey(MaintenanceSchedule, on_delete=models.CASCADE)
-    image = models.ImageField(_('Image'), default="default.jpeg", upload_to = 'images/% Y/% m/% d/')
+    image = models.ImageField(_('Image'), default="default.jpeg", upload_to = 'media')
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, default=timezone.now)
     date_modified = models.DateTimeField(editable=False, default=timezone.now)
@@ -409,7 +409,7 @@ class Allocation(models.Model):
     status = models.IntegerField(_('Component Status'), choices=STATUS, 
     default=GOOD)
     image = models.ImageField(_('Image'), default="default.jpeg", 
-    upload_to = 'images/% Y/% m/% d/', blank=True)
+    upload_to = 'media', blank=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
     purchase_amount = models.DecimalField(default=0, max_digits=9, decimal_places=2)
     date_purchased = models.DateTimeField(default=timezone.now)
@@ -460,8 +460,7 @@ class Item(models.Model):
     
     name = models.CharField(_('Name'), max_length=50, unique=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
-    quantity = models.IntegerField(_('Quantity'),)
-    maintenance = models.ForeignKey(Maintenance, on_delete=models.CASCADE)
+    quantity = models.DecimalField(_('Quantity'), decimal_places=2, max_digits=9)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
@@ -483,4 +482,19 @@ class Item(models.Model):
 
     class Meta:
         ordering = ("name",)
+
+
+class MaintenanceItem(models.Model):
+    
+    maintenance = models.ForeignKey(Maintenance, on_delete=models.PROTECT)
+    item = models.ForeignKey(Item, on_delete=models.PROTECT)
+    quantity = models.DecimalField(_('Quantity'), decimal_places=2, max_digits=9)
+    
+    def __str__(self):
+        return '{} - {}'.format(self.maintenance, self.item)    
+
+    class Meta:
+        verbose_name_plural = "Maintenance Items"
+        unique_together = [['maintenance', 'item']]
+
 

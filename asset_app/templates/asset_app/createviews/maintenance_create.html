@@ -8,7 +8,7 @@
 {% block title %} {{ block.super }} | {% trans 'New Maintenance' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='New Maintenance' path='New Maintenance' %}
+{% include 'breadcrumb.html' with title='New Maintenance' path='<a href="/maintenances/"> Maintenances </a>' dest='New Maintenance' %}
 {% endblock breadcrumb %}
             
 {% block content %}

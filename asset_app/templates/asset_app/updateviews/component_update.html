@@ -5,10 +5,10 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'New Component' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'Update Component' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='New Component' path='<a href="/components/"> Components </a>' dest='New Component' %}
+    {% include 'breadcrumb.html' with title='Update Component' path='<a href="/components/"> Components</a> </a> > Update Component' %}
 {% endblock breadcrumb %}
 
 {% block content %}

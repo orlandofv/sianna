@@ -4,7 +4,7 @@
 {% load i18n %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='List of Components' path='Components' dest='' %}
+    {% include 'breadcrumb.html' with title='List of Components' path='Components' %}
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -31,23 +31,23 @@
                     </th>
                     <th style="text-align: left;">System No.</th>
                     <th>Name</th>
-                    <th>Schedule</th>
+                    <th>Manufacturer</th>
                     <th>Stock Cod.</th>
-                    <th>Actions</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for obj in object_list %}
-                    <tr data-id="{{ obj.id }}" class="row{{ obj.id }}">
+                    <tr data-id="{{ obj.id }}">
                         
                             <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
                                 value="" style="vertical-align: middle">
                             </td>
-                            <td> {{ obj.component_no }}</td>
-                            <td> {{ obj.name }} </td>
-                            <td> {{ obj.maintenanceschedule }} </td>
-                            <td> {{ obj.stock_code }} </td>
-                            <td> <a href="{% url 'asset_app:home_view' %}" 
+                            <td> {{ obj.component_system_no }}</td>
+                            <td> {{ obj.component_name }} </td>
+                            <td> {{ obj.component_manufacturer }} </td>
+                            <td> {{ obj.component_stock_code }} </td>
+                            <td> <a href="{% url 'asset_app:component_update_view' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">
                                     {% trans 'Update' %} 
                                 </a> 

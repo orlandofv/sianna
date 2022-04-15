@@ -4,7 +4,7 @@
 {% load i18n %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='List of Schedules' path='Maintenance Schedule' %}
+    {% include 'breadcrumb.html' with title='List of Maintenances' path='Maintenances' %}
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -12,49 +12,51 @@
     {% csrf_token %}
 
     <div class="contentContainer">
-        {% url 'asset_app:maintenance_schedule_delete_view' as delete %}
-        {% url 'asset_app:maintenance_schedule_create' as create %}
-        {% url 'asset_app:maintenance_schedule_list_view' as redirect %}
+        {% url 'asset_app:maintenance_delete_view' as delete %}
+        {% url 'asset_app:maintenance_create' as create %}
+        {% url 'asset_app:maintenance_list_view' as redirect %}
         
-        {% include 'asset_app/utilities/new_delete_extra_buttons.html' with table_id='#sortTableMedium' delete_url=delete redirect_url=redirect create_url=create %}
+        {% include 'asset_app/utilities/new_delete_extra_buttons.html' with table_id='#sortTableSmall' delete_url=delete redirect_url=redirect create_url=create %}
         
         <hr>
-        <table id="sortTableMedium" class="table table-striped display">
+
+        <table id="sortTableSmall" class="table table-striped display">
             <thead>
                 <tr class="p-0 m-0">
                     <th style="padding-left: 11px;">
                         <input type="checkbox" id="checkall" name="main_Checkbox" 
                         value="" style="vertical-align: middle"> 
                     </th>
-                    <th style="text-align: left;">Schedule</th>
                     <th>Maintenance</th>
-                    <th>Notes</th>
                     <th>Action</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
 
                 {% for obj in object_list %}
                     <tr data-id="{{ obj.id }}" class="row{{ obj.id }}">
-                        
                         <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
                             value="" style="vertical-align: middle">
                         </td>
                         <td> {{ obj.name }}</td>
-                        <td> {{ obj.maintenance }}</td>
-                        <td> {{ obj.notes }}</td>
+                        <td> {{ obj.action }}</td>
                         <td>
-                            <a href="{% url 'asset_app:schedule_update_view' obj.slug %}" 
+                            <a href="{% url 'asset_app:maintenance_update_view' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">
                                     {% trans 'Update' %} 
                                 </a> 
                            
-                                <a href="{% url 'asset_app:schedule_detail_view' obj.slug %}" 
+                                <a href="{% url 'asset_app:maintenance_detail_view' obj.slug %}" 
                                 class="fa fa-eye btn btn-secondary">
                                     {% trans 'Details' %} 
                                 </a> 
+
+                            <a href="{% url 'asset_app:item_create' obj.slug %}" class="fa fa-pencil btn btn-primary">
+                                {% trans 'Items' %} 
+                            </a>
+                    
                         </td>
-                        
                     </tr>
             {% empty %}
                     <p>{% trans 'No Items to Show' %} </p>

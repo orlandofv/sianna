@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <!-- ============================================================== -->
 <!-- Left Sidebar - style you can find in sidebar.scss  -->
 <!-- ============================================================== -->
@@ -19,12 +21,12 @@
                         aria-hidden="true"></i><span class="hide-menu">Components</span></a>
                 </li>
                 <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
-                        href="{% url 'asset_app:maintenance_schedule_list_view' %}" aria-expanded="false"><i class="me-3 fa fa-table"
-                            aria-hidden="true"></i><span class="hide-menu">Schedule</span></a>
-                </li>
-                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
                         href="{% url 'asset_app:allocations_list_view' %}" aria-expanded="false"><i class="me-3 fa fa-font"
                             aria-hidden="true"></i><span class="hide-menu">Components Allocation</span></a>
+                </li>
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                        href="{% url 'asset_app:maintenances_list_view' %}" aria-expanded="false">
+                        <i class="me-3 fa fa-columns" aria-hidden="true"></i><span class="hide-menu">{% trans "Maintenance" %}</span></a>
                 </li>
             </ul>
 
