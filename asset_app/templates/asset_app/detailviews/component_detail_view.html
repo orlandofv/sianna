@@ -8,7 +8,7 @@
 {% block title %} {{ block.super }} | {% trans 'Component Details' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='Component Details' path='<a href="/components/"> Components</a> </a>' dest='Details'  %}
+    {% include 'breadcrumb.html' with title='Component Details' path='<a href="/components/"> Components</a>' dest='Details'  %}
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -21,17 +21,21 @@
                 {% endif %}
                 <h1>{{ data.name }}</h1>
                 <hr>
-                <h6>System Number: <strong> {{ data.component_no }} </strong></h6>
-                <h6>Manufacturer:  <strong> {{ data.manufacturer }} </strong></h6>
-                <h6>Stock Code: <strong> {{ data.stock_code }} </strong></h6>
-                <h6>Schedule:<a href="{% url 'asset_app:maintenance_schedule_list_view' %}"> 
-                    <strong> {{ data.maintenanceschedule }} </strong> </a></h6>
-                <h6>Notes: <strong> {{ data.notes }} </strong></h6>
+                <h6> {% trans 'System Number' %}: <strong> {{ data.component_no }} </strong></h6>
+                <h6> {% trans 'Manufacturer' %}:  <strong> {{ data.manufacturer }} </strong></h6>
+                <h6> {% trans "Stock Code" %}: <strong> {{ data.stock_code }} </strong></h6>
+                <h6> {% trans "Maintenance" %}: 
+                    <a 
+                        href="{% url 'asset_app:maintenance_details' data.maintenance.slug %}" 
+                        <strong> {{ data.maintenance }} </strong> 
+                    </a> 
+                </h6>
+                <h6>{% trans "Notes" %}: <strong> {{ data.notes }} </strong></h6>
                 <hr>
-                <p>Created on: <i> {{ data.date_created}} </i></p>
-                <p>Creted by: <i> {{ data.created_by }} </i></p>
-                <p>Modified on: <i> {{ data.date_modified }} </i></p>
-                <p>Modified by: <i> {{ data.modified_by }} </i></p>
+                <p>{% trans 'Created on' %}: <i> {{ data.date_created}} </i></p>
+                <p>{% trans 'Creted by' %}: <i> {{ data.created_by }} </i></p>
+                <p>{% trans 'Modified on' %}: <i> {{ data.date_modified }} </i></p>
+                <p>{% trans 'Modified by' %}: <i> {{ data.modified_by }} </i></p>
                 
             </div>
         </div>

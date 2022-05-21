@@ -2,12 +2,25 @@
 
 {% load static %}
 {% load crispy_forms_tags %}
-
+{% load i18n %}
 
 {% block title %} {{ block.super }} | Entrada {% endblock title %}
 
-{% block content %}
-    {% csrf_token %}
-    {% crispy form %}
-{% endblock content %}
+{% block layout %}
+    <div class="container">
+        <div class="row"> 
+            <div class="col-4 offset-4" 
+            style="margin-top: 100px; border: 1px solid #b5aec4; border-radius: 10px; padding:20px;">   
+                <h5> {% trans 'PLEASE, LOGIN TO CONTINUE' %} </h5>
+                <hr>    
+                {% csrf_token %}
+                {% crispy form %}
+
+                <h6>{% trans "Don't have account?" %}  <a href='{% url 'users:register' %}'> 
+                    {% trans "Register" %} </a> </h6>
+            
+        </div>
+    </div>
+
+{% endblock layout %}
 

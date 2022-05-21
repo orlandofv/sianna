@@ -5,10 +5,10 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'New Type' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'New Vendor' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='New Type' path='New Type' %}
+    {% include 'breadcrumb.html' with title='New Vendor' path='New Vendor' %}
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -21,4 +21,5 @@
             </div>
         </div>
     </div>
+
 {% endblock content %}

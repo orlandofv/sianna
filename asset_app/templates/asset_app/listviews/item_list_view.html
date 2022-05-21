@@ -17,7 +17,7 @@
         </a>
 
         <button class="btn btn-danger delete-btn fa fa-minus-square" data-toggle="modal"
-        onclick="DeleteItems('#sortTableLarge', '{% url 'asset_app:component_delete_view' %}')">
+        onclick="DeleteItems('#sortTableLarge', '{% url 'asset_app:component_delete' %}')">
             {% trans 'Delete Selected' %} 
         </button>
         <hr>
@@ -47,12 +47,12 @@
                             <td> {{ obj.component_name }} </td>
                             <td> {{ obj.component_manufacturer }} </td>
                             <td> {{ obj.component_stock_code }} </td>
-                            <td> <a href="{% url 'asset_app:component_update_view' obj.slug %}" 
+                            <td> <a href="{% url 'asset_app:component_update' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">
                                     {% trans 'Update' %} 
                                 </a> 
                            
-                                <a href="{% url 'asset_app:component_detail_view' obj.slug %}" 
+                                <a href="{% url 'asset_app:component_details' obj.slug %}" 
                                 class="fa fa-eye btn btn-secondary">
                                     {% trans 'Details' %} 
                                 </a> 

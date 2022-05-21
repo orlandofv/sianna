@@ -34,12 +34,35 @@
     <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js' %}"></script>
     <script src="https://oss.maxcdn.com/libs/respond.js' %}/1.4.2/respond.min.js' %}"></script>
 <![endif]-->
-
+    <script src="{% static 'js/chartjs/chart.min.js' %}"></script>
+    
 <script type="text/javascript">
     function Hide(HideID) 
     {
         HideID.style.display = "none"; 
     }
+
+    // add row
+    $("#button-id-add_action").click(function () {
+        console.log('fui clicado');
+        var html = '';
+        html += '<div id="inputFormRow">';
+        html += '<div class="input-group mb-3">';
+        html += '<input type="text" name="title[]" class="form-control m-input" placeholder="Enter title" autocomplete="off">';
+        html += '<div class="input-group-append">';
+        html += '<button id="removeRow" type="button" class="btn btn-danger">Remove</button>';
+        html += '</div>';
+        html += '</div>';
+
+        $('#add_action').append(html);
+    });
+
+    // remove row
+    $(document).on('click', '#removeRow', function () {
+        $(this).closest('#inputFormRow').remove();
+    });
+
+    
 </script>
 
 
@@ -80,127 +103,47 @@
     {% endblock jsscripts %}
 
     <script type="text/javascript">
-        var random_number = Math.floor(100000000 + Math.random() * 900000000);
-        // Delete view
-        // Get table tr elements 
-        function DeleteItems(element_id, delete_url, redirect_url){
-            
-            var selected_rows=[];
-            var array_rows=[];
-            
-            $(element_id).find('tr').each(function(){
-                var row=$(this);
-                console.log(row.find('input[type="checkbox"]').is(':checked'));
-                if (row.find('input[type="checkbox"]').is(':checked')) {
-                    // console.log(row.attr('data-id'));
-                    selected_rows.push(row.attr('data-id'));
-                    array_rows = selected_rows;
-        
-                    };
-            });
+        function Hide(HideID) 
+        {
+            HideID.style.display = "none"; 
+        }
+        // add row
+        $("#button-id-add_action").click(function () {
+            console.log('fui clicado');
+            var html = '';
 
-            var selected_rows = JSON.stringify(selected_rows);
-           
-            $.ajax({
-                url: delete_url,
-                type: 'POST',
-                data: {'ckeck_box_item_ids': selected_rows,
-                'csrfmiddlewaretoken': $("[name=csrfmiddlewaretoken]").val()},
-                success: function () {
-                    
-                    /*
-                    for (var row of array_rows){
-                        var element = "row" + row;
-                        console.log(random_number);
-                        $('.' + element).hide();
-                        random_number = Math.floor(100000000 + Math.random() * 900000000);
-                    }
-                    */
-
-                    // Refreh element
-                    $(element_id).load(location.href + " " + element_id);
-
-                    console.log('Item apagado');
-                    // window.location.href = redirect_url;
-
-                    if (array_rows.length > 0){
-                        $( "<div class='alert alert-warning p-0 m-0' id='alerta" + random_number + "' role='alert'>" + 
-                            " <button type='button' class='btn close' style='vertical-align: center;" + 
-                            "horizontal-align: right;' data-dismiss='alert' aria-label='Close' " +
-                            "<span aria-hidden='True' onclick='Hide(alerta" + random_number + ")'>&times;</span>" +
-                            "</button> Item(s) deleted successfully</div>" ).insertBefore( ".page-breadcrumb" );
-                    };
-
-                    $("#alerta" + random_number).delay(3200).hide(300);
-                    random_number = Math.floor(100000000 + Math.random() * 900000000);
-                }
-            })
-        };
-       
-        $(document).ready(function() {
-            var random_number = Math.floor(100000000 + Math.random() * 900000000);
-            if ($('#id_component_no').val() == ""){ 
-                $('#id_component_no').val(random_number);
-            }
-            
-            $('#id_allocation_no').val(random_number);
-            
-            $('#checkall').click(function () {
-                $('.rowcheckbox').prop('checked', this.checked);
-            });
-
-            $('.rowcheckbox').click(function () {
-                if ($('#checkall').prop('checked', true)) {
-                    $('#checkall').prop('checked', false)
-                }
-
-            });
-  
-            // Use DataTables to display table
-            $('#sortTableLarge').DataTable({
-                columnDefs: [
-                    { orderable: false, targets: 0 },
-                    { orderable: false, targets: 5 },
-                    { "width": "1%", "targets": 0 }
-                ],
-                order: [[2, 'asc']]
-            });
-
-             // Use DataTables to display table
-             $('#sortTableMedium').DataTable({
-                stateSave: true,
-                "bFilter" : true,
-                "responsive" : true,
-                "iDisplayLength": 10,
-                columnDefs: [
-                    { orderable: false, targets: 0 },
-                    { orderable: false, targets: 4 },
-                    { "width": "1%", "targets": 0 }
-                ],
-                order: [[2, 'asc']]
-            });
-
-             // Use DataTables to display table
-             $('#sortTableSmall').DataTable({
-                columnDefs: [
-                    { orderable: false, targets: 0 },
-                    { orderable: false, targets: 3 },
-                    { "width": "1%", "targets": 0 }
-                ],
-                order: [[1, 'asc']]
-            });
-
-             // Use DataTables to display table
-             $('#sortTableSmaller').DataTable({
-                columnDefs: [
-                    { orderable: false, targets: 0 },
-                    { "width": "1%", "targets": 0 }
-                ],
-                order: [[1, 'asc']]
-            });
+            html += '<div id="inputFormRow" class="row m-0 p-0">' 
+            html += '<div class="form-group col-md-9 mb-0">' 
+            html += '<div id="div_id_action" class="mb-3">' 
+            html += '<label for="id_action" class="form-label requiredField">'
+            html += 'Action<span class="asteriskField">*</span>' 
+            html += '</label>' 
+            html += '<input type="text" name="action" maxlength="255" class="textinput textInput form-control" required id="id_action">' 
+            html += '</div>' 
+            html += '</div>' 
+            html += '<div class="form-group col-md-3 mb-0" >' 
+            html += '<div id="div_id_cost" class="mb-3">' 
+            html += '<label for="id_cost" class="form-label requiredField">'
+            html += 'Cost<span class="asteriskField">*</span>' 
+            html += '</label>'
+            html += '<div>' 
+            html += '<div class="input-group">'
+            html += '<input type="number" name="cost" value="0" step="0.01" class="numberinput form-control" required id="id_cost">'
+            html += '<button  id="removeRow" class="btn fa fa-minus" data-bs-target="#id_cost" type="button"></button>'
+            html += '</div>'
+            html += '</div>'
+            html += '</div>'
+            html += '</div>'                
+            html += '</div>'                
+            $('#add_action').append(html);
         });
-        
+    
+        // remove row
+        $(document).on('click', '#removeRow', function () {
+            $(this).closest('#inputFormRow').remove();
+        });        
     </script>
+    
 
 </body>
 

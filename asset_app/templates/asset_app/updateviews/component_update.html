@@ -8,7 +8,7 @@
 {% block title %} {{ block.super }} | {% trans 'Update Component' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='Update Component' path='<a href="/components/"> Components</a> </a> > Update Component' %}
+    {% include 'breadcrumb.html' with title='Update Component' path='<a href="/components/"> Components</a> > Update Component' %}
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -22,6 +22,6 @@
         </div>
     </div>
 
-    {% include 'asset_app/modals/modal.html' with title="Add Maintenance Schedule" template='asset_app/modals/maintenance_schedule_modal.html' %}
+    {% include 'asset_app/modals/modal.html' with title="Add Maintenance" template='asset_app/modals/maintenance_modal.html' id='maintenance' %}
 
 {% endblock content %}

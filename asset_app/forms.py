@@ -1,16 +1,78 @@
+import datetime
+
 from lib2to3.pgen2.token import RIGHTSHIFTEQUAL
+import sys
 from turtle import onclick
 from django import forms
-from .models import (Component, MaintenanceSchedule, Maintenance, 
-Company, Division, Branch, Position, Allocation, Group, System, Type, SubType, Vendor, Item)
+from .models import (Component, Maintenance, Company, Division, Branch, Position, 
+Allocation, Group, System, Type, SubType, Vendor, Item, Settings, WorkOrder, Action)
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Reset, HTML
-from crispy_forms.bootstrap import FieldWithButtons, StrictButton, AccordionGroup
+from crispy_forms.layout import Layout, Submit, Row, Column, Reset, HTML, Button
+from crispy_forms.bootstrap import FieldWithButtons, StrictButton, AccordionGroup, Field
 from django.utils.translation import ugettext_lazy as _
 from crispy_bootstrap5.bootstrap5 import BS5Accordion
 from django.utils import timezone
 
+from users.models import User
+
 from .fields import ListTextWidget
+
+
+class SettingsForm(forms.ModelForm):
+    name = forms.CharField(label=_('Company Name'))
+    address = forms.CharField(label=_('Address'), required=False, max_length=255)
+    cell = forms.CharField(label=_('Cell'), required=False, max_length=255)
+    cell_2 = forms.CharField(label=_('Cell 2'), required=False, max_length=255)
+    telephone = forms.CharField(label=_('Telephone'), required=False, max_length=255)
+    fax = forms.CharField(label=_('Fax'), required=False, max_length=255)
+    email = forms.EmailField(label=_('Email'), required=True)
+    web = forms.CharField(label=_('Web Site'), max_length=255, required=False)
+    logo = forms.ImageField(label=_('Logo'), max_length=255, required=False)
+    logo_square = forms.ImageField(label=_('Logo Square'), max_length=255, required=False)
+    notes = forms.CharField(label=_('Notes'), required=False, widget=forms.Textarea())
+   
+    def __init__(self, *args, **kwargs):
+        super(SettingsForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_id = "settings-form-id"
+        self.helper.form_class = "settings-form-class"
+        self.helper.layout = Layout(
+        HTML("""
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <hr>
+        """.format(_('Add/Update Settings'),)),
+        BS5Accordion(
+        AccordionGroup(_('Settings'),
+            'name',
+            'address',
+            Row(
+                Column('cell', css_class='form-group col-md-6 mb-0'),
+                Column('cell_2', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'),
+            Row(
+                Column('telephone', css_class='form-group col-md-6 mb-0'),
+                Column('fax', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'),
+            Row(
+                Column('email', css_class='form-group col-md-6 mb-0'),
+                Column('web', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'),
+            Row(
+                Column('logo', css_class='form-group col-md-6 mb-0'),
+                Column('logo_square', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'),
+            'notes',
+            Submit('save_settings', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_settings_new', _('Save & Edit'), css_class='btn btn-primary fas fa-save'),
+            Reset('reset', 'Clear', css_class='btn btn-danger'),
+            flush=True,
+            always_open=True
+            ),))
+
+    class Meta:
+        model = Settings
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
 
 
 class ComponentForm(forms.ModelForm):
@@ -20,8 +82,8 @@ class ComponentForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput, label=_('Component Name'))
     manufacturer = forms.CharField(label=_('Manufacturer'))
     stock_code = forms.CharField(label=_('Stock Code'))
-    maintenanceschedule = forms.ModelChoiceField(queryset=MaintenanceSchedule.objects.all(),
-    label=_('Maintenance Schedule'))
+    maintenance= forms.ModelChoiceField(queryset=Maintenance.objects.all(),
+    label=_('Maintenance'))
     notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
     
     def __init__(self, *args, **kwargs):
@@ -34,7 +96,7 @@ class ComponentForm(forms.ModelForm):
              HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New Component'),)),
+        """.format(_('Add/Update Component'),)),
             BS5Accordion(
         AccordionGroup(_('Component Data'),
                 Row(
@@ -50,8 +112,8 @@ class ComponentForm(forms.ModelForm):
                 Row(
                     Column("image", css_class='form-group col-md-12 mb-0')
                     ),
-            FieldWithButtons('maintenanceschedule', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
+            FieldWithButtons('maintenance', StrictButton('',  css_class="btn fa fa-plus",
+            data_bs_toggle="modal", data_bs_target="#maintenance")),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
             Submit('save_component', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_component_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
@@ -66,69 +128,14 @@ class ComponentForm(forms.ModelForm):
 
         model = Component
         fields = ("component_no", "name","manufacturer", "stock_code",
-        "maintenanceschedule","image","notes",)
-
-
-class ComponentUpdateForm(forms.ModelForm):
-    """Form definition for Component."""
-    
-    component_no = forms.IntegerField(widget=forms.NumberInput, label=_('System No.'),)
-    name = forms.CharField(widget=forms.TextInput, label=_('Component Name'))
-    manufacturer = forms.CharField(label=_('Manufacturer'))
-    stock_code = forms.CharField(label=_('Stock Code'))
-    maintenanceschedule = forms.ModelChoiceField(queryset=MaintenanceSchedule.objects.all(),
-    label=_('Maintenance Schedule'))
-    notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.helper = FormHelper()
-        self.helper.form_id = "component-form-id"
-        self.helper.form_class = "component-form-class"
-        self.helper.layout = Layout(
-             HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
-            <hr>
-        """.format(_('Update Component'),)),
-            BS5Accordion(
-        AccordionGroup(_('Component Data'),
-                Row(
-                    Column('component_no', css_class='form-group col-md-6 mb-0'),
-                    Column('name', css_class='form-group col-md-6 mb-0'),
-                    css_class='form-row'
-                ),
-                Row(
-                    Column('manufacturer', css_class='form-group col-md-6 mb-0'),
-                    Column('stock_code', css_class='form-group col-md-6 mb-0'),
-                    css_class='form-row'
-                ),
-                Row(
-                    Column("image", css_class='form-group col-md-12 mb-0')
-                    ),
-            FieldWithButtons('maintenanceschedule', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_component', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
-            Reset('reset', 'Clear', css_class='btn btn-danger'),
-            flush=True,
-            always_open=True),
-            
-        ))
-
-    class Meta:
-        """Meta definition for Componentform."""
-
-        model = Component
-        fields = ("component_no", "name","manufacturer", "stock_code",
-        "maintenanceschedule","image","notes",)
+        "maintenance","image","notes",)
 
 
 class MaintenanceForm(forms.ModelForm):
-    ROUTINE = 1
-    PREVENTIVE = 2
-    CORRECTIVE = 3
-    PREDECTIVE = 4
+    ROUTINE = 'Routine'
+    PREVENTIVE = 'Preventive'
+    CORRECTIVE = 'Corrective'
+    PREDECTIVE = 'Predective'
 
     MAINTENANCE_CHOICES = (
         (ROUTINE, 'Routine'), 
@@ -137,10 +144,10 @@ class MaintenanceForm(forms.ModelForm):
         (PREDECTIVE, 'Predective'), 
     )
 
-    HOURS = 1
-    DAYS = 2
-    MONTHS = 3
-    KM = 4
+    HOURS = 'Hours'
+    DAYS = 'Days'
+    MONTHS = 'Months'
+    KM = 'KM'
 
     MAINTENANCE_SCHEDULE = (
         (HOURS, 'Hours'), (DAYS, 'Days'), (MONTHS, 'Months'), 
@@ -149,9 +156,9 @@ class MaintenanceForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), max_length=50)
     type = forms.ChoiceField(choices=MAINTENANCE_CHOICES)
     schedule = forms.ChoiceField(choices=MAINTENANCE_SCHEDULE)
-    frequency = forms.IntegerField(widget=forms.NumberInput, initial=1)
+    frequency = forms.FloatField(widget=forms.NumberInput, initial=1)
     time_allocated = forms.FloatField(widget=forms.NumberInput, initial=1)
-    action = forms.CharField(widget=forms.TextInput, max_length=255)
+    time_schedule = forms.ChoiceField(choices=MAINTENANCE_SCHEDULE)
     notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
 
     def __init__(self, *args, **kwargs):
@@ -166,24 +173,29 @@ class MaintenanceForm(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New Maintenance'),)),
+        """.format(_('Add/Update Maintenance'),)),
             BS5Accordion(
             AccordionGroup(_('Maintenance Data'),
-            Row(Column('name', css_class='form-group col-md-12 mb-0'),),
+            Row(Column('name', css_class='form-group col-md-9 mb-0'),
+                Column('type', css_class='form-group col-md-3 mb-0'),),
             Row(
-                Column('schedule', css_class='form-group col-md-3 mb-0'),
                 Column('frequency', css_class='form-group col-md-3 mb-0'),
-                Column('type', css_class='form-group col-md-3 mb-0'),
-                Column('time_allocated', css_class='form-group col-md-3 mb-0'),
-
+                Column('schedule', css_class='form-group col-md-3 mb-0'),
             ),
             Row(
-                Column('action', css_class='form-group col-md-12 mb-0'),),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0')),
-            Submit('save_maintenance', _('Save'), css_class='btn btn-primary fas fa-save'),
-            Submit('save_maintenance_clone', _('Save and Clone'), css_class='btn btn-secondary fas fa-save'),
-            Submit('save_maintenance_new', _('Save and New'), css_class='btn btn-success fas fa-save'),
+                Column('time_allocated', css_class='form-group col-md-3 mb-0'),
+                Column('time_schedule', css_class='form-group col-md-3 mb-0'),
+            ),
+            Row(
+                Column(HTML("""<div  class="row"  id="add_action"></div>"""), css_class='form-group col-md-12 mb-0'),
+            ),
+            Button('add_action', _('Add Action'), css_class='btn btn-secondary fas fa-plus'),
+            HTML('<hr>'),
+            Submit('save_maintenance', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            # Submit('save_maintenance_clone', _('Save and Clone'), css_class='btn btn-secondary fas fa-save'),
+            Submit('save_maintenance_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
+
             flush=True,
             always_open=True)
             ),
@@ -196,8 +208,9 @@ class MaintenanceForm(forms.ModelForm):
 
         name = cleaned_data.get('name')
         action = cleaned_data.get('action')
+        cost = cleaned_data.get('cost')
         time_allocated = cleaned_data.get('time_allocated')
-       
+
         if frequency in (None, ""):
             self.errors['frequency'] = self.error_class([_('Maintenance frequency must not be ' 
             'empty.')])
@@ -217,10 +230,9 @@ class MaintenanceForm(forms.ModelForm):
              self.errors['name'] = self.error_class([_('Maintenance name must no be ' 
             'empty.')])
 
-        if action in (None, ""):
-             self.errors['action'] = self.error_class([_('Maintenance Action must no be ' 
-            'empty.')])
-
+        if action in (None, "") or cost in (None, ""):
+             self.errors['action'] = self.error_class([_('Please add at least one action and its cost.')])
+        
         return cleaned_data
 
     class Meta:
@@ -270,7 +282,7 @@ class MaintenanceFormModal(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New Maintenance'),)),
+        """.format(_('Add/Update Maintenance'),)),
             BS5Accordion(
             AccordionGroup(_('Maintenance Data'),
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
@@ -328,77 +340,11 @@ class MaintenanceFormModal(forms.ModelForm):
         model = Maintenance
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
 
-class MaintenanceScheduleForm(forms.ModelForm):
-    name = forms.CharField(widget=forms.TextInput, max_length=50)
-    maintenance = forms.ModelChoiceField(queryset=Maintenance.objects.all())
-    notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(MaintenanceScheduleForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper(self)
-        self.helper.form_id = "schedule-form-id"
-        self.helper.form_class = "schedule-form-class"
-        self.helper.layout = Layout(
-                HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
-            <hr>
-        """.format(_('Add New Maintenance Schedule'),)),
-            BS5Accordion(
-            AccordionGroup(_('Schedule Data'),
-            Row(Column('name', css_class='form-group col-md-12 mb-0'),),
-            FieldWithButtons('maintenance', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_schedule', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
-            Submit('save_schedule_new', _('Save & Add New'), css_class='btn btn-primary fas fa-save'),
-            Reset('reset', 'Clear', css_class='btn btn-danger'),
-            ),
-             flush=True,
-            always_open=True),
-        )
-    
-    class Meta:
-        model = MaintenanceSchedule
-        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
-
-
-class MaintenanceScheduleFormModal(forms.ModelForm):
-    name = forms.CharField(widget=forms.TextInput, max_length=50)
-    maintenance = forms.ModelChoiceField(queryset=Maintenance.objects.all(), 
-    label=_('Choose Maintenance'))
-    notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(MaintenanceScheduleFormModal, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper(self)
-        self.helper.form_id = "schedule-form-id"
-        self.helper.form_class = "schedule-form-class"
-        self.helper.layout = Layout(
-                HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
-            <hr>
-        """.format(_('Add New Maintenance Schedule'),)),
-            BS5Accordion(
-            AccordionGroup(_('Schedule Data'),
-            Row(Column('name', css_class='form-group col-md-12 mb-0'),),
-            Row(Column('maintenance', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_schedule', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
-            Reset('reset', 'Clear', css_class='btn btn-danger'),
-            ),
-             flush=True,
-            always_open=True),
-        )
-    
-    class Meta:
-        model = MaintenanceSchedule
-        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
-
 
 class CompanyForm(forms.ModelForm):
     name = forms.CharField(label=_('Company Name'), 
     widget=forms.TextInput, max_length=100)
+    parent = forms.ModelChoiceField(label=_('Parent Company'), queryset=Company.objects.all(), required=False, initial=0)
     address = forms.CharField(required=False, max_length=255)
     contacts = forms.CharField(required=False, max_length=255)
     manager = forms.CharField(max_length=100, required=False)
@@ -415,16 +361,18 @@ class CompanyForm(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New Company'),)),
+        """.format(_('Add/Update Company'),)),
             BS5Accordion(
             AccordionGroup(_('Company Data'),
-            Row(Column('name', css_class='form-group col-md-12 mb-0'),),
+            Row(Column('name', css_class='form-group col-md-6 mb-0'),
+            Column('parent', css_class='form-group col-md-6 mb-0'),),
             Row(Column('address', css_class='form-group col-md-12 mb-0'),),
             Row(Column('contacts', css_class='form-group col-md-12 mb-0'),),
             Row(Column('manager', css_class='form-group col-md-12 mb-0'),),
             Row(Column('email', css_class='form-group col-md-12 mb-0'),),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_company', _('Save'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_company', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_company_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
              flush=True,
@@ -435,6 +383,9 @@ class CompanyForm(forms.ModelForm):
         model = Company
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
 
+    def clean_parent(self):
+        pass
+    
 
 class DivisionForm(forms.ModelForm):
     name = forms.CharField(label=_('Division Name'), 
@@ -456,18 +407,19 @@ class DivisionForm(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New Division'),)),
+        """.format(_('Add/Update Division'),)),
             BS5Accordion(
             AccordionGroup(_('Division Data'),
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
             FieldWithButtons('company', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
+            data_bs_toggle="modal", data_bs_target="#company")),
             Row(Column('address', css_class='form-group col-md-12 mb-0'),),
             Row(Column('contacts', css_class='form-group col-md-12 mb-0'),),
             Row(Column('manager', css_class='form-group col-md-12 mb-0'),),
             Row(Column('email', css_class='form-group col-md-12 mb-0'),),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_division', _('Save'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_division', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_division_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
              flush=True,
@@ -496,14 +448,15 @@ class BranchForm(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New Branch'),)),
+        """.format(_('Add/Update Branch'),)),
             BS5Accordion(
             AccordionGroup(_('Branch Data'),
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
             FieldWithButtons('division', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
+            data_bs_toggle="modal", data_bs_target="#division")),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_branch', _('Save'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_branch', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_branch_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
              flush=True,
@@ -531,14 +484,15 @@ class PositionForm(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New Position'),)),
+        """.format(_('Add/Update Position'),)),
             BS5Accordion(
             AccordionGroup(_('Position Data'),
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
             FieldWithButtons('branch', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
+            data_bs_toggle="modal", data_bs_target="#branch")),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_position', _('Save'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_position', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_position_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
              flush=True,
@@ -565,12 +519,13 @@ class GroupForm(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New Group'),)),
+        """.format(_('Add/Update Group'),)),
             BS5Accordion(
             AccordionGroup(_('Group Data'),
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_group', _('Save'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_group', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_group_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
              flush=True,
@@ -599,14 +554,15 @@ class SystemForm(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New System'),)),
+        """.format(_('Add/Update System'),)),
             BS5Accordion(
             AccordionGroup(_('System Data'),
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
             FieldWithButtons('group', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
+            data_bs_toggle="modal", data_bs_target="#group")),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_system', _('Save'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_system', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_system_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
              flush=True,
@@ -635,14 +591,15 @@ class TypeForm(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New Type'),)),
+        """.format(_('Add/Update Type'),)),
             BS5Accordion(
             AccordionGroup(_('Type Data'),
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
             FieldWithButtons('system', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
+            data_bs_toggle="modal", data_bs_target="#system")),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_type', _('Save'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_type', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_type_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
              flush=True,
@@ -672,14 +629,15 @@ class SubTypeForm(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New SubType'),)),
+        """.format(_('Add/Update SubType'),)),
             BS5Accordion(
             AccordionGroup(_('SubType Data'),
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
             FieldWithButtons('type', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#staticBackdrop")),
+            data_bs_toggle="modal", data_bs_target="#type")),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_subtype', _('Save'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_subtype', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_subtype_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
              flush=True,
@@ -694,11 +652,6 @@ class SubTypeForm(forms.ModelForm):
 
 class AllocationForm(forms.ModelForm):
     
-    GOOD = 1
-    BROKEN = 0
-
-    STATUS = ((GOOD, 'Good'), (BROKEN, 'Broken'),)
-
     allocation_no = forms.IntegerField(label=('System No.'), widget=forms.NumberInput())
     component = forms.ModelChoiceField(queryset=Component.objects.all(), 
     label=_('Component Name'))
@@ -708,8 +661,6 @@ class AllocationForm(forms.ModelForm):
     branch = forms.ModelChoiceField(queryset=Branch.objects.all(), label=_('Branch Name'))
     position = forms.ModelChoiceField(queryset=Position.objects.all(), label=_('Position Name'))
     serial_number = forms.CharField(label=_('Component Serial No.'), max_length=50)
-    status = forms.ChoiceField(label=_('Component Status'), choices=STATUS, 
-    initial=GOOD)
     image = forms.ImageField(label=_('Image'), initial="default.jpeg", required=False)
     purchase_amount = forms.DecimalField(widget=forms.NumberInput, initial=0, max_digits=9, 
     decimal_places=2, label=_('Purchase Amount'))
@@ -746,7 +697,7 @@ class AllocationForm(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New Allocation'),)),
+        """.format(_('Add/Update Allocation'),)),
             BS5Accordion(
             AccordionGroup(_('ALLOCATE COMPONENT'),
                 Row(
@@ -786,7 +737,9 @@ class AllocationForm(forms.ModelForm):
                     Column('warn_before_years', css_class='form-group col-md-4 mb-0'),
                     Column('warn_before_milliege', css_class='form-group col-md-4 mb-0'),
                 ),
-                Row(Column('depreciation', css_class='form-group col-md-4 mb-0'),),
+                Row(
+                    Column('depreciation', css_class='form-group col-md-4 mb-0'),
+                    Column('status', css_class='form-group col-md-4 mb-0'),),
             ),
             AccordionGroup(_('ATTACH TO SYSTEM'),
                 Row(
@@ -818,17 +771,221 @@ class AllocationForm(forms.ModelForm):
                     ),   
             ),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_componentallocation', _('Save'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_allocation', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_allocation_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             flush=True,
             always_open=True),
            
         )
-    
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        allocation_no = cleaned_data.get('allocation_no') 
+        component = cleaned_data.get('component') 
+        vendor = cleaned_data.get('vendor')   
+        company = cleaned_data.get('company') 
+        division = cleaned_data.get('division') 
+        branch = cleaned_data.get('branch')  
+        position = cleaned_data.get('position')
+        serial_number = cleaned_data.get('serial_number')  
+        purchase_amount = cleaned_data.get('purchase_amount')
+        date_purchased = cleaned_data.get('date_purchased')
+        date_allocated = cleaned_data.get('date_allocated')
+        depreciation = cleaned_data.get('depreciation')
+        start_value_hours = cleaned_data.get('start_value_hours')
+        start_value_years = cleaned_data.get('start_value_years')
+        start_value_milliege = cleaned_data.get('start_value_milliege')
+        garrantee_value_hours = cleaned_data.get('garrantee_value_hours')
+        garrantee_value_years = cleaned_data.get('garrantee_value_years')
+        garrantee_milliege = cleaned_data.get('garrantee_milliege')
+        end_of_life_hours = cleaned_data.get('end_of_life_hours')
+        end_of_life_years = cleaned_data.get('end_of_life_years')
+        end_of_life_milliege = cleaned_data.get('end_of_life_milliege')
+        warn_before_hours = cleaned_data.get('warn_before_hours')
+        warn_before_years = cleaned_data.get('warn_before_years')
+        warn_before_milliege = cleaned_data.get('warn_before_milliege')
+        group = cleaned_data.get('group')
+        system = cleaned_data.get('system')
+        type = cleaned_data.get('type')
+        subtype = cleaned_data.get('subtype')
+
+        if allocation_no is None:
+            self.errors['allocation_no'] = self.error_class(_("""Invalid Allocation Number.
+            \nAllocation Number must be from 1 to 4294967295."""))
+        else:
+            if allocation_no == "" or int(allocation_no) == 0  or int(allocation_no) > 4294967295:
+                self.errors['allocation_no'] = self.error_class(_("""Invalid Allocation Number.
+                \nAllocation Number must be from 1 to 4294967295."""))
+
+        if component == "":
+            self.errors['component'] = self.error_class(_("""Invalid Component.
+            \nPlease choose Componet from the Dropdown."""))
+        
+        if vendor == "":
+            self.errors['component'] = self.error_class(_("""Invalid Vendor.
+            \nPlease choose Vendor from the Dropdown."""))
+        
+        if company == "":
+            self.errors['company'] = self.error_class(_("""Invalid Company.
+            \nPlease choose Company from the Dropdown."""))
+        
+        if division == "":
+            self.errors['division'] = self.error_class(_("""Invalid Division.
+            \nPlease choose Division from the Dropdown."""))
+        
+        if branch == "":
+            self.errors['branch'] = self.error_class(_("""Invalid Branch.
+            \nPlease choose Branch from the Dropdown."""))
+        
+        if position == "":
+            self.errors['position'] = self.error_class(_("""Invalid Position.
+            \nPlease choose Position from the Dropdown."""))
+        
+        if group == "":
+            self.errors['group'] = self.error_class(_("""Invalid Group.
+            \nPlease choose Group from the Dropdown."""))
+        
+        if system == "":
+            self.errors['system'] = self.error_class(_("""Invalid System.
+            \nPlease choose System from the Dropdown."""))
+        
+        if type == "":
+            self.errors['type'] = self.error_class(_("""Invalid Type.
+            \nPlease choose Type from the Dropdown."""))
+        
+        if subtype == "":
+            self.errors['subtype'] = self.error_class(_("""Invalid SubType.
+            \nPlease choose SubType from the Dropdown."""))
+        if depreciation is None:
+            self.errors['depreciation'] = self.error_class(_("""Invalid Depreciation Value.
+            Depreciation value must be from 0 to 100."""))
+        else:
+            if depreciation == "" or depreciation < 0 or depreciation > 100:
+                self.errors['depreciation'] = self.error_class(_("""Invalid Depreciation Value.
+                Depreciation value must be from 0 to 100."""))
+
+        if serial_number == "":
+            self.errors['serial_number'] = self.error_class(_("""Invalid Serial Number.
+            Serial Number must not be empty"""))
+
+        if start_value_hours == 0 and start_value_years == 0 and \
+            start_value_milliege ==0:
+            self.errors['start_values'] = self.error_class(_("""Invalid Start Values.
+            At least one field of Start Values must be greater than zero."""))
+
+        if garrantee_value_hours == 0 and garrantee_value_years ==0 \
+            and garrantee_milliege == 0:
+            self.errors['garrantee_values'] = self.error_class(_("""Invalid Garrantee Values.
+            At least one field of Garrantee Values must be greater than zero."""))
+
+        if end_of_life_hours == 0 and end_of_life_years == 0 \
+            and end_of_life_milliege == 0:
+            self.errors['end_of_life_values'] = self.error_class(_("""Invalid End of life Values.
+            At least one field of End of life Values must be greater than zero."""))
+
+        if warn_before_hours == 0 and warn_before_years == 0 \
+            and warn_before_milliege == 0:
+            self.errors['warning_values'] = self.error_class(_("""Invalid Warning Values.
+            At least one field of Warning Values must be greater than zero."""))
+
     class Meta:
         model = Allocation
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
 
+
+class WorkOrderForm(forms.ModelForm):
+    order = forms.IntegerField(label=_('Order Number'))
+    allocation = forms.ModelChoiceField(queryset=Allocation.objects.all(), label=_('Allocation'))
+    responsible = forms.ModelChoiceField(queryset=User.objects.all(), label=_('Person in Charge'))
+    start = forms.DateTimeField(label=_("Start date"), initial=timezone.now, widget=(forms.DateTimeInput))
+    end = forms.DateTimeField(label=_("End date"), initial=timezone.now, widget=(forms.DateTimeInput))
+    warn_after = forms.DateTimeField(label=_('Warn After'), initial=timezone.now, widget=(forms.DateTimeInput)) 
+    progress = forms.DecimalField(label=_('Work Progress (%)'), max_digits=5, decimal_places=2, 
+    initial=0, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(WorkOrderForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper(self)
+        self.helper.form_id = "work-form-id"
+        self.helper.form_class = "work-form-class"
+        self.helper.layout = Layout(
+                HTML("""
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <hr>
+        """.format(_('Add/Update Work Order'),)),
+            BS5Accordion(
+            AccordionGroup(_('Work Order Data'),
+            Row(
+                Column('order', css_class='form-group col-md-6 mb-0'),
+                Column('allocation', css_class='form-group col-md-6 mb-0'),),
+             Row(
+                Column('priority', css_class='form-group col-md-3 mb-0'),
+                Column('responsible', css_class='form-group col-md-3 mb-0'),
+                Column('start', css_class='form-group col-md-3 mb-0'),
+                Column('end', css_class='form-group col-md-3 mb-0'),),
+            Row(
+                Column(Field('warn_after', datetime_picker="dd MMM yyyy HH:mm"), css_class='form-group col-md-3 mb-0'),
+                ),
+            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            HTML("<hr>"),
+            Submit('save_workorder', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_workorder_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
+            Reset('reset', 'Clear', css_class='btn btn-danger'),
+            ),
+             flush=True,
+            always_open=True),)
+
+    class Meta:
+        model = WorkOrder
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        order = cleaned_data.get('order')
+        allocation = cleaned_data.get('allocation')
+        responsible = cleaned_data.get('responsible')
+        start = cleaned_data.get('start')
+        end = cleaned_data.get('end')
+        warn_after = cleaned_data.get('warn_after') 
+        status = cleaned_data.get('status')
+        progress = cleaned_data.get('progress')
+
+        if order == "" or int(order) == 0 or order > 4294967295:
+            self.errors['order'] = self.error_class(_("""Invalid Order.
+            \nOrder Number must be from 1 to 4294967295."""))
+
+        if allocation == "":
+            self.errors['allocation'] = self.error_class(_("""Invalid Allocation Value.
+            \nPlease choose Allocation."""))
+        
+        if responsible == "":
+            self.errors['responsible'] = self.error_class(_("""Invalid Person in Charge.
+            \nPlease choose Person in Charge of the Work."""))
+        
+        if start >= end:
+            self.errors['start'] = self.error_class(_("""Invalid Start Date.
+            \nEnd date must be greater than Start date."""))
+        
+        if warn_after >= end or warn_after <= start:
+            self.errors['warn_after'] = self.error_class(_("""Invalid Warn Date.
+            \nChoose Warning date less than End date  and greater than Start date."""))
+        
+        allocation_object = WorkOrder.objects.all()
+        for x in allocation_object:
+            if x.allocation == allocation:        
+                if (x.status in ('Pending', 'Progress') and status in ('Pending', 'InProgress')):
+                    if x.end >= datetime.datetime.now() and x.order != order:
+                        self.errors['status'] = self.error_class(_(f'''The Work Order {x.order}, with the same
+                        Allocation {x.allocation} is in 
+                        {x.status} status. Please put it in "Abandoned" or "Finished" Status before continue.''')) 
+
+        return cleaned_data
+    
 
 class VendorForm(forms.ModelForm):
     name = forms.CharField(label=_('Vendor Name'), 
@@ -849,7 +1006,7 @@ class VendorForm(forms.ModelForm):
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add New Vendor'),)),
+        """.format(_('Add/Update Vendor'),)),
             BS5Accordion(
             AccordionGroup(_('Vendor Data'),
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
@@ -858,12 +1015,12 @@ class VendorForm(forms.ModelForm):
             Row(Column('manager', css_class='form-group col-md-12 mb-0'),),
             Row(Column('email', css_class='form-group col-md-12 mb-0'),),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_vendor', _('Save'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_vendor', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_vendor_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
              flush=True,
             always_open=True),
-           
         )
     
     class Meta:
@@ -885,15 +1042,12 @@ class ItemForm(forms.ModelForm):
         self.helper.form_id = "item-form-id"
         self.helper.form_class = "item-form-class"
         self.helper.layout = Layout(
-                HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
-            <hr>
-        """.format(_('Add Maintenance Items'),)),
             BS5Accordion(
             AccordionGroup(_('Item Data'),
-            Row(Column('name', css_class='form-group col-md-9 mb-0'),
-            Column('quantity', css_class='form-group col-md-3 mb-0')),
-            Submit('save_item', _('Save'), css_class='btn btn-primary fas fa-save'),
+            Row(Column('name', css_class='form-group col-md-8 mb-0'),
+            Column('quantity', css_class='form-group col-md-2 mb-0'),
+            Column('unity', css_class='form-group col-md-2 mb-0')),
+            Submit('save_item', _('Add'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
              flush=True,
@@ -902,6 +1056,36 @@ class ItemForm(forms.ModelForm):
     
     class Meta:
         model = Item
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+
+# 
+class ActionForm(forms.ModelForm):
+
+    name = forms.CharField(label=_('Item Name'))
+    cost = forms.DecimalField(decimal_places=2, max_digits=9,  initial=0)
+   
+    def __init__(self, *args, **kwargs):
+        super(ActionForm, self).__init__(*args, **kwargs)
+
+        self.fields['name'].widget = ListTextWidget(data_list=Item.objects.all(), name='name')
+
+        self.helper = FormHelper(self)
+        self.helper.form_id = "action-form-id"
+        self.helper.form_class = "action-form-class"
+        self.helper.layout = Layout(
+            BS5Accordion(
+            AccordionGroup(_('Action Data'),
+            Row(Column('name', css_class='form-group col-md-8 mb-0'),
+            Column('cost', css_class='form-group col-md-2 mb-0'),),
+            Button('add_action', _('Add Action'), css_class='btn btn-secondary fas fa-save'),
+            ),
+             flush=True,
+            always_open=True),
+        )
+    
+    class Meta:
+        model = Action
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
 
 

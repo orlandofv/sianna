@@ -11,18 +11,14 @@ from crispy_forms.layout import Layout, Submit, Row, Column
 class LoginForm(forms.ModelForm):
     email = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Email'}))
     password = forms.CharField(widget=forms.PasswordInput())
-    confirm_password = forms.CharField(widget=forms.PasswordInput())
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = Layout(
-            Row(
-                Column('email', css_class='form-group col-md-6 mb-0'),
-                Column('password', css_class='form-group col-md-6 mb-0'),
-                css_class='form-row'
-            ),
-            Submit('submit', 'Sign in'),
+            'email',
+            'password',
+            Submit('submit', _('Sign in')),
         )
 
     class Meta:
@@ -55,7 +51,6 @@ class UserForm(forms.ModelForm):
             raise forms.ValidationError(
                 _("password and confirm password does not match")
             )
-
 
 class ProfileForm(forms.ModelForm):
     t = """By checking the above button you agree with our <a href="/legality/"> Terms and Conditions </a>"""

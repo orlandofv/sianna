@@ -12,7 +12,7 @@
     {% csrf_token %}
 
     <div class="contentContainer">
-        {% url 'asset_app:maintenance_schedule_delete_view' as delete %}
+        {% url 'asset_app:maintenance_schedule_delete' as delete %}
         {% url 'asset_app:maintenance_schedule_create' as create %}
         {% url 'asset_app:maintenance_schedule_list_view' as redirect %}
         
@@ -44,12 +44,12 @@
                         <td> {{ obj.maintenance }}</td>
                         <td> {{ obj.notes }}</td>
                         <td>
-                            <a href="{% url 'asset_app:schedule_update_view' obj.slug %}" 
+                            <a href="{% url 'asset_app:schedule_update' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">
                                     {% trans 'Update' %} 
                                 </a> 
                            
-                                <a href="{% url 'asset_app:schedule_detail_view' obj.slug %}" 
+                                <a href="{% url 'asset_app:schedule_details' obj.slug %}" 
                                 class="fa fa-eye btn btn-secondary">
                                     {% trans 'Details' %} 
                                 </a> 

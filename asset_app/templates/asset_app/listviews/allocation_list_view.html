@@ -29,33 +29,38 @@
                         value="" style="vertical-align: middle"> 
                     </th>
                     <th style="text-align: left;">System No.</th>
-                    <th>Name</th>
-                    <th>Schedule</th>
-                    <th>Stock Cod.</th>
+                    <th>Component</th>
+                    <th>Serial No.</th>
+                    <th>Company</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for obj in object_list %}
-                    <tr data-id="{{ obj.id }}" class="row{{ obj.id }}">                        
-                        <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
-                            value="" style="vertical-align: middle">
-                        </td>
-                        <td> {{ obj.allocation_no }}</td>
-                        <td> {{ obj.name }} </td>
-                        <td> {{ obj.maintenanceschedule }} </td>
-                        <td> {{ obj.stock_code }} </td>
-                        <td> <a href="{% url 'asset_app:home_view'  %}" 
-                                class="fa fa-pencil btn btn-secondary">
-                                {% trans 'Update' %} 
-                            </a> 
-                        
-                            <a href="{% url 'asset_app:allocation_detail_view' obj.slug %}" 
-                            class="fa fa-eye btn btn-secondary">
-                                {% trans 'Details' %} 
-                            </a> 
-                        </td>
-                    </tr>
+                    
+                        <tr data-id="{{ obj.id }}" class="row{{ obj.id }}" 
+                        {% if obj.status == '0' or obj.status == 'Broken' %}    
+                            style="background-color: #f9af9f;"
+                        {% endif %}>
+
+                            <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
+                                value="" style="vertical-align: middle">
+                            </td>
+                            <td> {{ obj.allocation_no }}</td>
+                            <td> {{ obj.component }} </td>
+                            <td> {{ obj.serial_number }}</td> </td>
+                            <td> {{ obj.company }} </td>
+                            <td> <a href="{% url 'asset_app:allocation_update' obj.slug  %}" 
+                                    class="fa fa-pencil btn btn-secondary">
+                                    {% trans 'Update' %} 
+                                </a> 
+                            
+                                <a href="{% url 'asset_app:allocation_details' obj.slug %}" 
+                                class="fa fa-eye btn btn-secondary">
+                                    {% trans 'Details' %} 
+                                </a> 
+                            </td>
+                        </tr> 
                 {% endfor %}
             </tbody>
         </table>

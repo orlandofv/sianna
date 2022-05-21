@@ -12,15 +12,15 @@
     {% csrf_token %}
 
     <div class="contentContainer">
-        {% url 'asset_app:maintenance_delete_view' as delete %}
+        {% url 'asset_app:maintenance_delete' as delete %}
         {% url 'asset_app:maintenance_create' as create %}
-        {% url 'asset_app:maintenance_list_view' as redirect %}
+        {% url 'asset_app:maintenance_list' as redirect %}
         
-        {% include 'asset_app/utilities/new_delete_extra_buttons.html' with table_id='#sortTableSmall' delete_url=delete redirect_url=redirect create_url=create %}
+        {% include 'asset_app/utilities/new_delete_extra_buttons.html' with table_id='#sortTableLarge' delete_url=delete redirect_url=redirect create_url=create %}
         
         <hr>
 
-        <table id="sortTableSmall" class="table table-striped display">
+        <table id="sortTableLarge" class="table table-striped display">
             <thead>
                 <tr class="p-0 m-0">
                     <th style="padding-left: 11px;">
@@ -28,7 +28,9 @@
                         value="" style="vertical-align: middle"> 
                     </th>
                     <th>Maintenance</th>
-                    <th>Action</th>
+                    <th>Type</th>
+                    <th>Frequency</th>
+                    <th>Time Allocated</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -40,14 +42,16 @@
                             value="" style="vertical-align: middle">
                         </td>
                         <td> {{ obj.name }}</td>
-                        <td> {{ obj.action }}</td>
+                        <td> {{ obj.type }}</td>
+                        <td> {{ obj.frequency }} ({{ obj.schedule }})</td>
+                        <td> {{ obj.time_allocated }} ({{ obj.time_schedule }})</td>
                         <td>
-                            <a href="{% url 'asset_app:maintenance_update_view' obj.slug %}" 
+                            <a href="{% url 'asset_app:maintenance_update' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">
                                     {% trans 'Update' %} 
                                 </a> 
                            
-                                <a href="{% url 'asset_app:maintenance_detail_view' obj.slug %}" 
+                                <a href="{% url 'asset_app:maintenance_details' obj.slug %}" 
                                 class="fa fa-eye btn btn-secondary">
                                     {% trans 'Details' %} 
                                 </a> 
@@ -58,8 +62,6 @@
                     
                         </td>
                     </tr>
-            {% empty %}
-                    <p>{% trans 'No Items to Show' %} </p>
             {% endfor %}
             </tbody>
         </table>

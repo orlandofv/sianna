@@ -10,8 +10,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 
 SEX_CHOICES = (
-    (1, _("Masculino")),
-    (2, _("Femenino"))
+    (1, _("Male")),
+    (2, _("Female"))
 )
 
 

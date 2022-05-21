@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'asset_app',
     "debug_toolbar",
+    "isis",
 ]
 
 AUTH_USER_MODEL = 'users.User'
@@ -169,4 +170,4 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-LOGIN_URL = 'login'
+LOGIN_URL = 'users:login'

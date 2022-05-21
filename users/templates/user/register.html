@@ -4,26 +4,23 @@
 {% load crispy_forms_tags %}
 {% load i18n %}
 
+{% block title %} {{ block.super }} | {% trans 'Login' %} {% endblock title %}
 
-{% block title %} {{ block.super }} | Registro {% endblock title %}
-
-{% block content %}
-
-    <!-- Contact Info -->
-     <div class="row">
-        <div class="col-md-4"> </div>
-        <div class="col-md-4 offset-4" style="margin: 50px; padding: 10px; 
-        border-radius: 5px; border: 1px solid #b5aec4;">
-            <p> {% trans 'Sign Up for SIANNA' %}  </p>
-            <hr>
-            <form id="register_form" method="post" class="form-stacked">
+{% block layout %}
+    <div class="container">
+        <div class="row"> 
+            <div class="col-4 offset-4" 
+            style="margin-top: 100px; border: 1px solid #b5aec4; border-radius: 10px; padding:20px;">   
+                <h5> {% trans 'PLEASE, SIGN UP' %} </h5>
+                <hr>    
                 {% csrf_token %}
-    			{% crispy form %}
-                {% if cancel_url %}
-                    ou <a href="{{ cancel_url }}">Cancel</a>.
-                {% endif %}
-            </form>
-    	</div>
-	 </div>
+                {% crispy form %}
 
-{% endblock content %}
+                <h6>{% trans "Already Have account?" %}  <a href='{% url 'users:login' %}'> 
+                    {% trans "Please Login" %} </a> </h6>
+            </div>
+        </div>
+    </div>
+
+{% endblock layout %}
+

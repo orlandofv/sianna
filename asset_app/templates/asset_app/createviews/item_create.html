@@ -8,7 +8,7 @@
 {% block title %} {{ block.super }} | {% trans 'New Maintenance Item' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='New Maintenance Item' path='New Item' %}
+    {% include 'breadcrumb.html' with title='New Maintenance Item' path='<a href="/maintenances/">Maintenaces</a>' dest='Add Items' %}
 {% endblock breadcrumb %}
             
 {% block content %}
@@ -18,7 +18,7 @@
             <div class="col-md-12">
                 
                 {% if maintenance %}
-                    <p> <strong> {{ maintenance.name }} </strong> </p>
+                    <h3> <strong> {{ maintenance.name }} </strong> </h3>
                     <hr>
                 {% endif %}
                 
@@ -47,14 +47,12 @@
                                 <td> {{ item.item }}</td>
                                 <td> {{ item.quantity }} </td>
                             </tr>
-                        {% empty %}
-                                <p>{% trans 'No Items to Show' %} </p>
                         {% endfor %}
                     </tbody>
                 </table>
                 
                 <button class="btn btn-danger delete-btn fa fa-minus-square" data-toggle="modal"
-                    onclick="DeleteItems('#sortTableSmaller','{% url 'asset_app:item_delete_view' %}', 
+                    onclick="DeleteItems('#sortTableSmaller','{% url 'asset_app:item_delete' %}', 
                     '{% url 'asset_app:item_create' maintenance.slug %}')">
                     {% trans 'Delete Selected' %} 
                 </button>

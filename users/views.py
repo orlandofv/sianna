@@ -11,7 +11,7 @@ from django.contrib.auth.mixins import (LoginRequiredMixin,)
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.template import RequestContext
 from django.views.defaults import page_not_found, server_error
 
@@ -21,32 +21,45 @@ from .forms import UserForm, ProfileForm, ProfileEditForm, LoginForm
 from django.conf import settings
 
 
-class Login(LoginView):
-    template_name = 'user/login.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(Login, self).get_context_data(**kwargs)
-
-        return context
-
-    def get_login_success_url(self, form):
-        redirect_url = form.cleaned_data['redirect_url']
-        if redirect_url:
-            return redirect_url
-
-        # Redirect staff members to dashboard as that's the most likely place
-        # they'll want to visit if they're logging in.
-        if self.request.user.is_staff:
-            return reverse('/')
-
-        return settings.LOGIN_REDIRECT_URL
-
-
-def login_view(request):
+def user_login(request):
+    # Like before, obtain the context for the user's request.
+    context = {}
+    # If the request is a HTTP POST, try to pull out the relevant information.
     if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            form.save()
+        # Gather the email and password provided by the user.
+        # This information is obtained from the login form.
+        email = request.POST['email']
+        password = request.POST['password']
+        # Use Django's machinery to attempt to see if the email/password
+        # combination is valid - a User object is returned if it is.
+        user = authenticate(email=email, password=password)
+        # If we have a User object, the details are correct.
+        # If None (Python's way of representing the absence of a value), no user
+        # with matching credentials was found.
+        if user is not None:
+            # Is the account active? It could have been disabled.
+            if user.is_active:
+                # If the account is valid and active, we can log the user in.
+                # We'll send the user back to the homepage.
+                login(request, user)
+                messages.success(request, _("Welcome {}.".format(user.username)))
+                return HttpResponseRedirect('/')
+            else:
+                # An inactive account was used - no logging in!
+                messages.error(request, _("Your account is disabled."))
+                return HttpResponse(_("Your account is disabled."))
+        else:
+            # Bad login details were provided. So we can't log the user in.
+            print("Invalid login details: {0}, {1}".format(email, password))
+            return HttpResponse("Invalid login details supplied.")
+            # The request is not a HTTP POST, so display the login form.
+            # This scenario would most likely be a HTTP GET.
+    else:
+        # No context variables to pass to the template system, hence the
+        # blank dictionary object...
+        form = LoginForm()
+        context['form'] = form
+        return render(request, 'user/login.html', context=context)
 
 
 def signup(request):
@@ -54,6 +67,7 @@ def signup(request):
         form = UserForm(request.POST)
         if form.is_valid():
             user = form.save()
+            user.username = request.POST.get('email')
             user.set_password(user.password)
             user.save()
             return redirect('/')
@@ -64,7 +78,7 @@ def signup(request):
 
 def logout_view(request):
     logout(request)
-    return HttpResponseRedirect(reverse('/'))
+    return redirect('/')
 
 
 
@@ -80,8 +94,6 @@ class EditUserProfileView(LoginRequiredMixin, UpdateView):  # Note that we are u
 
     def get_object(self, *args, **kwargs):
         user = get_object_or_404(User, pk=self.kwargs['pk'])
-
-        print("Usuario:::::, ", user)
 
         try:
             profile = Profile.objects.get(user_id=user)

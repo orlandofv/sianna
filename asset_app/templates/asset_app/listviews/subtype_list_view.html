@@ -1,0 +1,66 @@
+{% extends 'index.html' %}
+
+{% load static %}
+{% load i18n %}
+
+{% block breadcrumb %}
+    {% include 'breadcrumb.html' with title='List of SubTypes' path='SubTypes' %}
+{% endblock breadcrumb %}
+
+{% block content %}
+    
+    {% csrf_token %}
+
+    <div class="contentContainer">
+        {% url 'asset_app:subtype_delete' as delete %}
+        {% url 'asset_app:subtype_create' as create %}
+        {% url 'asset_app:subtypes_list' as redirect %}
+        
+        {% include 'asset_app/utilities/new_delete_extra_buttons.html' with table_id='#sortTableMedium' delete_url=delete redirect_url=redirect create_url=create %}
+        
+        <hr>
+
+        <table id="sortTableMedium" class="table table-striped display">
+            <thead>
+                <tr class="p-0 m-0">
+                    <th style="padding-left: 11px;">
+                        <input type="checkbox" id="checkall" name="main_Checkbox" 
+                        value="" style="vertical-align: middle"> 
+                    </th>
+                    <th>Name</th>
+                    <th>Group</th>
+                    <th>System</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {% for obj in object_list %}
+                    <tr data-id="{{ obj.id }}" class="row{{ obj.id }}">
+                        <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
+                            value="" style="vertical-align: middle">
+                        </td>
+                        <td> {{ obj.name }}</td>
+                        <td> {{ obj.type.system.group }}</td>
+                        <td> {{ obj.type.system }}</td>
+                        <td> {{ obj.type }}</td>
+                        <td>
+                            <a href="{% url 'asset_app:subtype_update' obj.slug %}" 
+                                class="fa fa-pencil btn btn-secondary">
+                                {% trans 'Update' %} 
+                            </a> 
+                        
+                            <a href="{% url 'asset_app:subtype_details' obj.slug %}" 
+                            class="fa fa-eye btn btn-secondary">
+                                {% trans 'Details' %} 
+                            </a> 
+                    
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}
+    

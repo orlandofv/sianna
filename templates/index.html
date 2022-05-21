@@ -8,7 +8,7 @@
      <!-- Topbar header - style you can find in pages.scss -->
      <!-- ============================================================== -->
      
-     <header class="topbar" data-navbarbg="skin6">
+     <header class="topbar" data-navbarbg="skin6" style="background-color: #fff;">
          <nav class="navbar top-navbar navbar-expand-md navbar-dark">
              <div class="navbar-header" data-logobg="skin6">
              {% include 'logo.html' %}
@@ -20,12 +20,28 @@
              <!-- ============================================================== -->
              <!-- End Logo -->
              <!-- ============================================================== -->
-             <div class="navbar-collapse collapse" id="navbarSupportedContent" data-navbarbg="skin5">
+             <div class="navbar-collapse collapse" id="navbarSupportedContent" 
+             data-navbarbg="skin5">
                  
                 <!-- ============================================================== -->
                 <!-- toggle and nav items -->
                 <!-- ============================================================== -->
-               
+                
+                <ul class="navbar-nav">
+                    
+                    <ul class="nav ">
+                    <li class="nav-item">
+                    <a class="nav-link active" href="#">Active</a>
+                    </li>
+                    <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                    </li>
+                    <li class="nav-item">
+                    <a class="nav-link disabled" href="#">Disabled</a>
+                    </li>
+                    </ul>
+                       
+                </ul>
                 
                  <!-- ============================================================== -->
                  <!-- Right side toggle and nav items -->
@@ -44,10 +60,10 @@
                              alt="user image" class="profile-pic me-2">{{ user.username }}</a>
                              </a>
                          </li>
-                         <li class="nav-item"><a class="nav-item nav-link" href="/logout">Logout</a></li>
+                         <li class="nav-item"><a class="nav-item nav-link" href="{% url 'users:logout' %}">Logout</a></li>
                      {% else %}
-                         <li class="nav-item"> <a class="nav-item nav-link" href="/login">Login</a></li>
-                         <li class="nav-item"> <a class="nav-item nav-link" href="/register">Register</a> </li>
+                         <li class="nav-item"> <a class="nav-item nav-link" href="{% url 'users:login' %}">Login</a></li>
+                         <li class="nav-item"> <a class="nav-item nav-link" href="{% url 'users:register' %}">Register</a> </li>
                      {% endif %}
                  </ul>
              </div>
@@ -78,6 +94,10 @@
             {% include 'charts.html' %}
             {% include 'table.html' %}
             {% include 'maintenance.html' %}
+
+            <canvas id="myChart" width="400" height="100"></canvas>
+            <canvas id="myChart2" width="400" height="100"></canvas>
+            <canvas id="maintenance-chart2" width="800" height="450"></canvas>
         </div>
      {% endblock content %}
          <!-- ============================================================== -->

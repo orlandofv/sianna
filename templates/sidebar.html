@@ -11,23 +11,89 @@
             <ul id="sidebarnav">
                 <!-- User Profile-->
                 <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
-                        href="/" aria-expanded="false"><i class="me-3 far fa-clock fa-fw"
-                            aria-hidden="true"></i><span class="hide-menu">Dashboard</span></a>
+                    href="/" aria-expanded="false"><i class="me-3 far fa-clock fa-fw"
+                    aria-hidden="true"></i><span class="hide-menu">Dashboard</span></a>
+                </li>
+
+                <hr>
+
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'asset_app:maintenances_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-columns" aria-hidden="true"></i><span class="hide-menu">{% trans "Maintenances" %}</span></a>
+                </li>
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'asset_app:components_list' %}" aria-expanded="false"><i class="me-3 fa 
+                    fa-camera"
+                        aria-hidden="true"></i><span class="hide-menu"> {% trans "Components" %} </span></a>
                 </li>
                 
                 <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
-                    href="{% url 'asset_app:component_list_view' %}" aria-expanded="false"><i class="me-3 fa 
-                    fa-user"
-                        aria-hidden="true"></i><span class="hide-menu">Components</span></a>
+                    href="{% url 'asset_app:allocations_list' %}" aria-expanded="false"><i class="me-3 fa fa-font"
+                    aria-hidden="true"></i><span class="hide-menu"> {% trans "Allocations" %} </span></a>
+                </li>
+
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'asset_app:workorders_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-address-book-o" aria-hidden="true"></i><span class="hide-menu">{% trans "Work Orders" %}</span></a>
+                </li>
+                
+                <hr>
+                
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'asset_app:vendors_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-users" aria-hidden="true"></i><span class="hide-menu">{% trans "Vendors" %}</span></a>
+                </li>
+                
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'asset_app:companies_list' %}" aria-expanded="false"><i class="me-3 fa 
+                    fa-building"
+                    aria-hidden="true"></i><span class="hide-menu"> {% trans "Companies" %} </span></a>
+                </li>
+
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'asset_app:divisions_list' %}" aria-expanded="false"><i class="me-3 fa fa-square"
+                    aria-hidden="true"></i><span class="hide-menu"> {% trans "Divisions" %} </span></a>
+                </li>
+
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'asset_app:branches_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-circle-o" aria-hidden="true"></i><span class="hide-menu">{% trans "Branches" %}</span></a>
+                </li>
+                
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'asset_app:positions_list' %}" aria-expanded="false"><i class="me-3 fa 
+                    fa-location-arrow"
+                    aria-hidden="true"></i><span class="hide-menu"> {% trans "Positions" %} </span></a>
+                </li>
+
+                <hr>
+
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'asset_app:groups_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-object-group"
+                    aria-hidden="true"></i><span class="hide-menu"> {% trans "Groups" %} </span></a>
+                </li>
+
+                 <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'asset_app:systems_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-bicycle" aria-hidden="true"></i><span class="hide-menu">{% trans "Systems" %}</span></a>
+                </li>
+                
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'asset_app:types_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-binoculars"></i><span class="hide-menu"> {% trans "Types" %} </span></a>
                 </li>
                 <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
-                        href="{% url 'asset_app:allocations_list_view' %}" aria-expanded="false"><i class="me-3 fa fa-font"
-                            aria-hidden="true"></i><span class="hide-menu">Components Allocation</span></a>
+                    href="{% url 'asset_app:subtypes_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-bell-o" aria-hidden="true"></i><span class="hide-menu"> {% trans "SubTypes" %}</span> </span></a>
                 </li>
+
+                <hr>
                 <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
-                        href="{% url 'asset_app:maintenances_list_view' %}" aria-expanded="false">
-                        <i class="me-3 fa fa-columns" aria-hidden="true"></i><span class="hide-menu">{% trans "Maintenance" %}</span></a>
+                    href="{% url 'asset_app:settings_create' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-file-o" aria-hidden="true"></i><span class="hide-menu"> {% trans "Settings" %}</span> </span></a>
                 </li>
+
             </ul>
 
         </nav>

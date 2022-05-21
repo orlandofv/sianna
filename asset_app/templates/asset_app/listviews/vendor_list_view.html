@@ -1,0 +1,68 @@
+{% extends 'index.html' %}
+
+{% load static %}
+{% load i18n %}
+
+{% block breadcrumb %}
+    {% include 'breadcrumb.html' with title='List of Vendors' path='Vendors' %}
+{% endblock breadcrumb %}
+
+{% block content %}
+    
+    {% csrf_token %}
+
+    <div class="contentContainer">
+        {% url 'asset_app:vendor_delete' as delete %}
+        {% url 'asset_app:vendor_create' as create %}
+        {% url 'asset_app:companies_list' as redirect %}
+        
+        {% include 'asset_app/utilities/new_delete_extra_buttons.html' with table_id='#sortTableLarge' delete_url=delete redirect_url=redirect create_url=create %}
+        
+        <hr>
+
+        <table id="sortTableLarge" class="table table-striped display">
+            <thead>
+                <tr class="p-0 m-0">
+                    <th style="padding-left: 11px;">
+                        <input type="checkbox" id="checkall" name="main_Checkbox" 
+                        value="" style="vertical-align: middle"> 
+                    </th>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Contacts</th>
+                    <th>Manager</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {% for obj in object_list %}
+                    <tr data-id="{{ obj.id }}" class="row{{ obj.id }}">
+                        <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
+                            value="" style="vertical-align: middle">
+                        </td>
+                        <td> {{ obj.name }}</td>
+                        <td> {{ obj.address }}</td>
+                        <td> {{ obj.contacts }}</td>
+                        <td> {{ obj.manager }}</td>
+                        <td> {{ obj.email }}</td>
+                        <td>
+                            <a href="{% url 'asset_app:vendor_update' obj.slug %}" 
+                                class="fa fa-pencil btn btn-secondary">
+                                {% trans 'Update' %} 
+                            </a> 
+                        
+                            <a href="{% url 'asset_app:vendor_details' obj.slug %}" 
+                            class="fa fa-eye btn btn-secondary">
+                                {% trans 'Details' %} 
+                            </a> 
+                    
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}
+    
