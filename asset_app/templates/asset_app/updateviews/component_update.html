@@ -13,11 +13,16 @@
 
 {% block content %}
     
-    <div class="contentContainer">
         <div class="row">
             <div class="col-md-12">
                 {% csrf_token %}
                 {% crispy form %}
+
+                {% if items %}
+                    {% for item in items %}
+                        
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </div>

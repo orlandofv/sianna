@@ -27,11 +27,11 @@
                         <input type="checkbox" id="checkall" name="main_Checkbox" 
                         value="" style="vertical-align: middle"> 
                     </th>
-                    <th>Maintenance</th>
-                    <th>Type</th>
-                    <th>Frequency</th>
-                    <th>Time Allocated</th>
-                    <th>Actions</th>
+                    <th>{% trans "Maintenance" %}</th>
+                    <th>{% trans "Type" %}</th>
+                    <th>{% trans "Frequency" %}</th>
+                    <th>{% trans "Time Allocated" %}</th>
+                    <th>{% trans "Actions" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,25 +41,23 @@
                         <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
                             value="" style="vertical-align: middle">
                         </td>
-                        <td> {{ obj.name }}</td>
+                        <td> 
+                            <a href="{% url 'asset_app:maintenance_update' obj.slug %}" 
+                                class="aler-link">  {{ obj.name }}  
+                            </a>
                         <td> {{ obj.type }}</td>
                         <td> {{ obj.frequency }} ({{ obj.schedule }})</td>
                         <td> {{ obj.time_allocated }} ({{ obj.time_schedule }})</td>
                         <td>
                             <a href="{% url 'asset_app:maintenance_update' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">
-                                    {% trans 'Update' %} 
-                                </a> 
-                           
-                                <a href="{% url 'asset_app:maintenance_details' obj.slug %}" 
-                                class="fa fa-eye btn btn-secondary">
-                                    {% trans 'Details' %} 
-                                </a> 
-
-                            <a href="{% url 'asset_app:item_create' obj.slug %}" class="fa fa-pencil btn btn-primary">
-                                {% trans 'Items' %} 
-                            </a>
-                    
+                                    {% trans 'Modify' %} 
+                            </a> 
+                        
+                            <a href="{% url 'asset_app:maintenance_details' obj.slug %}" 
+                            class="fa fa-eye btn btn-secondary">
+                                {% trans 'Details' %} 
+                            </a> 
                         </td>
                     </tr>
             {% endfor %}

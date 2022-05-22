@@ -5,7 +5,7 @@ import datetime
 from decimal import Decimal
 import os
 
-from django.db import connection
+from django.db import connection, IntegrityError
 from django.template.defaultfilters import slugify
 from django.shortcuts import render, redirect, HttpResponseRedirect, get_object_or_404, HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -91,8 +91,8 @@ def home_view(request):
 
 ########################## Maintenance ##########################
 class MaintenanceListView(LoginRequiredMixin, ListView):
-    model = Maintenance
     template_name = 'asset_app/listviews/maintenance_list_view.html'
+    queryset = Maintenance.objects.order_by('-date_modified') 
 
 
 @login_required
@@ -109,11 +109,12 @@ def maintenance_create_view(request):
             
             # Saves actions
             save_action(request, maintenance)
+            save_item(request, maintenance)
 
             messages.success(request, _("Maintenance added successfully!"))
 
             if request.POST.get('save_maintenance'):
-                return redirect('asset_app:maintenances_list')
+                return redirect('asset_app:maintenance_list')
             else:
                 return redirect('asset_app:maintenance_create')
         else:
@@ -130,23 +131,61 @@ def save_action(request, instance):
 
     post = dict(request.POST)
     actions = post['action']
-    costs = post['cost']
 
     i = 0
     for c in actions:
         try:
-            action_object = Action(name=c, maintenance=instance, slug=slugify(c), cost=costs[i], 
+            action_object = Action(name=c, maintenance=instance, slug=slugify(c), 
             date_created=datetime.datetime.now(), date_modified=datetime.datetime.now(), 
             created_by=request.user, modified_by=request.user)
 
             action_object.save()
 
-        except Exception as e:
-            print(e)
-            return e
+        except IntegrityError:
+            action_object = Action.objects.filter(name=c, maintenance=instance).update(slug=slugify(c), 
+            date_modified=datetime.datetime.now(), modified_by=request.user)
+            
         i += 1
 
     return action_object
+
+
+def save_item(request, instance):
+
+    post = dict(request.POST)
+    items = post['item']
+    costs = post['cost']
+    qt = post['quantity']
+    unit = post['unit']
+
+    i = 0
+    for c in items:
+        try:
+            item_object = Item(name=c, slug=slugify(c), cost=costs[i], quantity=qt[i], unit=unit[i],
+            date_created=datetime.datetime.now(), date_modified=datetime.datetime.now(), 
+            created_by=request.user, modified_by=request.user)
+            item_object.save()
+
+        except IntegrityError:
+            item_object = Item.objects.filter(name=c).update(slug=slugify(c), cost=costs[i], 
+            quantity=qt[i], unit=unit[i], date_modified=datetime.datetime.now(), 
+            modified_by=request.user)
+        
+        _item =  Item.objects.get(name=c)
+
+        try:
+            print('Gravando: ', _item)
+            maintenance_item_object = MaintenanceItem(maintenance=instance, item=_item, 
+            quantity=qt[i], cost=costs[i])
+            maintenance_item_object.save()
+
+        except IntegrityError:
+            maintenance_item_object = MaintenanceItem.objects.filter(item=_item, 
+            maintenance=instance).update(quantity=qt[i], cost=costs[i])
+
+        i += 1
+
+    return request
 
 
 @login_required
@@ -156,17 +195,21 @@ def maintenance_update_view(request, slug):
 
     if request.method == 'POST':
         
-
         if form.is_valid():
             instance = form.save(commit=False)
             instance.modified_by = request.user
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
+
+             # Saves actions
+            save_action(request, maintenance)
+            save_item(request, maintenance)
+
             messages.success(request, _("Maintenance apdated successfully!"))
 
             if request.POST.get('save_maintenance'):
-                return redirect('asset_app:maintenances_list')
+                return redirect('asset_app:maintenance_list')
             else:
                 return redirect('asset_app:maintenance_create')
 
@@ -174,8 +217,11 @@ def maintenance_update_view(request, slug):
             for error in form.errors.values():
                 messages.error(request, error)
             return redirect('asset_app:maintenance_update', slug=slug)
-       
-    context = {'form': form}
+
+    actions = Action.objects.filter(maintenance=maintenance)
+    items = MaintenanceItem.objects.filter(maintenance=maintenance).select_related('item')
+
+    context = {'form': form, 'items': items, 'actions': actions, 'maintenance': maintenance}
     return render(request, 'asset_app/updateviews/maintenance_update.html', context)
 
 
@@ -189,7 +235,7 @@ def maintenance_delete_view(request):
                 Maintenance.objects.filter(id__in=selected_ids).delete()
         
         messages.warning(request, _("Maintenance delete successfully!"))
-        return redirect('asset_app:maintenances_list')
+        return redirect('asset_app:maintenance_list')
 
 
 def maintenance_dashboard_view(request):
@@ -223,10 +269,19 @@ def maintenance_detail_view(request, slug):
     # dictionary for initial data with
     # field names as keys
     maintenance = get_object_or_404(Maintenance, slug=slug)
-   
+    
+    actions = Action.objects.filter(maintenance=maintenance)
+    items = MaintenanceItem.objects.filter(maintenance=maintenance).select_related('item')
+    
+    # Related Maintenances
+    related = Maintenance.objects.filter(name=maintenance.name).exclude(type=maintenance.type)
+
     context ={}
     # add the dictionary during initialization
-    context["data"] = maintenance    
+    context["maintenance"] = maintenance    
+    context["items"] = items    
+    context["actions"] = actions    
+    context["related"] = related    
     return render(request, "asset_app/detailviews/maintenance_detail_view.html", context)
 
 
@@ -291,12 +346,25 @@ def maintenance_item_delete_view(request):
     if request.is_ajax():
         selected_ids = request.POST['ckeck_box_item_ids']
         selected_ids = json.loads(selected_ids)
+        print(selected_ids)
+
         for i, id in enumerate(selected_ids):
             if id != '':
                 MaintenanceItem.objects.filter(id__in=selected_ids).delete()
 
-        return redirect('asset_app:components_list')
+        return redirect('asset_app:home')
 
+
+@login_required
+def maintenance_action_delete_view(request):
+    if request.is_ajax():
+        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = json.loads(selected_ids)
+        for i, id in enumerate(selected_ids):
+            if id != '':
+                Action.objects.filter(id__in=selected_ids).delete()
+
+        return redirect('asset_app:home')
 
 ########################## Component ##########################
 class ComponentListView(LoginRequiredMixin, ListView):

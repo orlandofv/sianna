@@ -132,6 +132,19 @@ class ComponentForm(forms.ModelForm):
 
 
 class MaintenanceForm(forms.ModelForm):
+    cm = 'Cm'
+    kg = 'Kg'
+    gb = 'Gb'
+    mb = 'Mb'
+    piece = 'Piece'
+    m3 = 'M3'
+    km = 'Km'
+    l = 'L'
+    g = 'G'
+
+    UNIT_CHOICES = ((cm, _('Cm')), (kg, _('Kg')), (l, _('L')),(gb, _('Gb')), 
+    (mb, _('Mb')), (piece, _('Piece')), (m3, _('M³')), (km, _('Km')), (g, _('G')))
+
     ROUTINE = 'Routine'
     PREVENTIVE = 'Preventive'
     CORRECTIVE = 'Corrective'
@@ -153,6 +166,7 @@ class MaintenanceForm(forms.ModelForm):
         (HOURS, 'Hours'), (DAYS, 'Days'), (MONTHS, 'Months'), 
         (KM, 'KM\'s'), 
     )
+
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), max_length=50)
     type = forms.ChoiceField(choices=MAINTENANCE_CHOICES)
     schedule = forms.ChoiceField(choices=MAINTENANCE_SCHEDULE)
@@ -161,8 +175,17 @@ class MaintenanceForm(forms.ModelForm):
     time_schedule = forms.ChoiceField(choices=MAINTENANCE_SCHEDULE)
     notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
 
+    action = forms.CharField(label=_('Action'), max_length=255)
+    item = forms.CharField(label=_('Item'), max_length=255)
+    cost = forms.DecimalField(label=_('Cost'), decimal_places=2, max_digits=9, initial=0) 
+    quantity = forms.DecimalField(label=_('Quantity'), decimal_places=2, max_digits=9, initial=0)
+    unit = forms.ChoiceField(choices=UNIT_CHOICES, initial=piece)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.fields['item'].widget = ListTextWidget(data_list=Item.objects.all(), name='item')
+        self.fields['action'].widget = ListTextWidget(data_list=Action.objects.all(), name='action')
 
         self.helper = FormHelper(self)
         self.helper.form_show_errors = False
@@ -187,9 +210,19 @@ class MaintenanceForm(forms.ModelForm):
                 Column('time_schedule', css_class='form-group col-md-3 mb-0'),
             ),
             Row(
-                Column(HTML("""<div  class="row"  id="add_action"></div>"""), css_class='form-group col-md-12 mb-0'),
+                FieldWithButtons('action', StrictButton('',  css_class="btn fa fa-minus-circle", id='removeRow'), id='div_id_action'), id='add_action'
             ),
+
             Button('add_action', _('Add Action'), css_class='btn btn-secondary fas fa-plus'),
+            Row(
+                # Column(HTML("""<div  class="row"  id="add_item_div">{}</div>""".format(self.item_html)), css_class='form-group col-md-12 mb-0'),
+                Column(Field('item', autocomplete='false'), css_class='form-group col-md-6 mb-0'),
+                Column('cost', css_class='form-group col-md-2 m-0'),
+                Column('quantity', css_class='form-group col-md-2 m-0'), 
+                FieldWithButtons('unit', StrictButton('',  css_class="btn fa fa-minus-circle", id='removeItem'), id='div_id_item', css_class='form-group col-md-2 m-0'),
+                id='item_row'
+            ),
+            Button('add_item', _('Add Item'), css_class='btn btn-secondary fas fa-plus'),
             HTML('<hr>'),
             Submit('save_maintenance', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             # Submit('save_maintenance_clone', _('Save and Clone'), css_class='btn btn-secondary fas fa-save'),
@@ -208,9 +241,12 @@ class MaintenanceForm(forms.ModelForm):
 
         name = cleaned_data.get('name')
         action = cleaned_data.get('action')
-        cost = cleaned_data.get('cost')
         time_allocated = cleaned_data.get('time_allocated')
 
+        item = cleaned_data.get('item')
+        quantity = cleaned_data.get('quantity')
+        cost = cleaned_data.get('cost')
+        
         if frequency in (None, ""):
             self.errors['frequency'] = self.error_class([_('Maintenance frequency must not be ' 
             'empty.')])
@@ -231,7 +267,16 @@ class MaintenanceForm(forms.ModelForm):
             'empty.')])
 
         if action in (None, "") or cost in (None, ""):
-             self.errors['action'] = self.error_class([_('Please add at least one action and its cost.')])
+             self.errors['action'] = self.error_class([_('Please add at least one action.')])
+        
+        if item in (None, "") or cost in (None, "") or quantity in (None, "") :
+             self.errors['item'] = self.error_class([_('Please add at least one item, cost and its quantity.')])
+
+        if cost <= 0:
+            self.errors['cost'] = self.error_class([_('Cost of Item must be greater than zero.')])
+        
+        if quantity <= 0:
+            self.errors['quantity'] = self.error_class([_('Quantity of Item must be greater than zero.')])
         
         return cleaned_data
 
@@ -1031,6 +1076,7 @@ class ItemForm(forms.ModelForm):
 
     name = forms.CharField(label=_('Item Name'))
     quantity = forms.DecimalField(decimal_places=2, max_digits=9,  initial=1)
+    cost = forms.DecimalField(decimal_places=2, max_digits=9,  initial=0)
     notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
 
     def __init__(self, *args, **kwargs):
@@ -1044,9 +1090,10 @@ class ItemForm(forms.ModelForm):
         self.helper.layout = Layout(
             BS5Accordion(
             AccordionGroup(_('Item Data'),
-            Row(Column('name', css_class='form-group col-md-8 mb-0'),
+            Row(Column('name', css_class='form-group col-md-6 mb-0'),
             Column('quantity', css_class='form-group col-md-2 mb-0'),
-            Column('unity', css_class='form-group col-md-2 mb-0')),
+            Column('cost', css_class='form-group col-md-2 mb-0'),
+            Column('unit', css_class='form-group col-md-2 mb-0')),
             Submit('save_item', _('Add'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
@@ -1063,8 +1110,6 @@ class ItemForm(forms.ModelForm):
 class ActionForm(forms.ModelForm):
 
     name = forms.CharField(label=_('Item Name'))
-    cost = forms.DecimalField(decimal_places=2, max_digits=9,  initial=0)
-   
     def __init__(self, *args, **kwargs):
         super(ActionForm, self).__init__(*args, **kwargs)
 
@@ -1076,8 +1121,7 @@ class ActionForm(forms.ModelForm):
         self.helper.layout = Layout(
             BS5Accordion(
             AccordionGroup(_('Action Data'),
-            Row(Column('name', css_class='form-group col-md-8 mb-0'),
-            Column('cost', css_class='form-group col-md-2 mb-0'),),
+            Row(Column('name', css_class='form-group col-md-12 mb-0')),
             Button('add_action', _('Add Action'), css_class='btn btn-secondary fas fa-save'),
             ),
              flush=True,

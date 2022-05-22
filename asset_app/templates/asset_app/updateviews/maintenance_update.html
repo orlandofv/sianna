@@ -16,12 +16,12 @@
     <div class="contentContainer">
         <div class="row">
             <div class="col-md-12">
-                <div class="conteiner-fluid p-10 m-0" id="results">
-                </div>
+                <div class="conteiner-fluid p-10 m-0" id="results"></div>
                 {% csrf_token %}
                 {% crispy form %}
             </div>
         </div>
+        {% include 'asset_app/partials/action_item_list.html' %}
     </div>
 
 {% endblock content %}

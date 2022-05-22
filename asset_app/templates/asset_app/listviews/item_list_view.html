@@ -12,7 +12,7 @@
     {% csrf_token %}
     
     <div class="contentContainer">
-        <a href="{% url 'asset_app:component_create' %} " class="btn btn-success fa fa-plus-square">
+        <a href="{% url 'asset_app:component_create' %} " class="btn btn-info fa fa-plus-circle">
             {% trans 'New' %} 
         </a>
 
@@ -49,7 +49,7 @@
                             <td> {{ obj.component_stock_code }} </td>
                             <td> <a href="{% url 'asset_app:component_update' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">
-                                    {% trans 'Update' %} 
+                                    {% trans 'Modify' %} 
                                 </a> 
                            
                                 <a href="{% url 'asset_app:component_details' obj.slug %}" 

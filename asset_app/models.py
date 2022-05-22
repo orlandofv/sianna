@@ -543,7 +543,6 @@ class Action(models.Model):
     name = models.CharField(_('Name'), max_length=50, unique=True)
     maintenance = models.ForeignKey(Maintenance, on_delete=models.PROTECT)
     slug = models.SlugField(unique=True, null=False, editable=False)
-    cost = models.DecimalField(_('Quantity'), decimal_places=2, max_digits=9)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
@@ -573,18 +572,19 @@ class Item(models.Model):
     gb = 'Gb'
     mb = 'Mb'
     piece = 'Piece'
-    m3 = 'M3'
+    m3 = 'M³'
     km = 'Km'
-    lt = 'Lt'
+    l = 'L'
     g = 'G'
 
-    UNITY_CHOICES = ((cm, _('Cm')), (kg, _('Kg')), (lt, _('Lt')),(gb, _('Gb')), 
+    UNITY_CHOICES = ((cm, _('Cm')), (kg, _('Kg')), (l, _('L')),(gb, _('Gb')), 
     (mb, _('Mb')), (piece, _('Piece')), (m3, _('M3')), (km, _('Km')), (g, _('G')))
 
     name = models.CharField(_('Name'), max_length=50, unique=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
     quantity = models.DecimalField(_('Quantity'), decimal_places=2, max_digits=9)
-    unity = models.CharField(_('Unity'), max_length=10, choices=UNITY_CHOICES, default=piece)
+    cost = models.DecimalField(_('Cost'), decimal_places=2, max_digits=9, default=0)
+    unit = models.CharField(_('Unit'), max_length=10, choices=UNITY_CHOICES, default=piece)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
@@ -612,7 +612,8 @@ class MaintenanceItem(models.Model):
     
     maintenance = models.ForeignKey(Maintenance, on_delete=models.PROTECT)
     item = models.ForeignKey(Item, on_delete=models.PROTECT)
-    quantity = models.DecimalField(_('Quantity'), decimal_places=2, max_digits=9)
+    quantity = models.DecimalField(_('Quantity'), decimal_places=2, max_digits=9, default=0)
+    cost = models.DecimalField(_('Cost'), decimal_places=2, max_digits=9, default=0)
     
     def __str__(self):
         return '{} - {}'.format(self.maintenance, self.item)    

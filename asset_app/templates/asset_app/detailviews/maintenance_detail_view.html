@@ -16,49 +16,37 @@
     <div class="contentContainer">
         <div class="row">
             <div class="col-md-12">
-                {% if data.image.url %}
-                    <img src="{{ data.image.url }}">
+                {% if maintenance.image.url %}
+                    <img src="{{ maintenance.image.url }}">
                 {% endif %}
-                <h1>{{ data.name }}</h1>
+                <h1>{{ maintenance.name }}</h1>
+                <a href="{% url 'asset_app:maintenance_create' %}" 
+                    class="fa fa-plus-circle btn btn-primary">
+                    {% trans 'New' %} 
+                </a> 
+                <a href="{% url 'asset_app:maintenance_update' maintenance.slug %}" 
+                    class="fa fa-pencil btn btn-secondary">
+                    {% trans 'Modify' %} 
+                </a> 
+                <a href="{% url 'asset_app:maintenance_list' %}" 
+                    class="fa fa-list btn btn-info">
+                    {% trans 'List' %} 
+                </a> 
                 <hr>
-                <h6>{% trans 'Maintenance Actions' %}: <strong> {{ data.action }} </strong></h6>
-                <h6>{% trans 'Maintenance Type' %}: <strong> {{ data.type }} </strong></h6>
-                <h6>{% trans 'Maintenance frequency' %}: <strong> {{ data.frequency }} ({{ data.schedule }}) </strong></h6>
-                <h6>{% trans 'Time Allocated' %}: <strong> {{ data.time_allocated }} ({{ data.time_schedule }})</strong></h6>
-                <h6>{% trans 'Notes' %}: <strong> {{ data.notes }} </strong></h6>
-                <br>
-                <h4>{% trans 'Maintenance Items' %} </h4>
+                <h6>{% trans 'Maintenance Actions' %}: <strong> {{ maintenance.action }} </strong></h6>
+                <h6>{% trans 'Maintenance Type' %}: <strong> {{ maintenance.type }} </strong></h6>
+                <h6>{% trans 'Maintenance frequency' %}: <strong> {{ maintenance.frequency }} ({{ maintenance.schedule }}) </strong></h6>
+                <h6>{% trans 'Time Allocated' %}: <strong> {{ maintenance.time_allocated }} ({{ maintenance.time_schedule }})</strong></h6>
+                <h6>{% trans 'Notes' %}: <strong> {{ maintenance.notes }} </strong></h6>
                 <hr>
-                <table id="sortTableSmaller" class="table table-striped display">
-                    <thead>
-                        <tr class="p-0 m-0">
-                            <th style="padding-left: 11px;">
-                                <input type="checkbox" id="checkall" name="main_Checkbox" 
-                                value="" style="vertical-align: middle"> 
-                            </th>
-                            <th>Name</th>
-                            <th>Quantity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in items %}
-                            <tr data-id="{{ item.id }}"  class="row{{ item.id }}">    
-                                <td with="10"> <input type="checkbox" id="{{ item.id }}" class="rowcheckbox" 
-                                    value="" style="vertical-align: middle">
-                                </td>
-                                <td> {{ item.item }}</td>
-                                <td> {{ item.quantity }} </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                
-                <hr>
-                <p>{% trans 'Created on' %}: <i> {{ data.date_created}} </i></p>
-                <p>{% trans 'Creted by' %}: <i> {{ data.created_by }} </i></p>
-                <p>{% trans 'Modified on' %}: <i> {{ data.date_modified }} </i></p>
-                <p>{% trans 'Modified by' %}: <i> {{ data.modified_by }} </i></p>
+                <p>{% trans 'Created on' %}: <i> {{ maintenance.date_created}} </i></p>
+                <p>{% trans 'Creted by' %}: <i> {{ maintenance.created_by }} </i></p>
+                <p>{% trans 'Modified on' %}: <i> {{ maintenance.date_modified }} </i></p>
+                <p>{% trans 'Modified by' %}: <i> {{ maintenance.modified_by }} </i></p>
             </div>
         </div>
+        {% csrf_token %}
+        {% include 'asset_app/partials/action_item_list.html' %}
+        
     </div>
 {% endblock content %}

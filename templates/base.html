@@ -35,36 +35,6 @@
     <script src="https://oss.maxcdn.com/libs/respond.js' %}/1.4.2/respond.min.js' %}"></script>
 <![endif]-->
     <script src="{% static 'js/chartjs/chart.min.js' %}"></script>
-    
-<script type="text/javascript">
-    function Hide(HideID) 
-    {
-        HideID.style.display = "none"; 
-    }
-
-    // add row
-    $("#button-id-add_action").click(function () {
-        console.log('fui clicado');
-        var html = '';
-        html += '<div id="inputFormRow">';
-        html += '<div class="input-group mb-3">';
-        html += '<input type="text" name="title[]" class="form-control m-input" placeholder="Enter title" autocomplete="off">';
-        html += '<div class="input-group-append">';
-        html += '<button id="removeRow" type="button" class="btn btn-danger">Remove</button>';
-        html += '</div>';
-        html += '</div>';
-
-        $('#add_action').append(html);
-    });
-
-    // remove row
-    $(document).on('click', '#removeRow', function () {
-        $(this).closest('#inputFormRow').remove();
-    });
-
-    
-</script>
-
 
 <style>
     .contentContainer
@@ -107,41 +77,89 @@
         {
             HideID.style.display = "none"; 
         }
+
+        var html = '';
+        html += '<div id="inputFormRow" class="row m-0 p-0">' 
+        html += '<div class="form-group col-md-12 mb-0">' 
+        html += '<div id="div_id_action" class="mb-3">' 
+        html += '<label for="id_action" class="form-label requiredField">'
+        html += 'Action<span class="asteriskField">*</span>' 
+        html += '</label>' 
+        html += '<div class="input-group">' 
+        html += '<input type="text" name="action" maxlength="255" class="textinput textInput form-control" required id="id_action">'
+        html += '<button  class="btn btn fa fa-minus-circle" id="removeRow" type="button"></button>'
+        html += '</div>' 
+        html += '</div>' 
+        html += '</div>' 
+        html += '</div>'      
+
         // add row
         $("#button-id-add_action").click(function () {
-            console.log('fui clicado');
-            var html = '';
-
-            html += '<div id="inputFormRow" class="row m-0 p-0">' 
-            html += '<div class="form-group col-md-9 mb-0">' 
-            html += '<div id="div_id_action" class="mb-3">' 
-            html += '<label for="id_action" class="form-label requiredField">'
-            html += 'Action<span class="asteriskField">*</span>' 
-            html += '</label>' 
-            html += '<input type="text" name="action" maxlength="255" class="textinput textInput form-control" required id="id_action">' 
-            html += '</div>' 
-            html += '</div>' 
-            html += '<div class="form-group col-md-3 mb-0" >' 
-            html += '<div id="div_id_cost" class="mb-3">' 
-            html += '<label for="id_cost" class="form-label requiredField">'
-            html += 'Cost<span class="asteriskField">*</span>' 
-            html += '</label>'
-            html += '<div>' 
-            html += '<div class="input-group">'
-            html += '<input type="number" name="cost" value="0" step="0.01" class="numberinput form-control" required id="id_cost">'
-            html += '<button  id="removeRow" class="btn fa fa-minus" data-bs-target="#id_cost" type="button"></button>'
-            html += '</div>'
-            html += '</div>'
-            html += '</div>'
-            html += '</div>'                
-            html += '</div>'                
             $('#add_action').append(html);
+            // $('#div_id_action').clone().appendTo('#formRow');
         });
     
         // remove row
         $(document).on('click', '#removeRow', function () {
             $(this).closest('#inputFormRow').remove();
-        });        
+        });
+        
+        var item_html = '';
+        item_html += '<div id="itemFormRow" class="row m-0 p-0">'
+        item_html += '<div class="form-group col-md-6 mb-0" >' 
+        item_html += '<div id="div_id_item" class="mb-3">' 
+        item_html += '<label for="id_item" class="form-label requiredField">'
+        item_html += 'Item<span class="asteriskField">*</span>' 
+        item_html += '</label>' 
+        item_html += '<input type="text" name="item" maxlength="255" class="textinput textInput form-control" required id="id_item">' 
+        item_html += '</div>' 
+        item_html += '</div>' 
+        item_html += '<div class="form-group col-md-2 m-0" >' 
+        item_html += '<div id="div_id_cost" class="mb-3">' 
+        item_html += '<label for="id_cost" class="form-label requiredField">'
+        item_html += 'Cost<span class="asteriskField">*</span>' 
+        item_html += '</label>' 
+        item_html += '<input type="number" name="cost" value="0" step="0.01" class="numberinput form-control" required id="id_cost">' 
+        item_html += '</div>' 
+        item_html += '</div>' 
+        item_html += '<div class="form-group col-md-2 m-0" >' 
+        item_html += '<div id="div_id_quantity" class="mb-3">' 
+        item_html += '<label for="id_quantity" class="form-label requiredField">'
+        item_html += 'Quantity<span class="asteriskField">*</span>' 
+        item_html += '</label>' 
+        item_html += '<input type="number" name="quantity" value="0" step="0.01" class="numberinput form-control" required id="id_quantity">' 
+        item_html += '</div>' 
+        item_html += '</div>' 
+        item_html += '<div class="mb-3 form-group col-md-2 m-0"  id="div_id_item">' 
+        item_html += '<label for="id_unit" class="form-label  requiredField">'
+        item_html += 'Unit<span class="asteriskField">*</span>' 
+        item_html += '</label>' 
+        item_html += '<div>' 
+        item_html += '<div class="input-group">' 
+        item_html += '<select name="unit" class="select form-control" id="id_unit">' 
+        item_html += '<option value="Cm">Cm</option> <option value="Kg">Kg</option>' 
+        item_html += '<option value="L">L</option> <option value="Gb">Gb</option>' 
+        item_html += '<option value="Mb">Mb</option> <option value="Piece" selected>Piece</option>' 
+        item_html += '<option value="M³">M3</option> <option value="Km">Km</option>' 
+        item_html += '<option value="G">G</option>'
+        item_html += '</select>' 
+        item_html += '<button  class="btn btn fa fa-minus-circle" id="removeItem" type="button"></button>' 
+        item_html += '</div>' 
+        item_html += '</div>'
+        item_html += '</div>'
+        item_html += '</div>'
+        
+         // add row
+         $("#button-id-add_item").click(function () {
+            $('#item_row').append(item_html);
+            // $('#div_id_action').clone().appendTo('#formRow');
+        });
+    
+        // remove row
+        $(document).on('click', '#removeItem', function () {
+            $(this).closest('#itemFormRow').remove();
+        });
+
     </script>
     
 

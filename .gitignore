@@ -3,6 +3,7 @@
 
 # ignore an entire directory
 app_env/
+app_venv/
 .vscode/
 .git/
 media/
