@@ -26,27 +26,27 @@
                     <div class="progress-bar" role="progressbar" style="width: {{ data.progress }}%;" aria-valuenow="{{ data.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
                   </div>
                   <div class="progress" style="height: 20px;">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ data.progress }}%;" aria-valuenow="{{ data.progress }}" aria-valuemin="0" aria-valuemax="100"> {{ data.progress }}% </div>
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ data.progress }}%;" aria-valuenow="{{ data.progress }}" aria-valuemin="0" aria-valuemax="100">{{ data.progress }}% </div>
                   </div>
                 <hr>
-                <h6>{% trans 'Ramaining Time' %}: <strong> {{ ramaining_time }} </strong></h6>
-                <h6>{% trans 'Allocation' %}: <strong> {{ data.allocation }} </strong></h6>
-                <h6>{% trans 'Company' %}: <strong> {{ data.allocation.company }} </strong></h6>
-                <h6>{% trans 'Person in Charge' %}: <strong> {{ data.responsible }} </strong></h6>
-                <h6>{% trans 'Address' %}: <strong> {{ data.allocation.company.address }} </strong></h6>
-                <h6>{% trans 'Start Date' %}: <strong> {{ data.start }} </strong></h6>
-                <h6>{% trans 'End Date' %}: <strong> {{ data.end }} </strong></h6>
-                <h6>{% trans 'Warning Date' %}: <strong> {{ data.warn_after }} </strong></h6>
+                <h6>{% trans 'Ramaining Time' %}: <strong>{{ ramaining_time }}</strong></h6>
+                <h6>{% trans 'Allocation' %}: <strong>{{ data.allocation }}</strong></h6>
+                <h6>{% trans 'Company' %}: <strong>{{ data.allocation.company }}</strong></h6>
+                <h6>{% trans 'Person in Charge' %}: <strong>{{ data.responsible }}</strong></h6>
+                <h6>{% trans 'Address' %}: <strong>{{ data.allocation.company.address }}</strong></h6>
+                <h6>{% trans 'Start Date' %}: <strong>{{ data.start }}</strong></h6>
+                <h6>{% trans 'End Date' %}: <strong>{{ data.end }}</strong></h6>
+                <h6>{% trans 'Warning Date' %}: <strong>{{ data.warn_after }}</strong></h6>
                 <h6>{% trans 'Work Status' %}: <strong 
-                    {% if data.status == 'Abandoned' or data.status == 'Pending' %} style="color:red;" {% else %} style="color:green;" {% endif %}> {{ data.status }} </strong></h6>
+                    {% if data.status == 'Abandoned' or data.status == 'Pending' %} style="color:red;" {% else %} style="color:green;" {% endif %}>{{ data.status }}</strong></h6>
     
-                <h6>{% trans 'Notes' %}: <strong> {{ data.notes }} </strong></h6>
+                <h6>{% trans 'Notes' %}: <strong>{{ data.notes }}</strong></h6>
                 
                 <hr>
-                <p>{% trans 'Created on' %}: <i> {{ data.date_created}} </i></p>
-                <p>{% trans 'Creted by' %}: <i> {{ data.created_by }} </i></p>
-                <p>{% trans 'Modified on' %}: <i> {{ data.date_modified }} </i></p>
-                <p>{% trans 'Modified by' %}: <i> {{ data.modified_by }} </i></p>
+                <p>{% trans 'Created on' %}: <i>{{ data.date_created}}</i></p>
+                <p>{% trans 'Creted by' %}: <i>{{ data.created_by }}</i></p>
+                <p>{% trans 'Modified on' %}: <i>{{ data.date_modified }}</i></p>
+                <p>{% trans 'Modified by' %}: <i>{{ data.modified_by }}</i></p>
                 
             </div>
         </div>

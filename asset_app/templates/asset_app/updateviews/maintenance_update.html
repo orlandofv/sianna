@@ -21,7 +21,11 @@
                 {% crispy form %}
             </div>
         </div>
+        
         {% include 'asset_app/partials/action_item_list.html' %}
     </div>
 
+    <script language="javascript" type="text/javascript">
+        document.getElementById('id_update').value = 'update'
+    </script>
 {% endblock content %}

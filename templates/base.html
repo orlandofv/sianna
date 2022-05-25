@@ -86,7 +86,7 @@
         html += 'Action<span class="asteriskField">*</span>' 
         html += '</label>' 
         html += '<div class="input-group">' 
-        html += '<input type="text" name="action" maxlength="255" class="textinput textInput form-control" required id="id_action">'
+        html += '<input type="text" name="action" maxlength="255" class="textInput form-control" required id="id_action">'
         html += '<button  class="btn btn fa fa-minus-circle" id="removeRow" type="button"></button>'
         html += '</div>' 
         html += '</div>' 
@@ -160,6 +160,123 @@
             $(this).closest('#itemFormRow').remove();
         });
 
+        function cloneMaintenance(url){
+            const maitenance_name = $( "h1" ).text();
+            const type = $( "#type" ).text();
+            const frequency = $( "#frequency" ).text();
+            const time_allocated = $( "#time_allocated" ).text();
+            const schedule = $( "#schedule" ).text();
+            const time_schedule = $( "#time_schedule" ).text();
+
+            var newWindow = window.open(url);
+           
+            $( newWindow ).on( "load", function() {
+                
+                newWindow.document.getElementById('id_name').value = maitenance_name;
+                newWindow.document.getElementById('id_type').value = "" + type;
+                newWindow.document.getElementById('id_frequency').value = parseFloat(frequency);
+                newWindow.document.getElementById('id_time_allocated').value = parseFloat(time_allocated);
+                newWindow.document.getElementById('id_schedule').value = "" + schedule;
+                newWindow.document.getElementById('id_time_schedule').value = "" + time_schedule;
+                
+                var doc = newWindow.document;
+                var item = $("#item_row", doc);
+                var action = $("#add_action", doc);
+                var i = 0;
+                var x = 0;
+                var itemMainArray = [];
+                var actionMainArray = [];
+                                
+                $('#sortTableSmaller tr').each(function() {
+                    if (!this.rowIndex) return; // skip first row
+                    
+                    x += 1;
+                    html = $(html);
+
+                    $('#id_action', $(html)).addClass('actionClass')
+                    
+                    action.append(html);
+                    
+                    var actionName = this.cells[1].innerHTML;
+                    var actionNotes = this.cells[2].innerHTML;
+                    
+                    $('#id_action', doc).val(actionName);
+                    $('#id_notes', doc).val(actionNotes);
+
+                    var internalArray = [];
+
+                    internalArray.push(actionName);
+                    internalArray.push(actionNotes);
+                    
+                    actionMainArray.push(internalArray);
+
+                });
+
+                $('.actionClass', doc).each(function(i, obj) {
+                    data = actionMainArray[i];
+                    $(this).val(data[i]);
+                });
+
+                $('#sortTableSmall tr').each(function() {
+                    if (!this.rowIndex) return; // skip first row
+                    
+                    i += 1;
+
+                    item_html = $(item_html);
+
+                    $('#id_item', $(item_html)).addClass('itemClass')
+                    $('#id_cost', item_html).addClass('costClass')
+                    $('#id_quantity', item_html).addClass('quantityClass')
+                    $('#id_unit', item_html).addClass('unitClass')
+                    
+                    item.append(item_html);
+                    
+                    var itemName = this.cells[1].innerHTML;
+                    var itemCost = this.cells[2].innerHTML;
+                    var itemQuantity = this.cells[3].innerHTML;
+                    var itemUnit = this.cells[4].innerHTML;
+        
+                    $('#id_item', doc).val(itemName);
+                    $('#id_cost', doc).val(parseFloat(itemCost));
+                    $('#id_quantity', doc).val(parseFloat(itemQuantity));
+                    $('#id_unit', doc).val(itemUnit.trim());
+                    
+                    var internalArray = [];
+
+                    internalArray.push(itemName);
+                    internalArray.push(itemCost);
+                    internalArray.push(itemQuantity);
+                    internalArray.push(itemUnit);
+
+                    itemMainArray.push(internalArray);
+
+                });
+
+                $('.itemClass', doc).each(function(i, obj) {
+                    data = itemMainArray[i];
+                    $(this).val(data[i]);
+                });
+
+                $('.costClass', doc).each(function(i, obj) {
+                    data = itemMainArray[i];
+                    console.log(data[1]);
+                    $(this).val(parseFloat(data[1]));
+                });
+
+                $('.quantityClass', doc).each(function(i, obj) {
+                    data = itemMainArray[i];
+                    console.log(data[2]);
+                    $(this).val(parseFloat(data[2]));
+                });
+
+                $('.unitClass', doc).each(function(i, obj) {
+                    data = itemMainArray[i];
+                    console.log(data[3]);
+                    $(this).val((data[3]).toString().trim());
+                });
+            });
+        } 
+        
     </script>
     
 

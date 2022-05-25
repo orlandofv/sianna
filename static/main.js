@@ -1,5 +1,3 @@
-
-
 function createDoughnutChart(labels, data, text, label, element_id){
     const m_chart = new Chart(document.getElementById(element_id), {
         type: 'doughnut',
@@ -47,7 +45,7 @@ function DeleteItems(element_id, delete_url, redirect_url){
     $.ajax({
         url: delete_url,
         type: 'POST',
-        data: {'ckeck_box_item_ids': selected_rows,
+        data: {'check_box_item_ids': selected_rows,
         'csrfmiddlewaretoken': $("[name=csrfmiddlewaretoken]").val()},
         success: function () {
             

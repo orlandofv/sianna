@@ -9,8 +9,8 @@
     <div class="row">
         
         <div class="col-md-12">
-            <a href="{% url 'asset_app:components_list' %}" 
-            class="btn btn-primary">{% trans 'All Components' %}: <strong> {{ total }} </strong></a>
+            <a href="{% url 'asset_app:component_list' %}" 
+            class="btn btn-primary">{% trans 'All Components' %}: <strong>{{ total }}</strong></a>
         </div>
         
         <div class="col-md-9">
@@ -32,11 +32,11 @@
                 <tbody>
                 {% for obj in last %}
                 <tr data-id="{{ obj.id }}" class="row{{ obj.id }}">
-                    <td> {{ obj.component_no }}</td>
-                    <td> {{ obj.name }}</td>
+                    <td>{{ obj.component_no }}</td>
+                    <td>{{ obj.name }}</td>
                     <td> <a href="{% url 'asset_app:maintenance_details' obj.maintenance.slug %}"> 
-                        {{ obj.maintenance }} </a> </td>
-                    <td> {{ obj.stock_code }} </td>
+                        {{ obj.maintenance }}</a> </td>
+                    <td>{{ obj.stock_code }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>

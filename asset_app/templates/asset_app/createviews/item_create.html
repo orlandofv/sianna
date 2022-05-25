@@ -18,7 +18,7 @@
             <div class="col-md-12">
                 
                 {% if maintenance %}
-                    <h3> <strong> {{ maintenance.name }} </strong> </h3>
+                    <h3> <strong>{{ maintenance.name }}</strong> </h3>
                     <hr>
                 {% endif %}
                 
@@ -44,8 +44,8 @@
                                 <td with="10"> <input type="checkbox" id="{{ item.id }}" class="rowcheckbox" 
                                     value="" style="vertical-align: middle">
                                 </td>
-                                <td> {{ item.item }}</td>
-                                <td> {{ item.quantity }} </td>
+                                <td>{{ item.item }}</td>
+                                <td>{{ item.quantity }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

@@ -104,8 +104,9 @@ def maintenance_create_view(request):
             instance.created_by = instance.modified_by = request.user
             instance.date_created = instance.date_modified = datetime.datetime.now()
             maintenance = instance
-
             instance = instance.save()
+            
+            slug = slugify('{}-{}'.format(maintenance.name, maintenance.type))
             
             # Saves actions
             save_action(request, maintenance)
@@ -114,7 +115,7 @@ def maintenance_create_view(request):
             messages.success(request, _("Maintenance added successfully!"))
 
             if request.POST.get('save_maintenance'):
-                return redirect('asset_app:maintenance_list')
+                return redirect('asset_app:maintenance_details', slug=slug)
             else:
                 return redirect('asset_app:maintenance_create')
         else:
@@ -135,19 +136,20 @@ def save_action(request, instance):
     i = 0
     for c in actions:
         try:
-            action_object = Action(name=c, maintenance=instance, slug=slugify(c), 
-            date_created=datetime.datetime.now(), date_modified=datetime.datetime.now(), 
-            created_by=request.user, modified_by=request.user)
+            if c != "":
+                action_object = Action(name=c, maintenance=instance, slug=slugify(c), 
+                date_created=datetime.datetime.now(), date_modified=datetime.datetime.now(), 
+                created_by=request.user, modified_by=request.user)
 
-            action_object.save()
-
+                action_object.save()
         except IntegrityError:
-            action_object = Action.objects.filter(name=c, maintenance=instance).update(slug=slugify(c), 
-            date_modified=datetime.datetime.now(), modified_by=request.user)
-            
+            if c != "":
+                action_object = Action.objects.filter(name=c, maintenance=instance).update(slug=slugify(c), 
+                date_modified=datetime.datetime.now(), modified_by=request.user)
+                
         i += 1
 
-    return action_object
+    return request
 
 
 def save_item(request, instance):
@@ -160,28 +162,28 @@ def save_item(request, instance):
 
     i = 0
     for c in items:
-        try:
-            item_object = Item(name=c, slug=slugify(c), cost=costs[i], quantity=qt[i], unit=unit[i],
-            date_created=datetime.datetime.now(), date_modified=datetime.datetime.now(), 
-            created_by=request.user, modified_by=request.user)
-            item_object.save()
+        print(c)
 
-        except IntegrityError:
-            item_object = Item.objects.filter(name=c).update(slug=slugify(c), cost=costs[i], 
-            quantity=qt[i], unit=unit[i], date_modified=datetime.datetime.now(), 
-            modified_by=request.user)
-        
-        _item =  Item.objects.get(name=c)
+        if c != "":
+            try:
+                item_object = Item(name=c, slug=slugify(c), cost=costs[i], quantity=qt[i], unit=unit[i],
+                date_created=datetime.datetime.now(), date_modified=datetime.datetime.now(), 
+                created_by=request.user, modified_by=request.user)
+                _item = item_object.save()
+            except IntegrityError as e:
+                item_object = Item.objects.filter(name=c).update(slug=slugify(c), cost=costs[i], 
+                quantity=qt[i], unit=unit[i], date_modified=datetime.datetime.now(), 
+                modified_by=request.user)
+                _item = Item.objects.get(name=c)
 
-        try:
-            print('Gravando: ', _item)
-            maintenance_item_object = MaintenanceItem(maintenance=instance, item=_item, 
-            quantity=qt[i], cost=costs[i])
-            maintenance_item_object.save()
+            try:
+                maintenance_item_object = MaintenanceItem(maintenance=instance, item=_item, 
+                quantity=qt[i], cost=costs[i])
+                maintenance_item_object.save()
 
-        except IntegrityError:
-            maintenance_item_object = MaintenanceItem.objects.filter(item=_item, 
-            maintenance=instance).update(quantity=qt[i], cost=costs[i])
+            except IntegrityError:
+                maintenance_item_object = MaintenanceItem.objects.filter(item=_item, 
+                maintenance=instance).update(quantity=qt[i], cost=costs[i])
 
         i += 1
 
@@ -194,22 +196,28 @@ def maintenance_update_view(request, slug):
     form = MaintenanceForm(request.POST or None, instance=maintenance)
 
     if request.method == 'POST':
-        
+
         if form.is_valid():
             instance = form.save(commit=False)
             instance.modified_by = request.user
-            instance.slug = slugify(instance.name)
+            slug = slugify('{}-{}'.format(instance.name, instance.type))
+            print(slug)
+            instance.slug = slug
             instance.date_modified = datetime.datetime.now()
-            instance = instance.save()
+            try:
+                instance = instance.save()
+            except IntegrityError as e:
+                messages.error(request, e)
+                return redirect('asset_app:maintenance_update', slug=slug)
 
              # Saves actions
             save_action(request, maintenance)
             save_item(request, maintenance)
 
-            messages.success(request, _("Maintenance apdated successfully!"))
+            messages.success(request, _("Maintenance updated successfully!"))
 
             if request.POST.get('save_maintenance'):
-                return redirect('asset_app:maintenance_list')
+                return redirect('asset_app:maintenance_details', slug=slug)
             else:
                 return redirect('asset_app:maintenance_create')
 
@@ -228,12 +236,16 @@ def maintenance_update_view(request, slug):
 @login_required
 def maintenance_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                Maintenance.objects.filter(id__in=selected_ids).delete()
-        
+                try:
+                    Maintenance.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:maintenance_list')
+
         messages.warning(request, _("Maintenance delete successfully!"))
         return redirect('asset_app:maintenance_list')
 
@@ -344,13 +356,17 @@ def maintenance_item_create_view(request, slug):
 @login_required
 def maintenance_item_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         print(selected_ids)
 
         for i, id in enumerate(selected_ids):
             if id != '':
-                MaintenanceItem.objects.filter(id__in=selected_ids).delete()
+                try:
+                    MaintenanceItem.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}.".format(e)))
+                    return redirect('asset_app:home')
 
         return redirect('asset_app:home')
 
@@ -358,11 +374,15 @@ def maintenance_item_delete_view(request):
 @login_required
 def maintenance_action_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                Action.objects.filter(id__in=selected_ids).delete()
+                try:
+                    Action.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:home')
 
         return redirect('asset_app:home')
 
@@ -418,7 +438,7 @@ def component_create_view(request):
                 messages.success(request, _("Component added successfully!"))
 
                 if request.POST.get('save_component'):
-                    return redirect('asset_app:components_list')
+                    return redirect('asset_app:component_list')
                 else:
                     return redirect('asset_app:component_create')
         else:
@@ -477,10 +497,10 @@ def component_update_view(request, slug):
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("Component apdated successfully!"))
+            messages.success(request, _("Component updated successfully!"))
 
             if request.POST.get('save_component'):
-                return redirect('asset_app:components_list')
+                return redirect('asset_app:component_list')
             else:
                 return redirect('asset_app:component_create')
 
@@ -496,14 +516,18 @@ def component_update_view(request, slug):
 @login_required
 def component_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                Component.objects.filter(id__in=selected_ids).delete()
+                try:
+                    Component.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:component_list')
         
         messages.warning(request, _("Component delete successfully!"))
-        return redirect('asset_app:components_list')
+        return redirect('asset_app:component_list')
 
 
 @login_required
@@ -542,7 +566,7 @@ def company_create_view(request):
             messages.success(request, _("Company added successfully!"))
 
             if request.POST.get('save_company'):
-                return redirect('asset_app:companies_list')
+                return redirect('asset_app:company_list')
             else:
                 return redirect('asset_app:company_create')
         else:
@@ -568,10 +592,10 @@ def company_update_view(request, slug):
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("Company apdated successfully!"))
+            messages.success(request, _("Company updated successfully!"))
 
             if request.POST.get('save_company'):
-                return redirect('asset_app:companies_list')
+                return redirect('asset_app:company_list')
             else:
                 return redirect('asset_app:company_create')
 
@@ -587,14 +611,18 @@ def company_update_view(request, slug):
 @login_required
 def company_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                Company.objects.filter(id__in=selected_ids).delete()
+                try:
+                    Company.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:company_list')
         
         messages.warning(request, _("Company delete successfully!"))
-        return redirect('asset_app:companies_list')
+        return redirect('asset_app:company_list')
 
 
 @login_required
@@ -636,7 +664,7 @@ def division_create_view(request):
                 messages.success(request, _("Division added successfully!"))
 
                 if request.POST.get('save_division'):
-                    return redirect('asset_app:divisions_list')
+                    return redirect('asset_app:division_list')
                 else:
                     return redirect('asset_app:division_create')
         else:
@@ -665,10 +693,10 @@ def division_update_view(request, slug):
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("Division apdated successfully!"))
+            messages.success(request, _("Division updated successfully!"))
 
             if request.POST.get('save_division'):
-                return redirect('asset_app:divisions_list')
+                return redirect('asset_app:division_list')
             else:
                 return redirect('asset_app:division_create')
 
@@ -684,14 +712,18 @@ def division_update_view(request, slug):
 @login_required
 def division_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                Division.objects.filter(id__in=selected_ids).delete()
+                try:
+                    Division.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:division_list')
         
         messages.warning(request, _("Division delete successfully!"))
-        return redirect('asset_app:divisions_list')
+        return redirect('asset_app:division_list')
 
 
 @login_required
@@ -733,7 +765,7 @@ def branch_create_view(request):
                 messages.success(request, _("Branch added successfully!"))
 
                 if request.POST.get('save_branch'):
-                    return redirect('asset_app:branches_list')
+                    return redirect('asset_app:branch_list')
                 else:
                     return redirect('asset_app:branch_create')
         else:
@@ -762,10 +794,10 @@ def branch_update_view(request, slug):
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("Branch apdated successfully!"))
+            messages.success(request, _("Branch updated successfully!"))
 
             if request.POST.get('save_branch'):
-                return redirect('asset_app:branches_list')
+                return redirect('asset_app:branch_list')
             else:
                 return redirect('asset_app:branch_create')
 
@@ -781,14 +813,18 @@ def branch_update_view(request, slug):
 @login_required
 def branch_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                Branch.objects.filter(id__in=selected_ids).delete()
+                try:
+                    Branch.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:branch_list')
         
         messages.warning(request, _("Branch delete successfully!"))
-        return redirect('asset_app:branches_list')
+        return redirect('asset_app:branch_list')
 
 
 @login_required
@@ -830,7 +866,7 @@ def position_create_view(request):
                 messages.success(request, _("Position added successfully!"))
 
                 if request.POST.get('save_position'):
-                    return redirect('asset_app:positions_list')
+                    return redirect('asset_app:position_list')
                 else:
                     return redirect('asset_app:position_create')
         else:
@@ -859,10 +895,10 @@ def position_update_view(request, slug):
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("Position apdated successfully!"))
+            messages.success(request, _("Position updated successfully!"))
 
             if request.POST.get('save_position'):
-                return redirect('asset_app:positions_list')
+                return redirect('asset_app:position_list')
             else:
                 return redirect('asset_app:position_create')
 
@@ -878,14 +914,18 @@ def position_update_view(request, slug):
 @login_required
 def position_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                Position.objects.filter(id__in=selected_ids).delete()
+                try:
+                    Position.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:position_list')
         
         messages.warning(request, _("Position delete successfully!"))
-        return redirect('asset_app:positions_list')
+        return redirect('asset_app:position_list')
 
 
 @login_required
@@ -918,7 +958,7 @@ def group_create_view(request):
             messages.success(request, _("Group added successfully!"))
 
             if request.POST.get('save_group'):
-                return redirect('asset_app:groups_list')
+                return redirect('asset_app:group_list')
             else:
                 return redirect('asset_app:group_create')
         else:
@@ -945,10 +985,10 @@ def group_update_view(request, slug):
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("Group apdated successfully!"))
+            messages.success(request, _("Group updated successfully!"))
 
             if request.POST.get('save_group'):
-                return redirect('asset_app:groups_list')
+                return redirect('asset_app:group_list')
             else:
                 return redirect('asset_app:group_create')
 
@@ -964,14 +1004,18 @@ def group_update_view(request, slug):
 @login_required
 def group_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                Group.objects.filter(id__in=selected_ids).delete()
+                try:
+                    Group.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:group_list')
         
         messages.warning(request, _("Group delete successfully!"))
-        return redirect('asset_app:groups_list')
+        return redirect('asset_app:group_list')
 
 
 @login_required
@@ -1013,7 +1057,7 @@ def system_create_view(request):
                 messages.success(request, _("System added successfully!"))
 
                 if request.POST.get('save_system'):
-                    return redirect('asset_app:systems_list')
+                    return redirect('asset_app:system_list')
                 else:
                     return redirect('asset_app:system_create')
         else:
@@ -1042,10 +1086,10 @@ def system_update_view(request, slug):
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("System apdated successfully!"))
+            messages.success(request, _("System updated successfully!"))
 
             if request.POST.get('save_system'):
-                return redirect('asset_app:systems_list')
+                return redirect('asset_app:system_list')
             else:
                 return redirect('asset_app:system_create')
 
@@ -1061,14 +1105,18 @@ def system_update_view(request, slug):
 @login_required
 def system_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                System.objects.filter(id__in=selected_ids).delete()
+                try:
+                    System.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:system_list')
         
         messages.warning(request, _("System delete successfully!"))
-        return redirect('asset_app:systems_list')
+        return redirect('asset_app:system_list')
 
 
 @login_required
@@ -1109,7 +1157,7 @@ def type_create_view(request):
                 messages.success(request, _("Type added successfully!"))
 
                 if request.POST.get('save_type'):
-                    return redirect('asset_app:types_list')
+                    return redirect('asset_app:type_list')
                 else:
                     return redirect('asset_app:type_create')
         else:
@@ -1138,10 +1186,10 @@ def type_update_view(request, slug):
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("Type apdated successfully!"))
+            messages.success(request, _("Type updated successfully!"))
 
             if request.POST.get('save_type'):
-                return redirect('asset_app:types_list')
+                return redirect('asset_app:type_list')
             else:
                 return redirect('asset_app:type_create')
 
@@ -1157,14 +1205,18 @@ def type_update_view(request, slug):
 @login_required
 def type_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                Type.objects.filter(id__in=selected_ids).delete()
+                try:
+                    Type.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:type_list')
         
         messages.warning(request, _("Type delete successfully!"))
-        return redirect('asset_app:types_list')
+        return redirect('asset_app:type_list')
 
 
 @login_required
@@ -1206,7 +1258,7 @@ def subtype_create_view(request):
                 messages.success(request, _("SubType added successfully!"))
 
                 if request.POST.get('save_subtype'):
-                    return redirect('asset_app:subtypes_list')
+                    return redirect('asset_app:subtype_list')
                 else:
                     return redirect('asset_app:subtype_create')
         else:
@@ -1235,10 +1287,10 @@ def subtype_update_view(request, slug):
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("SubType apdated successfully!"))
+            messages.success(request, _("SubType updated successfully!"))
 
             if request.POST.get('save_subtype'):
-                return redirect('asset_app:subtypes_list')
+                return redirect('asset_app:subtype_list')
             else:
                 return redirect('asset_app:subtype_create')
 
@@ -1254,14 +1306,18 @@ def subtype_update_view(request, slug):
 @login_required
 def subtype_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                SubType.objects.filter(id__in=selected_ids).delete()
+                try:
+                    SubType.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:subtype_list')
         
         messages.warning(request, _("SubType delete successfully!"))
-        return redirect('asset_app:subtypes_list')
+        return redirect('asset_app:subtype_list')
 
 
 @login_required
@@ -1294,7 +1350,7 @@ def vendor_create_view(request):
             messages.success(request, _("Vendor added successfully!"))
 
             if request.POST.get('save_vendor'):
-                return redirect('asset_app:vendors_list')
+                return redirect('asset_app:vendor_list')
             else:
                 return redirect('asset_app:vendor_create')
         else:
@@ -1321,10 +1377,10 @@ def vendor_update_view(request, slug):
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("Vendor apdated successfully!"))
+            messages.success(request, _("Vendor updated successfully!"))
 
             if request.POST.get('save_vendor'):
-                return redirect('asset_app:vendors_list')
+                return redirect('asset_app:vendor_list')
             else:
                 return redirect('asset_app:vendor_create')
 
@@ -1340,14 +1396,18 @@ def vendor_update_view(request, slug):
 @login_required
 def vendor_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                Vendor.objects.filter(id__in=selected_ids).delete()
+                try:
+                    Vendor.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:vendor_list')
         
         messages.warning(request, _("Vendor delete successfully!"))
-        return redirect('asset_app:vendors_list')
+        return redirect('asset_app:vendor_list')
 
 
 @login_required
@@ -1436,7 +1496,7 @@ def allocation_create_view(request):
             instance = instance.save()
     
             if request.POST.get('save_allocation'):
-                return redirect('asset_app:allocations_list')
+                return redirect('asset_app:allocation_list')
             else:
                 return redirect('asset_app:allocation_create')
 
@@ -1553,7 +1613,7 @@ def allocation_update_view(request, slug):
                 instance = instance.save()
                     
                 if request.POST.get('save_allocation'):
-                    return redirect('asset_app:allocations_list')
+                    return redirect('asset_app:allocation_list')
                 else:
                     return redirect('asset_app:allocation_update', slug=slug)
             else:
@@ -1575,14 +1635,18 @@ def allocation_update_view(request, slug):
 @login_required
 def allocation_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                Allocation.objects.filter(id__in=selected_ids).delete()
+                try:
+                    Allocation.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:allocation_list')
         
         messages.warning(request, _("Allocation delete successfully!"))
-        return redirect('asset_app:allocations_list')
+        return redirect('asset_app:allocation_list')
 
 
 @login_required
@@ -1616,7 +1680,7 @@ def workorder_create_view(request):
             messages.success(request, _("WorkOrder added successfully!"))
 
             if request.POST.get('save_workorder'):
-                return redirect('asset_app:workorders_list')
+                return redirect('asset_app:workorder_list')
             else:
                 return redirect('asset_app:workorder_create')
         else:
@@ -1641,10 +1705,10 @@ def workorder_update_view(request, slug):
             instance = form.save(commit=False)
             validate_workorder(request, instance)
             instance = instance.save()
-            messages.success(request, _("WorkOrder apdated successfully!"))
+            messages.success(request, _("WorkOrder updated successfully!"))
 
             if request.POST.get('save_workorder'):
-                return redirect('asset_app:workorders_list')
+                return redirect('asset_app:workorder_list')
             else:
                 return redirect('asset_app:workorder_create')
         else:
@@ -1663,14 +1727,18 @@ def validate_workorder(request, instance):
 @login_required
 def workorder_delete_view(request):
     if request.is_ajax():
-        selected_ids = request.POST['ckeck_box_item_ids']
+        selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
-                WorkOrder.objects.filter(id__in=selected_ids).delete()
+                try:
+                    WorkOrder.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:workorder_list')
         
         messages.warning(request, _("WorkOrder delete successfully!"))
-        return redirect('asset_app:workorders_list')
+        return redirect('asset_app:workorder_list')
 
 
 @login_required

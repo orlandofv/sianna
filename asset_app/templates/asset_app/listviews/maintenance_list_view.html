@@ -43,11 +43,11 @@
                         </td>
                         <td> 
                             <a href="{% url 'asset_app:maintenance_update' obj.slug %}" 
-                                class="aler-link">  {{ obj.name }}  
+                                class="aler-link">{{ obj.name }}  
                             </a>
-                        <td> {{ obj.type }}</td>
-                        <td> {{ obj.frequency }} ({{ obj.schedule }})</td>
-                        <td> {{ obj.time_allocated }} ({{ obj.time_schedule }})</td>
+                        <td>{{ obj.type }}</td>
+                        <td>{{ obj.frequency }} ({{ obj.schedule }})</td>
+                        <td>{{ obj.time_allocated }} ({{ obj.time_schedule }})</td>
                         <td>
                             <a href="{% url 'asset_app:maintenance_update' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">

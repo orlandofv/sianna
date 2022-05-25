@@ -13,14 +13,14 @@ from django.conf import settings
 
 class Tax(models.Model):
     ACTIVE = 1
-    DEACTIVETED  = 0
+    DEACTIVATED  = 0
     
-    STATUSES = ((ACTIVE, _('Active')), (DEACTIVETED , _('Deactivated')))
+    STATUSES = ((ACTIVE, _('Active')), (DEACTIVATED , _('Deactivated')))
 
-    name = models.CharField(max_length=25)
+    name = models.CharField(max_length=25, unique=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
-    rate = models.DecimalField(max_digits=4, decimal_places=2, default=0)
-    active_status = models.IntegerField(choices=STATUSES, default=ACTIVE)
+    rate = models.DecimalField(max_digits=4, decimal_places=2, default=0, unique=True)
+    active_status = models.IntegerField(_('Status'), choices=STATUSES, default=ACTIVE)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, default=timezone.now)
     date_modified = models.DateTimeField(editable=False, default=timezone.now)
@@ -42,22 +42,22 @@ class Tax(models.Model):
         ordering = ("name",)
 
 
-class Wharehouse(models.Model):
+class Warehouse(models.Model):
     ACTIVE = 1
-    DEACTIVETED  = 0
+    DEACTIVATED  = 0
     
-    STATUSES = ((ACTIVE, _('Active')), (DEACTIVETED , _('Deactivated')))
+    STATUSES = ((ACTIVE, _('Active')), (DEACTIVATED , _('Deactivated')))
 
     OPEN = 'OPEN'
     CLOSE = 'CLOSE'
 
     OPEN_STATUS = ((OPEN, 'Open'), (CLOSE, 'Close'))
 
-    name = models.CharField(max_length=25)
+    name = models.CharField(max_length=25, unique=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
-    parent_wharehouse = models.IntegerField(default=0)
+    parent = models.IntegerField(default=0)
     description = models.TextField(blank=True)
-    address = models.TextField(blank=True)
+    address = models.CharField(blank=True, max_length=255)
     contacts = models.CharField(max_length=255, blank=True)
     active_status = models.IntegerField(choices=STATUSES, default=ACTIVE)
     open_status = models.CharField(max_length=25, choices=OPEN_STATUS, default=OPEN)
@@ -71,7 +71,7 @@ class Wharehouse(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('wharehouse_details', kwargs={'slug': self.slug})
+        return reverse('warehouse_details', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs): # new
         if not self.slug:
@@ -96,9 +96,9 @@ class Gallery(models.Model):
 
 class Product(models.Model):
     ACTIVE = 1
-    DEACTIVETED  = 0
+    DEACTIVATED  = 0
     
-    STATUSES = ((ACTIVE, _('Active')), (DEACTIVETED , _('Deactivated')))
+    STATUSES = ((ACTIVE, _('Active')), (DEACTIVATED , _('Deactivated')))
 
     FOR_SALE = FOR_PURCHASE = 1
     NOT_FOR_SALE = NOT_FOR_PURCHASE = 0
@@ -154,14 +154,14 @@ class Product(models.Model):
 
     PRODUCT_NATURE = ((RAW_PRODUCT, _('Raw Product')), (MANUFACTURED_PRODUCT, _('Manufactured Product')))
     
-    code = models.CharField(max_length=50)
-    name = models.CharField(max_length=255, unique=True)
+    code = models.CharField(_('Product Code'), max_length=50, unique=True)
+    name = models.CharField(_('Name of Product'), max_length=255, unique=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
-    parent_product = models.IntegerField(default=0)
+    parent = models.IntegerField(_('Parent Product'), default=0)
     tax = models.ForeignKey(Tax, on_delete=models.PROTECT)
-    wharehouse = models.ForeignKey(Wharehouse, on_delete=models.PROTECT)
-    description = models.TextField(blank=True)
-    barcode = models.CharField(max_length=255, blank=True)
+    warehouse = models.ForeignKey(Warehouse, verbose_name=_('Default Warehouse'), on_delete=models.PROTECT)
+    description = models.TextField(_("Detailed Description"), blank=True)
+    barcode = models.CharField(_("Barcode"), max_length=255, blank=True)
     sell_price = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     min_sell_price = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     sell_price2 = models.DecimalField(max_digits=18, decimal_places=6, default=0)
@@ -169,26 +169,26 @@ class Product(models.Model):
     sell_price4 = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     sell_price5 = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     purchase_price = models.DecimalField(max_digits=18, decimal_places=6, default=0)
-    phisical_stock = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    max_purchase_price = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    physical_stock = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     stock_limit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     desired_stock = models.DecimalField(max_digits=18, decimal_places=6, default=0)
-    image = models.ImageField(_('Image'), default="default.jpeg", upload_to = 'media')
-    images = models.ForeignKey(Gallery, on_delete=models.PROTECT)
+    image = models.ImageField(_('Primary Image'), default="default.jpeg", upload_to = 'media', blank=True)
     product_nature = models.CharField(max_length=50, choices=PRODUCT_NATURE, default=RAW_PRODUCT)
     product_url = models.URLField(max_length=255, blank=True)
     weight = models.DecimalField(max_digits=9, decimal_places=6, default=0)
     length = models.DecimalField(max_digits=9, decimal_places=6, default=0)
     width = models.DecimalField(max_digits=9, decimal_places=6, default=0)
     height = models.DecimalField(max_digits=9, decimal_places=6, default=0)
-    length_measurements = models.CharField(max_length=10, choices=LENGTH_CHOICES, default=M)
+    length_units = models.CharField(max_length=10, choices=LENGTH_CHOICES, default=M)
     area = models.DecimalField(max_digits=9, decimal_places=6, default=0)
-    area_measurements = models.CharField(max_length=10, choices=AREA_CHOICES, default=M2)
+    area_units = models.CharField(max_length=10, choices=AREA_CHOICES, default=M2)
     volume = models.DecimalField(max_digits=9, decimal_places=6, default=0)
-    volume_choices = models.CharField(max_length=10, choices=VOLUME_CHOICES, default=0)
-    weight_measurement = models.CharField(max_length=50, choices=WEIGHT_MEASUREMENT_CHOICES, default=KG)
+    volume_units = models.CharField(max_length=10, choices=VOLUME_CHOICES, default=0)
+    weight_units = models.CharField(max_length=50, choices=WEIGHT_MEASUREMENT_CHOICES, default=KG)
     active_status = models.IntegerField(choices=STATUSES, default=ACTIVE)
     sell_status = models.IntegerField(choices=SELL_STATUSES, default=FOR_SALE)
-    purchace_status = models.IntegerField(choices=PURCHASE_STATUSES, default=FOR_PURCHASE)
+    purchase_status = models.IntegerField(choices=PURCHASE_STATUSES, default=FOR_PURCHASE)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, default=timezone.now)
     date_modified = models.DateTimeField(editable=False, default=timezone.now)

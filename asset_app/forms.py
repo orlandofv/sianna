@@ -175,11 +175,13 @@ class MaintenanceForm(forms.ModelForm):
     time_schedule = forms.ChoiceField(choices=MAINTENANCE_SCHEDULE)
     notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
 
-    action = forms.CharField(label=_('Action'), max_length=255)
-    item = forms.CharField(label=_('Item'), max_length=255)
-    cost = forms.DecimalField(label=_('Cost'), decimal_places=2, max_digits=9, initial=0) 
-    quantity = forms.DecimalField(label=_('Quantity'), decimal_places=2, max_digits=9, initial=0)
+    action = forms.CharField(label=_('Action'), max_length=255, required=False)
+    item = forms.CharField(label=_('Item'), max_length=255, required=False)
+    cost = forms.DecimalField(label=_('Cost'), decimal_places=2, max_digits=9, initial=0, required=False) 
+    quantity = forms.DecimalField(label=_('Quantity'), decimal_places=2, max_digits=9, initial=0, required=False)
     unit = forms.ChoiceField(choices=UNIT_CHOICES, initial=piece)
+
+    update = forms.CharField(max_length=255, required=False, widget=forms.HiddenInput()) 
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -222,6 +224,7 @@ class MaintenanceForm(forms.ModelForm):
                 FieldWithButtons('unit', StrictButton('',  css_class="btn fa fa-minus-circle", id='removeItem'), id='div_id_item', css_class='form-group col-md-2 m-0'),
                 id='item_row'
             ),
+            'update',
             Button('add_item', _('Add Item'), css_class='btn btn-secondary fas fa-plus'),
             HTML('<hr>'),
             Submit('save_maintenance', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
@@ -237,8 +240,14 @@ class MaintenanceForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        frequency = cleaned_data.get('frequency')
 
+        print(cleaned_data)
+
+        # Used to check wether is update or not
+        update = cleaned_data.get('update')
+
+        frequency = cleaned_data.get('frequency')
+        
         name = cleaned_data.get('name')
         action = cleaned_data.get('action')
         time_allocated = cleaned_data.get('time_allocated')
@@ -266,17 +275,18 @@ class MaintenanceForm(forms.ModelForm):
              self.errors['name'] = self.error_class([_('Maintenance name must no be ' 
             'empty.')])
 
-        if action in (None, "") or cost in (None, ""):
-             self.errors['action'] = self.error_class([_('Please add at least one action.')])
-        
-        if item in (None, "") or cost in (None, "") or quantity in (None, "") :
-             self.errors['item'] = self.error_class([_('Please add at least one item, cost and its quantity.')])
+        if update == "":
+            if action in (None, ""):
+                self.errors['action'] = self.error_class([_('Please add at least one action.')])
+            
+            if item in (None, "") or cost in (None, "") or quantity in (None, "") :
+                self.errors['item'] = self.error_class([_('Please add at least one item, cost and its quantity.')])
 
-        if cost <= 0:
-            self.errors['cost'] = self.error_class([_('Cost of Item must be greater than zero.')])
-        
-        if quantity <= 0:
-            self.errors['quantity'] = self.error_class([_('Quantity of Item must be greater than zero.')])
+            if cost <= 0:
+                self.errors['cost'] = self.error_class([_('Cost of Item must be greater than zero.')])
+            
+            if quantity <= 0:
+                self.errors['quantity'] = self.error_class([_('Quantity of Item must be greater than zero.')])
         
         return cleaned_data
 
@@ -934,7 +944,7 @@ class AllocationForm(forms.ModelForm):
             and warn_before_milliege == 0:
             self.errors['warning_values'] = self.error_class(_("""Invalid Warning Values.
             At least one field of Warning Values must be greater than zero."""))
-
+        
     class Meta:
         model = Allocation
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')

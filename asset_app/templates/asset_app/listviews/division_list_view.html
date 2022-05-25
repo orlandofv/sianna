@@ -14,7 +14,7 @@
     <div class="contentContainer">
         {% url 'asset_app:division_delete' as delete %}
         {% url 'asset_app:division_create' as create %}
-        {% url 'asset_app:divisions_list' as redirect %}
+        {% url 'asset_app:division_list' as redirect %}
         
         {% include 'asset_app/utilities/new_delete_extra_buttons.html' with table_id='#sortTableLarge' delete_url=delete redirect_url=redirect create_url=create %}
         
@@ -42,11 +42,11 @@
                         <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
                             value="" style="vertical-align: middle">
                         </td>
-                        <td> {{ obj.name }}</td>
-                        <td> {{ obj.address }}</td>
-                        <td> {{ obj.contacts }}</td>
-                        <td> {{ obj.manager }}</td>
-                        <td> {{ obj.division }}</td>
+                        <td>{{ obj.name }}</td>
+                        <td>{{ obj.address }}</td>
+                        <td>{{ obj.contacts }}</td>
+                        <td>{{ obj.manager }}</td>
+                        <td>{{ obj.division }}</td>
                         <td>
                             <a href="{% url 'asset_app:division_update' obj.slug %}" 
                                 class="fa fa-pencil btn btn-secondary">

@@ -14,7 +14,7 @@
     <div class="contentContainer">
         {% url 'asset_app:branch_delete' as delete %}
         {% url 'asset_app:branch_create' as create %}
-        {% url 'asset_app:branches_list' as redirect %}
+        {% url 'asset_app:branch_list' as redirect %}
         
         {% include 'asset_app/utilities/new_delete_extra_buttons.html' with table_id='#sortTableMedium' delete_url=delete redirect_url=redirect create_url=create %}
         
@@ -41,10 +41,10 @@
                         <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
                             value="" style="vertical-align: middle">
                         </td>
-                        <td> {{ obj.name }}</td>
-                        <td> {{ obj.division.company }}</td>
-                        <td> {{ obj.division }}</td>
-                        <td> {{ obj.notes }}</td>
+                        <td>{{ obj.name }}</td>
+                        <td>{{ obj.division.company }}</td>
+                        <td>{{ obj.division }}</td>
+                        <td>{{ obj.notes }}</td>
                         <td>
                             <a href="{% url 'asset_app:branch_update' obj.slug %}" 
                                 class="fa fa-pencil btn btn-secondary">

@@ -40,9 +40,9 @@
                         <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
                             value="" style="vertical-align: middle">
                         </td>
-                        <td> {{ obj.name }}</td>
-                        <td> {{ obj.maintenance }}</td>
-                        <td> {{ obj.notes }}</td>
+                        <td>{{ obj.name }}</td>
+                        <td>{{ obj.maintenance }}</td>
+                        <td>{{ obj.notes }}</td>
                         <td>
                             <a href="{% url 'asset_app:schedule_update' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">

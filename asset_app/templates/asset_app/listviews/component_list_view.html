@@ -43,11 +43,11 @@
                             <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
                                 value="" style="vertical-align: middle">
                             </td>
-                            <td> {{ obj.component_no }}</td>
-                            <td> {{ obj.name }}</td>
+                            <td>{{ obj.component_no }}</td>
+                            <td>{{ obj.name }}</td>
                             <td> <a href="{% url 'asset_app:maintenance_details' obj.maintenance.slug %}"> 
-                                {{ obj.maintenance }} </a> </td>
-                            <td> {{ obj.stock_code }} </td>
+                                {{ obj.maintenance }}</a> </td>
+                            <td>{{ obj.stock_code }}</td>
                             <td> 
                                 <a href="{% url 'asset_app:component_update' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">

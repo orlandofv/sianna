@@ -14,7 +14,7 @@
     <div class="contentContainer">
         {% url 'asset_app:workorder_delete' as delete %}
         {% url 'asset_app:workorder_create' as create %}
-        {% url 'asset_app:workorders_list' as redirect %}
+        {% url 'asset_app:workorder_list' as redirect %}
         
         {% include 'asset_app/utilities/new_delete_extra_buttons.html' with table_id='#sortTableLarge' delete_url=delete redirect_url=redirect create_url=create %}
         
@@ -49,25 +49,25 @@
                         <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
                             value="" style="vertical-align: middle">
                         </td>
-                        <td> {{ obj.order }}</td>
-                        <td> {{ obj.allocation }}</td>
-                        <td> {{ obj.responsible }}</td>
+                        <td>{{ obj.order }}</td>
+                        <td>{{ obj.allocation }}</td>
+                        <td>{{ obj.responsible }}</td>
                         <td> {% if obj.is_overdue %} Overdue
                             <div class="progress" style="height: 20px;">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-danger" role="progressbar" style="width: {{ obj.progress }}%;" aria-valuenow="{{ obj.progress }}" aria-valuemin="0" aria-valuemax="100"> {{ obj.progress }}% </div>
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-danger" role="progressbar" style="width: {{ obj.progress }}%;" aria-valuenow="{{ obj.progress }}" aria-valuemin="0" aria-valuemax="100">{{ obj.progress }}% </div>
                              </div>
 
                              {% elif obj.is_complete %} Complete
                              <div class="progress" style="height: 20px;">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: {{ obj.progress }}%;" aria-valuenow="{{ obj.progress }}" aria-valuemin="0" aria-valuemax="100"> {{ obj.progress }}% </div>
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: {{ obj.progress }}%;" aria-valuenow="{{ obj.progress }}" aria-valuemin="0" aria-valuemax="100">{{ obj.progress }}% </div>
                              </div>
 
                              {% elif obj.is_pending %} Pending <div class="progress" style="height: 20px;">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width: {{ obj.progress }}%;" aria-valuenow="{{ obj.progress }}" aria-valuemin="0" aria-valuemax="100"> {{ obj.progress }}% </div>
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width: {{ obj.progress }}%;" aria-valuenow="{{ obj.progress }}" aria-valuemin="0" aria-valuemax="100">{{ obj.progress }}% </div>
                              </div>
                              {% elif obj.is_progress %} 
                              In progress  <div class="progress" style="height: 20px;">
-                                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: {{ obj.progress }}%;" aria-valuenow="{{ obj.progress }}" aria-valuemin="0" aria-valuemax="100"> {{ obj.progress }}% </div>
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: {{ obj.progress }}%;" aria-valuenow="{{ obj.progress }}" aria-valuemin="0" aria-valuemax="100">{{ obj.progress }}% </div>
                                          </div>  
                              {% else %} Abandoned {% endif %}</td>
                         <td>

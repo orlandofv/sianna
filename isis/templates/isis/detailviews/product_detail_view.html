@@ -1,0 +1,110 @@
+{% extends 'index.html' %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% load i18n %}
+
+{% block title %} {{ block.super }} | {% trans 'Product Details' %} {% endblock title %}
+
+{% block breadcrumb %}
+    {% include 'breadcrumb.html' with title='Product Details' path='<a href="/products/"> Products</a>' dest='Details'  %}
+{% endblock breadcrumb %}
+
+{% block content %}
+    
+    <div class="contentContainer">
+        <div class="row">
+            <div class="col-md-12">
+                {% if product.image.url %}
+                    <img src="{{ product.image.url }}">
+                {% endif %}
+                <h1>{{ product.name }} ( {{ product.code }} )</h1>
+                <a href="{% url 'isis:product_create' %}" 
+                    class="fa fa-plus-circle btn btn-primary">
+                    {% trans 'New' %} 
+                </a> 
+                <a href="{% url 'isis:product_update' product.slug %}" 
+                    class="fa fa-pencil btn btn-secondary">
+                    {% trans 'Modify' %} 
+                </a> 
+                <a href="{% url 'isis:product_list' %}" 
+                    class="fa fa-list btn btn-info">
+                    {% trans 'List' %} 
+                </a>
+                
+                <button class="btn btn-primary fa fa-copy" onclick="cloneProduct('{% url 'isis:product_create' %}');">
+                    Clone
+                </button>
+
+                <hr>
+                <h6>{% trans 'Parent' %}: <strong> <span>{{ parent_product }}</span></> </strong></h6>
+                <h6>{% trans 'Active' %}: <strong> 
+                    <span>  
+                        {% if product.active_status %} {% trans 'Active' %}
+                        {% else %} {% trans 'Not Active' %}
+                        {% endif %}
+                    </span> </strong>
+                </h6>
+
+                <h6>{% trans 'Sell Status' %}: <strong> <span>
+                    {% if product.sell_status %} {% trans 'For Sale' %}
+                    {% else %} {% trans 'Not For Sale' %}
+                    {% endif %}
+                </span> </strong></h6>
+                <h6>{% trans 'Purchase Status' %}: <strong> <span>
+                    {% if product.purchase_status %} {% trans 'For Purchase' %}
+                    {% else %} {% trans 'Not For Purchase' %}
+                    {% endif %}
+                </span> </strong></h6>
+                <hr>
+                <h6>{% trans 'Physical Stock' %}: <strong> <span>{{ product.physical_stock | floatformat:2 }}</span></> </strong></h6>
+                <h6>{% trans 'Desired Stock' %}: <strong> <span>{{ product.desired_stock | floatformat:2 }}</span> </strong></h6>
+                <h6>{% trans 'Stock Limit' %}: <strong> <span>{{ product.stock_limit | floatformat:2 }}</span> </strong></h6>
+                <hr>
+                <h6>{% trans 'Barcode' %}: <strong> <span>{{ product.barcode }}</span> </strong></h6>
+                <h6>{% trans 'Tax' %}: <strong> <span>{{ product.tax }}  ({{ product.tax.rate }}%)</span> </strong></h6>
+                <h6>{% trans 'Default Warehouse' %}: <strong> <span>{{ product.warehouse }}</span> </strong></h6>
+                <hr>
+                <h6>{% trans 'Selling Price' %}: <strong> <span>{{ product.sell_price | floatformat:2 }}</span> </strong></h6>
+                <h6>{% trans 'Min. Selling Price' %}: <strong> <span>{{ product.min_sell_price | floatformat:2 }}</span> </strong></h6>
+                <h6>{% trans 'Selling Price 2' %}: <strong> <span>{{ product.sell_price2 | floatformat:2 }}</span> </strong></h6>
+                <h6>{% trans 'Selling Price 3' %}: <strong> <span>{{ product.sell_price3 | floatformat:2 }}</span> </strong></h6>
+                <h6>{% trans 'Selling Price 4' %}: <strong> <span>{{ product.sell_price4 | floatformat:2 }}</span> </strong></h6>
+                <h6>{% trans 'Selling Price 5' %}: <strong> <span>{{ product.sell_price5 | floatformat:2 }}</span> </strong></h6>
+                <h6>{% trans 'Purchase Price' %}: <strong> <span>{{ product.purchase_price | floatformat:2 }}</span> </strong></h6>
+                <h6>{% trans 'Max. Purchase Price' %}: <strong> <span>{{ product.max_purchase_price | floatformat:2 }}</span> </strong></h6>
+                <hr>
+                <h6>{% trans 'Product Nature' %}: <strong> <span>{{ product.product_nature }}</span> </strong></h6>
+                <h6>{% trans 'Product Url' %}: <strong> <span>{{ product.product_url }}</span> </strong></h6>
+                <h6>{% trans 'Length X Width X Height' %}: <strong> <span>
+                {{ product.length | floatformat:2 }} X {{ product.width | floatformat:2 }} X {{ product.height | floatformat:2 }} {{ product.length_units }}</span> </strong></h6>
+                <h6>{% trans 'Area' %}: <strong> <span>{{ product.area | floatformat:2 }} {{ product.area_units }}</span> </strong></h6>
+                <h6>{% trans 'Volume' %}: <strong> <span>{{ product.volume | floatformat:2 }} {{ product.volume_units }}</span> </strong></h6>
+                <h6>{% trans 'Weight' %}: <strong> <span>{{ product.weight | floatformat:2 }} {{ product.weight_units }}</span> </strong></h6>
+                <hr>
+                <h6>{% trans 'Description' %}: <strong> <span>{{ product.description }}</span> </strong></h6>
+                <h6>{% trans 'Notes' %}: <strong>{{ product.notes }}</strong></h6>
+                <hr>
+                <p>{% trans 'Created on' %}: <i>{{ product.date_created}}</i></p>
+                <p>{% trans 'Creted by' %}: <i>{{ product.created_by }}</i></p>
+                <p>{% trans 'Modified on' %}: <i>{{ product.date_modified }}</i></p>
+                <p>{% trans 'Modified by' %}: <i>{{ product.modified_by }}</i></p>
+            </div>
+        </div>
+            
+        {% if child_products %}
+            <div class="card panel-primary mt-2">
+                <div class="card-title">Child Products</div>
+                <div class='card-body'>
+                    {% for rel in child_products %}
+                        <a href="{% url 'isis:product_details' rel.slug %}" 
+                        class="fa fa-book btn btn-default card-text">
+                            {{ rel }}
+                        </a> 
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock content %}

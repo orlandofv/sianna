@@ -31,22 +31,40 @@
                 <a href="{% url 'asset_app:maintenance_list' %}" 
                     class="fa fa-list btn btn-info">
                     {% trans 'List' %} 
-                </a> 
+                </a>
+                
+                <button class="btn btn-primary fa fa-copy" onclick="cloneMaintenance('{% url 'asset_app:maintenance_create' %}');">
+                    Clone
+                </button>
+
                 <hr>
-                <h6>{% trans 'Maintenance Actions' %}: <strong> {{ maintenance.action }} </strong></h6>
-                <h6>{% trans 'Maintenance Type' %}: <strong> {{ maintenance.type }} </strong></h6>
-                <h6>{% trans 'Maintenance frequency' %}: <strong> {{ maintenance.frequency }} ({{ maintenance.schedule }}) </strong></h6>
-                <h6>{% trans 'Time Allocated' %}: <strong> {{ maintenance.time_allocated }} ({{ maintenance.time_schedule }})</strong></h6>
-                <h6>{% trans 'Notes' %}: <strong> {{ maintenance.notes }} </strong></h6>
+                <h6>{% trans 'Maintenance Type' %}: <strong> <span id='type'>{{ maintenance.type }}</span> </strong></h6>
+                <h6>{% trans 'Maintenance frequency' %}: <strong> <span id='frequency'>{{ maintenance.frequency }}</span> (<span id='schedule'>{{ maintenance.schedule }}</span>)</strong></h6>
+                <h6>{% trans 'Time Allocated' %}: <strong> <span id='time_allocated'>{{ maintenance.time_allocated }}</span> 
+                    (<span id='time_schedule'>{{ maintenance.time_schedule }}</span>)</strong></h6>
+                <h6>{% trans 'Notes' %}: <strong>{{ maintenance.notes }}</strong></h6>
                 <hr>
-                <p>{% trans 'Created on' %}: <i> {{ maintenance.date_created}} </i></p>
-                <p>{% trans 'Creted by' %}: <i> {{ maintenance.created_by }} </i></p>
-                <p>{% trans 'Modified on' %}: <i> {{ maintenance.date_modified }} </i></p>
-                <p>{% trans 'Modified by' %}: <i> {{ maintenance.modified_by }} </i></p>
+                <p>{% trans 'Created on' %}: <i>{{ maintenance.date_created}}</i></p>
+                <p>{% trans 'Creted by' %}: <i>{{ maintenance.created_by }}</i></p>
+                <p>{% trans 'Modified on' %}: <i>{{ maintenance.date_modified }}</i></p>
+                <p>{% trans 'Modified by' %}: <i>{{ maintenance.modified_by }}</i></p>
             </div>
         </div>
         {% csrf_token %}
         {% include 'asset_app/partials/action_item_list.html' %}
         
+        <div class="panel panel-primary mt-2">
+            <div class="panel-heading">Related Items</div>
+            <ul class="list-group">
+                {% for rel in related %}
+                    <li class="list-group-item">
+                        <a href="{% url 'asset_app:maintenance_details' rel.slug %}" 
+                            class="fa fa-book btn btn-default">
+                            {{ rel }}
+                        </a> 
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
 {% endblock content %}

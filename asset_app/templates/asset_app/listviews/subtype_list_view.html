@@ -14,7 +14,7 @@
     <div class="contentContainer">
         {% url 'asset_app:subtype_delete' as delete %}
         {% url 'asset_app:subtype_create' as create %}
-        {% url 'asset_app:subtypes_list' as redirect %}
+        {% url 'asset_app:subtype_list' as redirect %}
         
         {% include 'asset_app/utilities/new_delete_extra_buttons.html' with table_id='#sortTableMedium' delete_url=delete redirect_url=redirect create_url=create %}
         
@@ -41,10 +41,10 @@
                         <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
                             value="" style="vertical-align: middle">
                         </td>
-                        <td> {{ obj.name }}</td>
-                        <td> {{ obj.type.system.group }}</td>
-                        <td> {{ obj.type.system }}</td>
-                        <td> {{ obj.type }}</td>
+                        <td>{{ obj.name }}</td>
+                        <td>{{ obj.type.system.group }}</td>
+                        <td>{{ obj.type.system }}</td>
+                        <td>{{ obj.type }}</td>
                         <td>
                             <a href="{% url 'asset_app:subtype_update' obj.slug %}" 
                                 class="fa fa-pencil btn btn-secondary">

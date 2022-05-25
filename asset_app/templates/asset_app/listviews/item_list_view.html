@@ -43,10 +43,10 @@
                             <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
                                 value="" style="vertical-align: middle">
                             </td>
-                            <td> {{ obj.component_system_no }}</td>
-                            <td> {{ obj.component_name }} </td>
-                            <td> {{ obj.component_manufacturer }} </td>
-                            <td> {{ obj.component_stock_code }} </td>
+                            <td>{{ obj.component_system_no }}</td>
+                            <td>{{ obj.component_name }}</td>
+                            <td>{{ obj.component_manufacturer }}</td>
+                            <td>{{ obj.component_stock_code }}</td>
                             <td> <a href="{% url 'asset_app:component_update' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">
                                     {% trans 'Modify' %} 

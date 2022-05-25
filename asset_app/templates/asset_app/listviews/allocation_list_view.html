@@ -46,10 +46,10 @@
                             <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
                                 value="" style="vertical-align: middle">
                             </td>
-                            <td> {{ obj.allocation_no }}</td>
-                            <td> {{ obj.component }} </td>
-                            <td> {{ obj.serial_number }}</td> </td>
-                            <td> {{ obj.company }} </td>
+                            <td>{{ obj.allocation_no }}</td>
+                            <td>{{ obj.component }}</td>
+                            <td>{{ obj.serial_number }}</td> </td>
+                            <td>{{ obj.company }}</td>
                             <td> <a href="{% url 'asset_app:allocation_update' obj.slug  %}" 
                                     class="fa fa-pencil btn btn-secondary">
                                     {% trans 'Modify' %} 
