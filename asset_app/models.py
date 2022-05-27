@@ -14,7 +14,7 @@ from django.conf import settings
 
 
 class Settings(models.Model):
-    name = models.CharField(_('Company Name'), max_length=100, unique=True)
+    name = models.CharField(_('Costumer Name'), max_length=100, unique=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
     address = models.CharField(_('Address'), blank=True, max_length=255)
     cell = models.CharField(_('Cell'), blank=True, max_length=255)
@@ -136,17 +136,23 @@ class Component(models.Model):
         ordering = ("name",)
 
 
-class Company(models.Model):
+class Costumer(models.Model):
+    YES = '1'
+    NO = 1
 
-    name = models.CharField(_('Company Name'), 
-    help_text=_('Name of the Company, Department, etc'), max_length=100, unique=True)
-    parent = models.IntegerField(_('Parent Company'), 
-    help_text=_('Choose Parent Company'), default=0)
+    COSTUMER_CHOICES = ((NO, _("No")), (YES, _("Yes")))
+
+    name = models.CharField(_('Costumer Name'), 
+    help_text=_('Name of the Costumer, Department, etc'), max_length=100, unique=True)
+    parent = models.IntegerField(_('Parent Costumer'), 
+    help_text=_('Choose Parent Costumer'), default=0)
     slug = models.SlugField(unique=True, null=False, editable=False)
     address = models.CharField(blank=True, max_length=255)
     contacts = models.CharField(blank=True, max_length=255)
-    manager = models.CharField(max_length=100, blank=True)
+    max_credit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     email = models.EmailField(max_length = 254, blank=True)
+    website = models.EmailField(max_length = 254, blank=True)
+    is_supplier = models.IntegerField(choices=COSTUMER_CHOICES, default=NO)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
@@ -159,7 +165,7 @@ class Company(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('company_details', kwargs={'slug': self.slug})
+        return reverse('costumer_details', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs): # new
         if not self.slug:
@@ -168,101 +174,7 @@ class Company(models.Model):
 
     class Meta:
         ordering = ("name",)
-        verbose_name_plural = "Companies"
-
-
-class Division(models.Model):
-
-    name = models.CharField(_('Division Name'), 
-    help_text=_('Name of the Division, Department, etc'), max_length=100, unique=True)
-    slug = models.SlugField(unique=True, null=False, editable=False)
-    company = models.ForeignKey(Company, on_delete=models.PROTECT)
-    address = models.CharField(blank=True, max_length=255)
-    contacts = models.CharField(blank=True, max_length=255)
-    manager = models.CharField(max_length=100, blank=True)
-    email = models.EmailField(max_length = 254, blank=True)
-    notes = models.TextField(blank=True)
-    date_created = models.DateTimeField(editable=False, 
-    default=timezone.now)
-    date_modified = models.DateTimeField(editable=False, 
-    default=timezone.now)
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-
-    def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse('division_details', kwargs={'slug': self.slug})
-
-    def save(self, *args, **kwargs): # new
-        if not self.slug:
-            self.slug = slugify(self.name)
-        return super().save(*args, **kwargs)
-
-    class Meta:
-        ordering = ("name",)
-
-
-class Branch(models.Model):
-
-    name = models.CharField(_('Branch Name'), 
-    help_text=_('Name of the Branch, Department, etc'),max_length=100, unique=True)
-    slug = models.SlugField(unique=True, null=False, editable=False)
-    division = models.ForeignKey(Division, on_delete=models.PROTECT)
-    notes = models.TextField(blank=True)
-    date_created = models.DateTimeField(editable=False, 
-    default=timezone.now)
-    date_modified = models.DateTimeField(editable=False, 
-    default=timezone.now)
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-
-
-    def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse('branch_details', kwargs={'slug': self.slug})
-
-    def save(self, *args, **kwargs): # new
-        if not self.slug:
-            self.slug = slugify(self.name)
-        return super().save(*args, **kwargs)
-
-    class Meta:
-        ordering = ("name",)
-        verbose_name_plural = "Branches"
-
-
-class Position(models.Model):
-
-    name = models.CharField(_('Position Name'), 
-    help_text=_('Name of the Position, Department, etc'),max_length=100, unique=True)
-    slug = models.SlugField(unique=True, null=False, editable=False)
-    branch = models.ForeignKey(Branch, on_delete=models.PROTECT)
-    notes = models.TextField(blank=True)
-    date_created = models.DateTimeField(editable=False, 
-    default=timezone.now)
-    date_modified = models.DateTimeField(editable=False, 
-    default=timezone.now)
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-
-
-    def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse('position_details', kwargs={'slug': self.slug})
-
-    def save(self, *args, **kwargs): # new
-        if not self.slug:
-            self.slug = slugify(self.name)
-        return super().save(*args, **kwargs)
-
-    class Meta:
-        ordering = ("name",)
+        verbose_name_plural = "Costumers"
 
 
 class Group(models.Model):
@@ -408,10 +320,7 @@ class Allocation(models.Model):
     allocation_no = models.PositiveIntegerField(_("Allocation No."), unique=True) # validators=[RegexValidator(r'^[0-9]{9}$')]
     component = models.ForeignKey(Component,on_delete=models.PROTECT, verbose_name= _('component Name'))
     vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT, verbose_name= _('Vendor Name'))
-    company = models.ForeignKey(Company, on_delete=models.PROTECT)
-    division = models.ForeignKey(Division, on_delete=models.PROTECT)
-    branch = models.ForeignKey(Branch, on_delete=models.PROTECT)
-    position = models.ForeignKey(Position, on_delete=models.PROTECT)
+    costumer = models.ForeignKey(Costumer, on_delete=models.PROTECT)
     serial_number = models.CharField(_('Component Serial No.'), max_length=50, unique=True)
     status = models.CharField(_('Status'), max_length=15, choices=STATUS, default=GOOD)
     image = models.ImageField(_('Image'), default="default.jpeg", 

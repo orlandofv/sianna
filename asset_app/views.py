@@ -18,12 +18,11 @@ from django.views.generic import (
 )
 from django.contrib.auth.models import User
 from .models import (Component, Allocation, Maintenance, Item, 
-MaintenanceItem, Company, Division, Branch, Position, Group, System, Type, 
+MaintenanceItem, Costumer, Group, System, Type, 
 SubType, Vendor, Settings, WorkOrder, Action)
 from .filters import ComponentFilter
 from users.models import User
-from .forms import (ComponentForm, MaintenanceForm, CompanyForm, DivisionForm, BranchForm, 
-PositionForm, GroupForm, SystemForm, TypeForm, SubTypeForm, AllocationForm, 
+from .forms import (ComponentForm, MaintenanceForm, CostumerForm, GroupForm, SystemForm, TypeForm, SubTypeForm, AllocationForm, 
 VendorForm, ItemForm, SettingsForm, WorkOrderForm)
 from django.contrib import messages #import messages
 from django.utils.translation import ugettext_lazy as _
@@ -73,10 +72,7 @@ def home_view(request):
     context = {
         'component': Component.objects.all(), 
         'maitntenance': Maintenance.objects.all(), 
-        'company': Company.objects.all(), 
-        'division': Division.objects.all(), 
-        'branch': Branch.objects.all(), 
-        'position': Position.objects.all(), 
+        'costumer': Costumer.objects.all(),  
         'allocation': Allocation.objects.all(), 
         'group': Group.objects.all(), 
         'system': System.objects.all(), 
@@ -542,16 +538,16 @@ def component_detail_view(request, slug):
     return render(request, "asset_app/detailviews/component_detail_view.html", context)
 
 
-########################## Company ##########################
-class CompanyListView(LoginRequiredMixin, ListView):
-    model = Company
-    template_name = 'asset_app/listviews/company_list_view.html'
+########################## Costumer ##########################
+class CostumerListView(LoginRequiredMixin, ListView):
+    model = Costumer
+    template_name = 'asset_app/listviews/costumer_list_view.html'
 
 
 @login_required
-def company_create_view(request):
+def costumer_create_view(request):
     if request.method == 'POST':
-        form = CompanyForm(request.POST)
+        form = CostumerForm(request.POST)
         if form.is_valid():
             instance = form.save(commit=False)
             parent = request.POST.get('parent')
@@ -563,26 +559,26 @@ def company_create_view(request):
             instance.created_by = instance.modified_by = request.user
             instance.date_created = instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("Company added successfully!"))
+            messages.success(request, _("Costumer added successfully!"))
 
-            if request.POST.get('save_company'):
-                return redirect('asset_app:company_list')
+            if request.POST.get('save_costumer'):
+                return redirect('asset_app:costumer_list')
             else:
-                return redirect('asset_app:company_create')
+                return redirect('asset_app:costumer_create')
         else:
             for error in form.errors.values():
                 messages.error(request, error)
-            return redirect('asset_app:company_create')
+            return redirect('asset_app:costumer_create')
     else:
-        form = CompanyForm()
+        form = CostumerForm()
         context = {'form': form}
-        return render(request, 'asset_app/createviews/company_create.html', context)
+        return render(request, 'asset_app/createviews/costumer_create.html', context)
 
 
 @login_required
-def company_update_view(request, slug):
-    company = get_object_or_404(Company, slug=slug)
-    form = CompanyForm(request.POST or None, instance=company)
+def costumer_update_view(request, slug):
+    costumer = get_object_or_404(Costumer, slug=slug)
+    form = CostumerForm(request.POST or None, instance=costumer)
 
     if request.method == 'POST':
     
@@ -592,352 +588,49 @@ def company_update_view(request, slug):
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
             instance = instance.save()
-            messages.success(request, _("Company updated successfully!"))
+            messages.success(request, _("Costumer updated successfully!"))
 
-            if request.POST.get('save_company'):
-                return redirect('asset_app:company_list')
+            if request.POST.get('save_costumer'):
+                return redirect('asset_app:costumer_list')
             else:
-                return redirect('asset_app:company_create')
+                return redirect('asset_app:costumer_create')
 
         else:
             for error in form.errors.values():
                 messages.error(request, error)
-            return redirect('asset_app:company_update', slug=slug)
+            return redirect('asset_app:costumer_update', slug=slug)
        
     context = {'form': form}
-    return render(request, 'asset_app/updateviews/company_update.html', context)
+    return render(request, 'asset_app/updateviews/costumer_update.html', context)
 
 
 @login_required
-def company_delete_view(request):
+def costumer_delete_view(request):
     if request.is_ajax():
         selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
         for i, id in enumerate(selected_ids):
             if id != '':
                 try:
-                    Company.objects.filter(id__in=selected_ids).delete()
+                    Costumer.objects.filter(id__in=selected_ids).delete()
                 except Exception as e:
                     messages.warning(request, _("Not Deleted! {}".format(e)))
-                    return redirect('asset_app:company_list')
+                    return redirect('asset_app:costumer_list')
         
-        messages.warning(request, _("Company delete successfully!"))
-        return redirect('asset_app:company_list')
+        messages.warning(request, _("Costumer delete successfully!"))
+        return redirect('asset_app:costumer_list')
 
 
 @login_required
-def company_detail_view(request, slug):
+def costumer_detail_view(request, slug):
     # dictionary for initial data with
     # field names as keys
-    company = get_object_or_404(Company, slug=slug)
+    costumer = get_object_or_404(Costumer, slug=slug)
    
     context ={}
     # add the dictionary during initialization
-    context["data"] = company    
-    return render(request, "asset_app/detailviews/company_detail_view.html", context)
-
-
-########################## Division ##########################
-class DivisionListView(LoginRequiredMixin, ListView):
-    model = Division
-    template_name = 'asset_app/listviews/division_list_view.html'
-
-
-@login_required
-def division_create_view(request):
-    if request.method == 'POST':
-        form = DivisionForm(request.POST)
-        company_form = CompanyForm(request.POST)
-
-        if form.is_valid() or company_form.is_valid():
-            if request.POST.get('save_company') or request.POST.get('save_company_new'):
-                instance = company_form.save(commit=False)
-                instance.created_by = instance.modified_by = request.user
-                instance.date_created = instance.date_modified = datetime.datetime.now()
-                instance = instance.save()
-                return redirect('asset_app:division_create')
-            else:
-                instance = form.save(commit=False)
-                instance.created_by = instance.modified_by = request.user
-                instance.date_created = instance.date_modified = datetime.datetime.now()
-                instance = instance.save()
-                messages.success(request, _("Division added successfully!"))
-
-                if request.POST.get('save_division'):
-                    return redirect('asset_app:division_list')
-                else:
-                    return redirect('asset_app:division_create')
-        else:
-            for error in form.errors.values():
-                messages.error(request, error)
-            return redirect('asset_app:division_create')
-    else:
-        form = DivisionForm()
-        company_form = CompanyForm()
-        context = {'form': form, 'company_form': company_form}
-        return render(request, 'asset_app/createviews/division_create.html', context)
-
-
-@login_required
-def division_update_view(request, slug):
-    division = get_object_or_404(Division, slug=slug)
-    form = DivisionForm(request.POST or None, instance=division)
-    company_form = CompanyForm(request.POST or None)
-
-    if request.method == 'POST':
-        
-
-        if form.is_valid():
-            instance = form.save(commit=False)
-            instance.modified_by = request.user
-            instance.slug = slugify(instance.name)
-            instance.date_modified = datetime.datetime.now()
-            instance = instance.save()
-            messages.success(request, _("Division updated successfully!"))
-
-            if request.POST.get('save_division'):
-                return redirect('asset_app:division_list')
-            else:
-                return redirect('asset_app:division_create')
-
-        else:
-            for error in form.errors.values():
-                messages.error(request, error)
-            return redirect('asset_app:division_update', slug=slug)
-       
-    context = {'form': form, 'company_form': company_form}
-    return render(request, 'asset_app/updateviews/division_update.html', context)
-
-
-@login_required
-def division_delete_view(request):
-    if request.is_ajax():
-        selected_ids = request.POST['check_box_item_ids']
-        selected_ids = json.loads(selected_ids)
-        for i, id in enumerate(selected_ids):
-            if id != '':
-                try:
-                    Division.objects.filter(id__in=selected_ids).delete()
-                except Exception as e:
-                    messages.warning(request, _("Not Deleted! {}".format(e)))
-                    return redirect('asset_app:division_list')
-        
-        messages.warning(request, _("Division delete successfully!"))
-        return redirect('asset_app:division_list')
-
-
-@login_required
-def division_detail_view(request, slug):
-    # dictionary for initial data with
-    # field names as keys
-    division = get_object_or_404(Division, slug=slug)
-   
-    context ={}
-    # add the dictionary during initialization
-    context["data"] = division    
-    return render(request, "asset_app/detailviews/division_detail_view.html", context)
-
-
-########################## Branch ##########################
-class BranchListView(LoginRequiredMixin, ListView):
-    model = Branch
-    template_name = 'asset_app/listviews/branch_list_view.html'
-
-
-@login_required
-def branch_create_view(request):
-    if request.method == 'POST':
-        form = BranchForm(request.POST)
-        division_form = DivisionForm(request.POST)
-
-        if form.is_valid() or division_form.is_valid():
-            if request.POST.get('save_division') or request.POST.get('save_division_new'):
-                instance = division_form.save(commit=False)
-                instance.created_by = instance.modified_by = request.user
-                instance.date_created = instance.date_modified = datetime.datetime.now()
-                instance = instance.save()
-                return redirect('asset_app:branch_create')
-            else:
-                instance = form.save(commit=False)
-                instance.created_by = instance.modified_by = request.user
-                instance.date_created = instance.date_modified = datetime.datetime.now()
-                instance = instance.save()
-                messages.success(request, _("Branch added successfully!"))
-
-                if request.POST.get('save_branch'):
-                    return redirect('asset_app:branch_list')
-                else:
-                    return redirect('asset_app:branch_create')
-        else:
-            for error in form.errors.values():
-                messages.error(request, error)
-            return redirect('asset_app:branch_create')
-    else:
-        form = BranchForm()
-        division_form = DivisionForm()
-        context = {'form': form, 'division_form': division_form}
-        return render(request, 'asset_app/createviews/branch_create.html', context)
-
-
-@login_required
-def branch_update_view(request, slug):
-    branch = get_object_or_404(Branch, slug=slug)
-    form = BranchForm(request.POST or None, instance=branch)
-    division_form = DivisionForm(request.POST or None)
-
-    if request.method == 'POST':
-        
-
-        if form.is_valid():
-            instance = form.save(commit=False)
-            instance.modified_by = request.user
-            instance.slug = slugify(instance.name)
-            instance.date_modified = datetime.datetime.now()
-            instance = instance.save()
-            messages.success(request, _("Branch updated successfully!"))
-
-            if request.POST.get('save_branch'):
-                return redirect('asset_app:branch_list')
-            else:
-                return redirect('asset_app:branch_create')
-
-        else:
-            for error in form.errors.values():
-                messages.error(request, error)
-            return redirect('asset_app:branch_update', slug=slug)
-       
-    context = {'form': form, 'division_form': division_form}
-    return render(request, 'asset_app/updateviews/branch_update.html', context)
-
-
-@login_required
-def branch_delete_view(request):
-    if request.is_ajax():
-        selected_ids = request.POST['check_box_item_ids']
-        selected_ids = json.loads(selected_ids)
-        for i, id in enumerate(selected_ids):
-            if id != '':
-                try:
-                    Branch.objects.filter(id__in=selected_ids).delete()
-                except Exception as e:
-                    messages.warning(request, _("Not Deleted! {}".format(e)))
-                    return redirect('asset_app:branch_list')
-        
-        messages.warning(request, _("Branch delete successfully!"))
-        return redirect('asset_app:branch_list')
-
-
-@login_required
-def branch_detail_view(request, slug):
-    # dictionary for initial data with
-    # field names as keys
-    branch = get_object_or_404(Branch, slug=slug)
-   
-    context ={}
-    # add the dictionary during initialization
-    context["data"] = branch    
-    return render(request, "asset_app/detailviews/branch_detail_view.html", context)
-
-
-########################## Position ##########################
-class PositionListView(LoginRequiredMixin, ListView):
-    model = Position
-    template_name = 'asset_app/listviews/position_list_view.html'
-
-
-@login_required
-def position_create_view(request):
-    if request.method == 'POST':
-        form = PositionForm(request.POST)
-        branch_form = BranchForm(request.POST)
-
-        if form.is_valid() or branch_form.is_valid():
-            if request.POST.get('save_branch') or request.POST.get('save_branch_new'):
-                instance = branch_form.save(commit=False)
-                instance.created_by = instance.modified_by = request.user
-                instance.date_created = instance.date_modified = datetime.datetime.now()
-                instance = instance.save()
-                return redirect('asset_app:position_create')
-            else:
-                instance = form.save(commit=False)
-                instance.created_by = instance.modified_by = request.user
-                instance.date_created = instance.date_modified = datetime.datetime.now()
-                instance = instance.save()
-                messages.success(request, _("Position added successfully!"))
-
-                if request.POST.get('save_position'):
-                    return redirect('asset_app:position_list')
-                else:
-                    return redirect('asset_app:position_create')
-        else:
-            for error in form.errors.values():
-                messages.error(request, error)
-            return redirect('asset_app:position_create')
-    else:
-        form = PositionForm()
-        branch_form = BranchForm()
-        context = {'form': form, 'branch_form': branch_form}
-        return render(request, 'asset_app/createviews/position_create.html', context)
-
-
-@login_required
-def position_update_view(request, slug):
-    position = get_object_or_404(Position, slug=slug)
-    form = PositionForm(request.POST or None, instance=position)
-    branch_form = BranchForm(request.POST or None)
-
-    if request.method == 'POST':
-        
-
-        if form.is_valid():
-            instance = form.save(commit=False)
-            instance.modified_by = request.user
-            instance.slug = slugify(instance.name)
-            instance.date_modified = datetime.datetime.now()
-            instance = instance.save()
-            messages.success(request, _("Position updated successfully!"))
-
-            if request.POST.get('save_position'):
-                return redirect('asset_app:position_list')
-            else:
-                return redirect('asset_app:position_create')
-
-        else:
-            for error in form.errors.values():
-                messages.error(request, error)
-            return redirect('asset_app:position_update', slug=slug)
-       
-    context = {'form': form, 'branch_form': branch_form}
-    return render(request, 'asset_app/updateviews/position_update.html', context)
-
-
-@login_required
-def position_delete_view(request):
-    if request.is_ajax():
-        selected_ids = request.POST['check_box_item_ids']
-        selected_ids = json.loads(selected_ids)
-        for i, id in enumerate(selected_ids):
-            if id != '':
-                try:
-                    Position.objects.filter(id__in=selected_ids).delete()
-                except Exception as e:
-                    messages.warning(request, _("Not Deleted! {}".format(e)))
-                    return redirect('asset_app:position_list')
-        
-        messages.warning(request, _("Position delete successfully!"))
-        return redirect('asset_app:position_list')
-
-
-@login_required
-def position_detail_view(request, slug):
-    # dictionary for initial data with
-    # field names as keys
-    position = get_object_or_404(Position, slug=slug)
-   
-    context ={}
-    # add the dictionary during initialization
-    context["data"] = position    
-    return render(request, "asset_app/detailviews/position_detail_view.html", context)
+    context["data"] = costumer    
+    return render(request, "asset_app/detailviews/costumer_detail_view.html", context)
 
 
 ########################## Group ##########################
@@ -1434,35 +1127,22 @@ def allocation_create_view(request):
     if request.method == 'POST':
         form = AllocationForm(request.POST, request.FILES)
         component_form = ComponentForm(request.POST)
-        company_form = CompanyForm(request.POST)
-        division_form = DivisionForm(request.POST)
-        branch_form = BranchForm(request.POST)
-        position_form = PositionForm(request.POST)
+        costumer_form = CostumerForm(request.POST)
         group_form = GroupForm(request.POST)
         system_form = SystemForm(request.POST)
         type_form = TypeForm(request.POST)
         subtype_form = SubTypeForm(request.POST)
         vendor_form = VendorForm(request.POST)
 
-        if form.is_valid() or company_form.is_valid() or component_form.is_valid() \
-            or division_form.is_valid() or branch_form.is_valid() or position_form.is_valid() \
-                or group_form.is_valid() or system_form.is_valid() or type_form.is_valid() \
+        if form.is_valid() or costumer_form.is_valid() or component_form.is_valid() \
+            or group_form.is_valid() or system_form.is_valid() or type_form.is_valid() \
                     or subtype_form.is_valid() or vendor_form.is_valid():
 
             if request.POST.get('save_component') or request.POST.get('save_component_new'):
                 instance = component_form.save(commit=False)
             
-            if request.POST.get('save_company') or request.POST.get('save_company_new'):
-                instance = company_form.save(commit=False)
-            
-            if request.POST.get('save_division') or request.POST.get('save_division_new'):
-                instance = division_form.save(commit=False)
-            
-            if request.POST.get('save_branch') or request.POST.get('save_branch_new'):
-                instance = branch_form.save(commit=False)
-            
-            if request.POST.get('save_position') or request.POST.get('save_position_new'):
-                instance = position_form.save(commit=False)
+            if request.POST.get('save_costumer') or request.POST.get('save_costumer_new'):
+                instance = costumer_form.save(commit=False)
             
             if request.POST.get('save_group') or request.POST.get('save_group_new'):
                 instance = group_form.save(commit=False)
@@ -1507,18 +1187,14 @@ def allocation_create_view(request):
     else:
         form = AllocationForm()
         component_form = ComponentForm()
-        company_form = CompanyForm()
-        division_form = DivisionForm()
-        branch_form = BranchForm()
-        position_form = PositionForm()
+        costumer_form = CostumerForm()
         group_form = GroupForm()
         system_form = SystemForm()
         type_form = TypeForm()
         subtype_form = SubTypeForm()
         vendor_form = VendorForm()
 
-        context = {'form': form, 'component_form': component_form,'company_form': company_form, 
-        'division_form': division_form, 'branch_form': branch_form, 'position_form': position_form, 
+        context = {'form': form, 'component_form': component_form,'costumer_form': costumer_form, 
         'group_form': group_form, 'system_form': system_form, 'type_form': type_form, 
         'subtype_form': subtype_form, 'vendor_form': vendor_form}
         return render(request, 'asset_app/createviews/allocation_create.html', context)
@@ -1529,10 +1205,7 @@ def allocation_update_view(request, slug):
     allocation = get_object_or_404(Allocation, slug=slug)
     form = AllocationForm(request.POST or None, request.FILES or None, instance=allocation)
     component_form = ComponentForm(request.POST or None)
-    company_form = CompanyForm(request.POST or None)
-    division_form = DivisionForm(request.POST or None)
-    branch_form = BranchForm(request.POST or None)
-    position_form = PositionForm(request.POST or None)
+    costumer_form = CostumerForm(request.POST or None)
     group_form = GroupForm(request.POST or None)
     system_form = SystemForm(request.POST or None)
     type_form = TypeForm(request.POST or None)
@@ -1541,9 +1214,8 @@ def allocation_update_view(request, slug):
 
     if request.method == 'POST':
         try:
-            if form.is_valid() or company_form.is_valid() or component_form.is_valid() \
-                or division_form.is_valid() or branch_form.is_valid() or position_form.is_valid() \
-                    or group_form.is_valid() or system_form.is_valid() or type_form.is_valid() \
+            if form.is_valid() or costumer_form.is_valid() or component_form.is_valid() \
+                or group_form.is_valid() or system_form.is_valid() or type_form.is_valid() \
                         or subtype_form.is_valid() or vendor_form.is_valid():
  
                 if request.POST.get('save_component') or request.POST.get('save_component_new'):
@@ -1551,23 +1223,8 @@ def allocation_update_view(request, slug):
                     instance.created_by = instance.modified_by = request.user
                     instance.date_created = instance.date_modified = datetime.datetime.now()
                 
-                if request.POST.get('save_company') or request.POST.get('save_company_new'):
-                    instance = company_form.save(commit=False)
-                    instance.created_by = instance.modified_by = request.user
-                    instance.date_created = instance.date_modified = datetime.datetime.now()
-                
-                if request.POST.get('save_division') or request.POST.get('save_division_new'):
-                    instance = division_form.save(commit=False)
-                    instance.created_by = instance.modified_by = request.user
-                    instance.date_created = instance.date_modified = datetime.datetime.now()
-                
-                if request.POST.get('save_branch') or request.POST.get('save_branch_new'):
-                    instance = branch_form.save(commit=False)
-                    instance.created_by = instance.modified_by = request.user
-                    instance.date_created = instance.date_modified = datetime.datetime.now()
-                
-                if request.POST.get('save_position') or request.POST.get('save_position_new'):
-                    instance = position_form.save(commit=False)
+                if request.POST.get('save_costumer') or request.POST.get('save_costumer_new'):
+                    instance = costumer_form.save(commit=False)
                     instance.created_by = instance.modified_by = request.user
                     instance.date_created = instance.date_modified = datetime.datetime.now()
                 
@@ -1625,8 +1282,7 @@ def allocation_update_view(request, slug):
             messages.error(request, e)
             return redirect('asset_app:allocation_update', slug=slug)
     
-    context = {'form': form, 'component_form': component_form,'company_form': company_form, 
-        'division_form': division_form, 'branch_form': branch_form, 'position_form': position_form, 
+    context = {'form': form, 'component_form': component_form,'costumer_form': costumer_form, 
         'group_form': group_form, 'system_form': system_form, 'type_form': type_form, 
         'subtype_form': subtype_form, 'vendor_form': vendor_form}
     return render(request, 'asset_app/updateviews/allocation_update.html', context)
@@ -1770,19 +1426,12 @@ def create_qrcode(request, instance):
     
     allocation_no = instance.allocation_no
     component = instance.component
-    company = instance.company 
-    division = instance.division 
-    branch = instance.branch 
-    position = instance.position
-
+    costumer = instance.costumer 
+    
     subject = _(f"There is a issue with {component}")
     body = f"""
     Allocation Number.: {allocation_no}\n
-    Company: {company}\n
-    Division: {division}\n
-    Branch: {branch}\n
-    Position: {position}\n
-
+    Costumer: {costumer}\n
     We have identified a problem with this component: {allocation_no} - {component}
     """
 

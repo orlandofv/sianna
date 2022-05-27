@@ -3,7 +3,8 @@ import datetime
 import sys
 from turtle import onclick
 from django import forms
-from .models import (Product, Gallery, Tax, Warehouse)
+from .models import (Product, Gallery, Tax, Warehouse, Invoice, InvoiceDetails, 
+PaymentTerm, PaymentMethod, Receipt)
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Reset, HTML
@@ -12,7 +13,6 @@ from django.utils.translation import ugettext_lazy as _
 from crispy_bootstrap5.bootstrap5 import BS5Accordion
 
 from django.utils import timezone
-
 from users.models import User
 
 from asset_app.fields import ListTextWidget
@@ -22,7 +22,7 @@ class ProductForm(forms.ModelForm):
     code = forms.CharField(max_length=50)
     name = forms.CharField(max_length=255)
     parent = forms.ModelChoiceField(queryset=Product.objects.all(), required=False)
-    tax = forms.ModelChoiceField(queryset=Tax.objects.all())
+    tax = forms.ModelChoiceField(queryset=Tax.objects.all(), initial=1)
     warehouse = forms.ModelChoiceField(queryset=Warehouse.objects.all(), label=_('Default Warehouse'))
     barcode = forms.CharField(max_length=255, required=False)
     sell_price = forms.DecimalField(label=_('Selling Prince'), max_digits=18, decimal_places=6, initial=0, required=False)
@@ -67,7 +67,8 @@ class ProductForm(forms.ModelForm):
             Tab(_('PRODUCT MAIN DATA'),
                 Row(
                     Column('code', css_class='form-group col-md-6 mb-0'),
-                    Column('barcode', css_class='form-group col-md-6 mb-0'),
+                    Column('barcode', css_class='form-group col-md-4 mb-0'),
+                    Column('type', css_class='form-group col-md-2 mb-0'),
                     css_class='form-row'),
                 Row(
                     Column('name', css_class='form-group col-md-6 mb-0'),
@@ -266,4 +267,154 @@ class WarehouseForm(forms.ModelForm):
     class Meta:
         model = Warehouse
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+
+    class Meta:
+        model = Costumer
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+
+class PaymentMethodForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(PaymentMethodForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_id = "payment_method-form-id"
+        self.helper.form_class = "payment_method-form-class"
+        self.helper.layout = Layout(
+        HTML("""
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <hr>
+        """.format(_('Add/Update Payment Method'),)),
+        BS5Accordion(
+            AccordionGroup(_('PAYMENT METHOD DATA'),
+                Row(
+                    Column('name', css_class='form-group col-md-6 mb-0'),
+                    css_class='form-row'
+                ),
+                Row(
+                    Column('notes', css_class='form-group col-md-12 mb-0'),
+                    css_class='form-row'),
+            ),
+                HTML('<br>'),
+                Submit('save_payment_method', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+                Submit('save_payment_method_new', _('Save & Edit'), css_class='btn btn-primary fas fa-save'),
+                Reset('reset', 'Clear', css_class='btn btn-danger'),
+                flush=True,
+                always_open=True),
+        )
+
+    class Meta:
+        model = PaymentMethod
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+
+class PaymentTermForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(PaymentTermForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_id = "payment_term-form-id"
+        self.helper.form_class = "payment_term-form-class"
+        self.helper.layout = Layout(
+        HTML("""
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <hr>
+        """.format(_('Add/Update Payment Term'),)),
+        BS5Accordion(
+            AccordionGroup(_('PAYMENT TERM DATA'),
+                Row(
+                    Column('name', css_class='form-group col-md-6 mb-0'),
+                    css_class='form-row'
+                ),
+                Row(
+                    Column('notes', css_class='form-group col-md-12 mb-0'),
+                    css_class='form-row'),
+            ),
+                HTML('<br>'),
+                Submit('save_payment_term', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+                Submit('save_payment_term_new', _('Save & Edit'), css_class='btn btn-primary fas fa-save'),
+                Reset('reset', 'Clear', css_class='btn btn-danger'),
+                flush=True,
+                always_open=True),
+        )
+
+    class Meta:
+        model = PaymentTerm
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+
+class ReceiptForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ReceiptForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_id = "receipt-form-id"
+        self.helper.form_class = "receipt-form-class"
+        self.helper.layout = Layout(
+        HTML("""
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <hr>
+        """.format(_('Add/Update Receipt'),)),
+        BS5Accordion(
+            AccordionGroup(_('RECEIPT DATA'),
+                Row(
+                    Column('name', css_class='form-group col-md-6 mb-0'),
+                    css_class='form-row'
+                ),
+                Row(
+                    Column('notes', css_class='form-group col-md-12 mb-0'),
+                    css_class='form-row'),
+            ),
+                HTML('<br>'),
+                Submit('save_receipt', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+                Submit('save_receipt_new', _('Save & Edit'), css_class='btn btn-primary fas fa-save'),
+                Reset('reset', 'Clear', css_class='btn btn-danger'),
+                flush=True,
+                always_open=True),
+        )
+
+    class Meta:
+        model = Receipt
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+
+class InvoiceForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(InvoiceForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_id = "invoice-form-id"
+        self.helper.form_class = "invoice-form-class"
+        self.helper.layout = Layout(
+        HTML("""
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <hr>
+        """.format(_('Add/Update Invoice'),)),
+        BS5Accordion(
+            AccordionGroup(_('INVOICE DATA'),
+                FieldWithButtons('costumer', StrictButton('',  css_class="btn fa fa-plus", 
+                data_bs_toggle="modal", data_bs_target="#costumer"), css_class='form-group col-md-3 mb-0'),
+                Column('date', css_class='form-group col-md-3 mb-0'),
+                Column('due_date', css_class='form-group col-md-3 mb-0'),
+                FieldWithButtons('warehouse', StrictButton('',  css_class="btn fa fa-plus", 
+                data_bs_toggle="modal", data_bs_target="#warehouse"), css_class='form-group col-md-3 mb-0'),
+                FieldWithButtons('payment_term', StrictButton('',  css_class="btn fa fa-plus", 
+                data_bs_toggle="modal", data_bs_target="#payment_term"), css_class='form-group col-md-3 mb-0'),
+                FieldWithButtons('payment_method', StrictButton('',  css_class="btn fa fa-plus", 
+                data_bs_toggle="modal", data_bs_target="#payment_method"), css_class='form-group col-md-3 mb-0'),
+                Column('notes', css_class='form-group col-md-3 mb-0'),
+                Column('public_notes', css_class='form-group col-md-3 mb-0'),),
+                HTML('<br>'),
+                Submit('save_invoice', _('Next'), css_class='btn btn-primary fas fa-save'),
+                Reset('reset', 'Clear', css_class='btn btn-danger'),
+                flush=True,
+                always_open=True),
+        )
+
+    class Meta:
+        model = Invoice
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
 

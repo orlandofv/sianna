@@ -150,7 +150,7 @@
         item_html += '</div>'
         
          // add row
-         $("#button-id-add_item").click(function () {
+        $("#button-id-add_item").click(function () {
             $('#item_row').append(item_html);
             // $('#div_id_action').clone().appendTo('#formRow');
         });
@@ -159,6 +159,92 @@
         $(document).on('click', '#removeItem', function () {
             $(this).closest('#itemFormRow').remove();
         });
+
+
+        function cloneProduct(url){
+            var newWindow = window.open(url);
+    
+            $( newWindow ).on( "load", function() {
+                var doc = newWindow.document;
+                const id_code = $('#id_code').text();
+                const id_name = $('#id_name').text();
+                const id_type = $('#id_type').text();
+                const id_parent = $('#id_parent').text();
+                const id_tax = $('#id_tax').text();
+                const id_warehouse = $('#id_warehouse').text();
+                const id_description = $('#id_description').text();
+                const id_barcode = $('#id_barcode').text();
+                const id_sell_price = $('#id_sell_price').text();
+                const id_min_sell_price = $('#id_min_sell_price').text();
+                const id_sell_price2 = $('#id_sell_price2').text();
+                const id_sell_price3 = $('#id_sell_price3').text();
+                const id_sell_price4 = $('#id_sell_price4').text();
+                const id_sell_price5 = $('#id_sell_price5').text()
+                const id_purchase_price = $('#id_purchase_price').text();
+                const id_max_purchase_price = $('#id_max_purchase_price').text();
+                const id_physical_stock = $('#id_physical_stock').text();
+                const id_stock_limit = $('#id_stock_limit').text();
+                const id_desired_stock = $('#id_desired_stock').text();
+                const id_image = $('#id_image').text();
+                const id_product_nature = $('#id_product_nature').text();
+                const id_product_url = $('#id_product_url').text();
+                const id_weight = $('#id_weight').text();
+                const id_length = $('#id_length').text();
+                const id_width = $('#id_width').text();
+                const id_height = $('#id_height').text();
+                const id_length_units = $('#id_length_units').text();
+                const id_area = $('#id_area').text();
+                const id_area_units = $('#id_area_units').text();
+                const id_volume = $('#id_volume').text();
+                const id_volume_units = $('#id_volume_units').text();
+                const id_weight_units = $('#id_weight_units').text();
+                const id_active_status = $('#id_active_status').text();
+                const id_sell_status = $('#id_sell_status').text();
+                const id_purchase_status = $('#id_purchase_status').text();
+                const id_notes = $('#id_notes').text();
+
+                console.log(id_weight);
+
+                var year =  new Date().getSeconds();
+                $('#id_code', doc).val(id_code.trim() + year ); 
+                $('#id_name', doc).val(id_name.trim() + " CLONE" ); 
+                // $('#id_type', doc).val(id_type.trim()); 
+                // $('#id_parent', doc).val(id_parent.trim()); 
+                // $('#id_tax', doc).text(id_tax.trim());
+                // $('#id_warehouse', doc).text(id_warehouse.trim()); 
+                $('#id_description', doc).val(id_description.trim()); 
+                $('#id_barcode', doc).val(id_barcode.trim()); 
+                $('#id_sell_price', doc).val(id_sell_price); 
+                $('#id_min_sell_price', doc).val(id_min_sell_price.trim()); 
+                $('#id_sell_price2', doc).val(parseFloat(id_sell_price2.trim())); 
+                $('#id_sell_price3', doc).val(id_sell_price3.trim()); 
+                $('#id_sell_price4', doc).val(id_sell_price4.trim()); 
+                $('#id_sell_price5', doc).val(id_sell_price5.trim()); 
+                $('#id_purchase_price', doc).val(id_purchase_price.trim()); 
+                $('#id_max_purchase_price', doc).val(id_max_purchase_price.trim()); 
+                $('#id_physical_stock', doc).val(id_physical_stock.trim()); 
+                $('#id_stock_limit', doc).val(id_stock_limit.trim()); 
+                $('#id_desired_stock', doc).val(id_desired_stock.trim()); 
+                $('#id_image', doc).val(id_image.trim()); 
+                $('#id_product_nature', doc).val(id_product_nature.trim()); 
+                $('#id_product_url', doc).val(id_product_url.trim()); 
+                $('#id_weight', doc).val(id_weight.trim()); 
+                $('#id_length', doc).val(id_length.trim()); 
+                $('#id_width', doc).val(id_width.trim()); 
+                $('#id_height', doc).val(id_height.trim()); 
+                $('#id_length_units', doc).val(id_length_units.trim()); 
+                $('#id_area', doc).val(id_area.trim()); 
+                $('#id_area_units', doc).val(id_area_units.trim()); 
+                $('#id_volume', doc).val(id_volume.trim()); 
+                $('#id_volume_units', doc).val(id_volume_units.trim()); 
+                $('#id_weight_units', doc).val(id_weight_units.trim()); 
+                // $('#id_active_status', doc).val(id_active_status.trim()); 
+                // $('#id_sell_status', doc).val(id_sell_status.trim()); 
+                // $('#id_purchase_status', doc).val(id_purchase_status.trim()); 
+                $('#id_notes', doc).val(id_notes.trim());                 
+            });
+
+        };
 
         function cloneMaintenance(url){
             const maitenance_name = $( "h1" ).text();
@@ -169,7 +255,7 @@
             const time_schedule = $( "#time_schedule" ).text();
 
             var newWindow = window.open(url);
-           
+
             $( newWindow ).on( "load", function() {
                 
                 newWindow.document.getElementById('id_name').value = maitenance_name;

@@ -10,13 +10,16 @@ from django.dispatch import receiver
 from django.utils.functional import lazy
 from django.conf import settings
 
+from asset_app.models import Costumer
+
+
+ACTIVE = 1
+DEACTIVATED  = 0
+
+STATUSES = ((ACTIVE, _('Active')), (DEACTIVATED , _('Deactivated')))
 
 class Tax(models.Model):
-    ACTIVE = 1
-    DEACTIVATED  = 0
     
-    STATUSES = ((ACTIVE, _('Active')), (DEACTIVATED , _('Deactivated')))
-
     name = models.CharField(max_length=25, unique=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
     rate = models.DecimalField(max_digits=4, decimal_places=2, default=0, unique=True)
@@ -35,7 +38,7 @@ class Tax(models.Model):
 
     def save(self, *args, **kwargs): # new
         if not self.slug:
-            self.slug = slugify(self.name)
+            self.slug = '{}({}%)'.format(slugify(self.name, self.rate))
         return super().save(*args, **kwargs)
 
     class Meta:
@@ -43,11 +46,7 @@ class Tax(models.Model):
 
 
 class Warehouse(models.Model):
-    ACTIVE = 1
-    DEACTIVATED  = 0
     
-    STATUSES = ((ACTIVE, _('Active')), (DEACTIVATED , _('Deactivated')))
-
     OPEN = 'OPEN'
     CLOSE = 'CLOSE'
 
@@ -95,11 +94,12 @@ class Gallery(models.Model):
 
 
 class Product(models.Model):
-    ACTIVE = 1
-    DEACTIVATED  = 0
-    
-    STATUSES = ((ACTIVE, _('Active')), (DEACTIVATED , _('Deactivated')))
 
+    SERVICE = 'SERVICE'
+    PRODUCT = 'PRODUCT'
+
+    PRODUCT_CHOICES = ((SERVICE, _('Service')), (PRODUCT, _('Product')))
+    
     FOR_SALE = FOR_PURCHASE = 1
     NOT_FOR_SALE = NOT_FOR_PURCHASE = 0
 
@@ -146,8 +146,8 @@ class Product(models.Model):
     VOLUME_CHOICES = ((M3, _('m³')), (DM3, _('dm³')), (CM3, _('cm³')), (MM3, _('mm³')), (FOOT3, _('ft³')), 
     (INCH3, _('in³')), (LITRE, _('litre')), (GALLON, _('gallon')))
 
-    RAW_PRODUCT = 'raw_product'
-    MANUFACTURED_PRODUCT = 'manufactured_product'
+    RAW_PRODUCT = 'Raw Product'
+    MANUFACTURED_PRODUCT = 'Manufactured Product'
     
     SELL_STATUSES = ((FOR_SALE, _('For Sale')), (NOT_FOR_SALE, _('Not for Sale')))
     PURCHASE_STATUSES = ((FOR_PURCHASE, _('For Purchase')), (NOT_FOR_PURCHASE, _('Not for Purchase')))
@@ -156,6 +156,7 @@ class Product(models.Model):
     
     code = models.CharField(_('Product Code'), max_length=50, unique=True)
     name = models.CharField(_('Name of Product'), max_length=255, unique=True)
+    type = models.CharField(_('Type'),choices=PRODUCT_CHOICES, max_length=10,  default=PRODUCT)
     slug = models.SlugField(unique=True, null=False, editable=False)
     parent = models.IntegerField(_('Parent Product'), default=0)
     tax = models.ForeignKey(Tax, on_delete=models.PROTECT)
@@ -209,4 +210,172 @@ class Product(models.Model):
     class Meta:
         ordering = ("name",)
 
+
+class Documents(models.Model):
+    MODIFY_STOCK = 1
+    NOT_MODIFY_STOCK = 0
+
+    STOCK_STATUS = ((MODIFY_STOCK, _('Modify')), (NOT_MODIFY_STOCK, _('Not Modify')))
+
+    name =  models.CharField(max_length=20, unique=True)
+    slug = models.SlugField(unique=True, null=False, editable=False)
+    modify_stock = models.IntegerField(choices=STOCK_STATUS, default=NOT_MODIFY_STOCK)
+    active_status = models.IntegerField(choices=STATUSES, default=ACTIVE)
+    notes = models.TextField(blank=True)
+    date_created = models.DateTimeField(editable=False, default=timezone.now)
+    date_modified = models.DateTimeField(editable=False, default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('document_details', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs): # new
+        if not self.slug:
+            self.slug = slugify(self.name)
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ("name",)
+
+
+class PaymentTerm(models.Model):
+    name = models.CharField(_('Name'), max_length=100, unique=True)
+    slug = models.SlugField(unique=True, null=False, editable=False)
+    notes = models.CharField(blank=True, max_length=255)
+    date_created = models.DateTimeField(editable=False, default=timezone.now)
+    date_modified = models.DateTimeField(editable=False, default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('payment_term_details', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs): # new
+        if not self.slug:
+            self.slug = slugify(self.name)
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ("name",)
+
+
+class PaymentMethod(models.Model):
+    name = models.CharField(_('Name'), max_length=100, unique=True)
+    slug = models.SlugField(unique=True, null=False, editable=False)
+    notes = models.TextField(blank=True)
+    date_created = models.DateTimeField(editable=False, default=timezone.now)
+    date_modified = models.DateTimeField(editable=False, default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('payment_method_details', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs): # new
+        if not self.slug:
+            self.slug = slugify(self.name)
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ("name",)
+
+
+class Receipt(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(unique=True, null=False, editable=False)
+    notes = models.TextField(blank=True)
+    date_created = models.DateTimeField(editable=False, default=timezone.now)
+    date_modified = models.DateTimeField(editable=False, default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('receipt_details', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs): # new
+        receipt = '{} {}'.format(_('Receipt'), self.id)
+        self.name = receipt
+
+        if not self.slug:
+            self.slug = ''.format(receipt)
+
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ('-name',)
+
+    
+class Invoice(models.Model):
+    DELIVERED = 1
+    NOT_DELIVERED = 0
+
+    DELIVERED_STATUS = ((DELIVERED, _('Delivered')), (NOT_DELIVERED, _('Not delivered')))
+
+    name =  models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(unique=True, null=False, editable=False)
+    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.PROTECT)
+    payment_term = models.ForeignKey(PaymentTerm, on_delete=models.PROTECT)
+    costumer = models.ForeignKey(verbose_name=_('Costumer'), to=Costumer, on_delete=models.PROTECT)
+    date = models.DateTimeField(_('Invoice Date'), default=timezone.now)
+    due_date = models.DateTimeField(_('Due Date'), default=timezone.now)
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
+    paid_status = models.IntegerField(default=0)
+    delivered_status = models.IntegerField(default=0)
+    finished_status = models.IntegerField(default=0)
+    active_status = models.IntegerField(default=0)
+    notes = models.TextField(blank=True)
+    public_notes = models.TextField(blank=True)
+    date_created = models.DateTimeField(editable=False, default=timezone.now)
+    date_modified = models.DateTimeField(editable=False, default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('warehouse_details', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs): # new
+        invoice = '{} {}'.format(_('Receipt'), self.id)
+        self.name = invoice
+
+        if not self.slug:
+            self.slug = slugify(invoice)
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ('-name',)
+
+
+class InvoiceDetails(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT)
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    tax = models.DecimalField(max_digits=4, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=4, decimal_places=2, default=0)
+    price = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    quantity = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+
+    def __str__(self):
+        return self.invoice
+
+class ReceiptInvoice(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT)
+    receipt = models.ForeignKey(Receipt, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return "{}".format(self.invoice, self.receipt)
 

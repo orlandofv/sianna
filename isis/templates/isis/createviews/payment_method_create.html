@@ -5,17 +5,19 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'Update Company' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'New Tax' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='Update Company' path='<a href="/companys/"> Companies</a>' dest='Update Company' %}
+{% include 'breadcrumb.html' with title='New Tax' path='<a href="/taxes/"> taxes </a>' dest='New Tax' %}
 {% endblock breadcrumb %}
-
+            
 {% block content %}
     
     <div class="contentContainer">
         <div class="row">
             <div class="col-md-12">
+                <div class="conteiner-fluid p-10 m-0" id="results">
+                </div>
                 {% csrf_token %}
                 {% crispy form %}
             </div>

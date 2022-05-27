@@ -1,7 +1,6 @@
 from django.contrib import admin
-from .models import (Component, Company, 
-Maintenance, Division, Branch, Position, 
-Group, System, Type, SubType, Vendor, Allocation)
+from .models import (Component, Costumer, 
+Maintenance, Group, System, Type, SubType, Vendor, Allocation)
 
 
 class ComponentAdmin(admin.ModelAdmin):
@@ -13,21 +12,8 @@ class MaintenanceAdmin(admin.ModelAdmin):
     'time_allocated', 'action')
 
 
-class CompanyAdmin(admin.ModelAdmin):
-    list_display = ('name', 'address', 'manager', 'contacts', 'notes',)
-
-
-class DivisionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'company', 'address', 'contacts', 'notes',)
-
-
-class BranchAdmin(admin.ModelAdmin):
-    list_display = ('name', 'division', 'notes',)
-
-
-class PositionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'branch', 'notes',)
-
+class CostumerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'address', 'contacts', 'notes',)
 
 class GroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'notes',)
@@ -55,10 +41,7 @@ class VendorAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Component, ComponentAdmin)
-admin.site.register(Company, CompanyAdmin)
-admin.site.register(Division, DivisionAdmin)
-admin.site.register(Branch, BranchAdmin)
-admin.site.register(Position, PositionAdmin)
+admin.site.register(Costumer, CostumerAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(System, SystemAdmin)
 admin.site.register(Type, TypeAdmin)

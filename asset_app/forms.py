@@ -4,7 +4,7 @@ from lib2to3.pgen2.token import RIGHTSHIFTEQUAL
 import sys
 from turtle import onclick
 from django import forms
-from .models import (Component, Maintenance, Company, Division, Branch, Position, 
+from .models import (Component, Maintenance, Costumer, 
 Allocation, Group, System, Type, SubType, Vendor, Item, Settings, WorkOrder, Action)
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Reset, HTML, Button
@@ -19,7 +19,7 @@ from .fields import ListTextWidget
 
 
 class SettingsForm(forms.ModelForm):
-    name = forms.CharField(label=_('Company Name'))
+    name = forms.CharField(label=_('Costumer Name'))
     address = forms.CharField(label=_('Address'), required=False, max_length=255)
     cell = forms.CharField(label=_('Cell'), required=False, max_length=255)
     cell_2 = forms.CharField(label=_('Cell 2'), required=False, max_length=255)
@@ -396,10 +396,10 @@ class MaintenanceFormModal(forms.ModelForm):
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
 
 
-class CompanyForm(forms.ModelForm):
-    name = forms.CharField(label=_('Company Name'), 
+class CostumerForm(forms.ModelForm):
+    name = forms.CharField(label=_('Costumer Name'), 
     widget=forms.TextInput, max_length=100)
-    parent = forms.ModelChoiceField(label=_('Parent Company'), queryset=Company.objects.all(), required=False, initial=0)
+    parent = forms.ModelChoiceField(label=_('Parent Costumer'), queryset=Costumer.objects.all(), required=False, initial=0)
     address = forms.CharField(required=False, max_length=255)
     contacts = forms.CharField(required=False, max_length=255)
     manager = forms.CharField(max_length=100, required=False)
@@ -407,18 +407,18 @@ class CompanyForm(forms.ModelForm):
     notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
 
     def __init__(self, *args, **kwargs):
-        super(CompanyForm, self).__init__(*args, **kwargs)
+        super(CostumerForm, self).__init__(*args, **kwargs)
 
         self.helper = FormHelper(self)
-        self.helper.form_id = "company-form-id"
-        self.helper.form_class = "company-form-class"
+        self.helper.form_id = "costumer-form-id"
+        self.helper.form_class = "costumer-form-class"
         self.helper.layout = Layout(
                 HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add/Update Company'),)),
+        """.format(_('Add/Update Costumer'),)),
             BS5Accordion(
-            AccordionGroup(_('Company Data'),
+            AccordionGroup(_('Costumer Data'),
             Row(Column('name', css_class='form-group col-md-6 mb-0'),
             Column('parent', css_class='form-group col-md-6 mb-0'),),
             Row(Column('address', css_class='form-group col-md-12 mb-0'),),
@@ -426,8 +426,8 @@ class CompanyForm(forms.ModelForm):
             Row(Column('manager', css_class='form-group col-md-12 mb-0'),),
             Row(Column('email', css_class='form-group col-md-12 mb-0'),),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_company', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
-            Submit('save_company_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_costumer', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_costumer_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
              flush=True,
@@ -435,129 +435,12 @@ class CompanyForm(forms.ModelForm):
         )
     
     class Meta:
-        model = Company
+        model = Costumer
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
 
     def clean_parent(self):
         pass
     
-
-class DivisionForm(forms.ModelForm):
-    name = forms.CharField(label=_('Division Name'), 
-    widget=forms.TextInput, max_length=100)
-    company = forms.ModelChoiceField(label=_('Company Name'), queryset=Company.objects.all())
-    address = forms.CharField(required=False, max_length=255)
-    contacts = forms.CharField(required=False, max_length=255)
-    manager = forms.CharField(max_length=100, required=False)
-    email = forms.EmailField(max_length = 254, required=False)
-    notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(DivisionForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper(self)
-        self.helper.form_id = "division-form-id"
-        self.helper.form_class = "division-form-class"
-        self.helper.layout = Layout(
-                HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
-            <hr>
-        """.format(_('Add/Update Division'),)),
-            BS5Accordion(
-            AccordionGroup(_('Division Data'),
-            Row(Column('name', css_class='form-group col-md-12 mb-0'),),
-            FieldWithButtons('company', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#company")),
-            Row(Column('address', css_class='form-group col-md-12 mb-0'),),
-            Row(Column('contacts', css_class='form-group col-md-12 mb-0'),),
-            Row(Column('manager', css_class='form-group col-md-12 mb-0'),),
-            Row(Column('email', css_class='form-group col-md-12 mb-0'),),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_division', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
-            Submit('save_division_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
-            Reset('reset', 'Clear', css_class='btn btn-danger'),
-            ),
-             flush=True,
-            always_open=True),
-           
-        )
-    
-    class Meta:
-        model = Division
-        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
-
-
-class BranchForm(forms.ModelForm):
-    name = forms.CharField(label=_('Branch Name'), 
-    widget=forms.TextInput, max_length=100)
-    division = forms.ModelChoiceField(label=_('Division Name'), queryset=Division.objects.all())
-    notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(BranchForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper(self)
-        self.helper.form_id = "branch-form-id"
-        self.helper.form_class = "branch-form-class"
-        self.helper.layout = Layout(
-                HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
-            <hr>
-        """.format(_('Add/Update Branch'),)),
-            BS5Accordion(
-            AccordionGroup(_('Branch Data'),
-            Row(Column('name', css_class='form-group col-md-12 mb-0'),),
-            FieldWithButtons('division', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#division")),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_branch', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
-            Submit('save_branch_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
-            Reset('reset', 'Clear', css_class='btn btn-danger'),
-            ),
-             flush=True,
-            always_open=True),
-        )
-    
-    class Meta:
-        model = Branch
-        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
-
-
-class PositionForm(forms.ModelForm):
-    name = forms.CharField(label=_('Position Name'), 
-    widget=forms.TextInput, max_length=100)
-    branch = forms.ModelChoiceField(label=_('Branch Name'), queryset=Branch.objects.all())
-    notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(PositionForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper(self)
-        self.helper.form_id = "position-form-id"
-        self.helper.form_class = "position-form-class"
-        self.helper.layout = Layout(
-                HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
-            <hr>
-        """.format(_('Add/Update Position'),)),
-            BS5Accordion(
-            AccordionGroup(_('Position Data'),
-            Row(Column('name', css_class='form-group col-md-12 mb-0'),),
-            FieldWithButtons('branch', StrictButton('',  css_class="btn fa fa-plus",
-            data_bs_toggle="modal", data_bs_target="#branch")),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
-            Submit('save_position', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
-            Submit('save_position_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
-            Reset('reset', 'Clear', css_class='btn btn-danger'),
-            ),
-             flush=True,
-            always_open=True),
-        )
-    
-    class Meta:
-        model = Position
-        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
-
 
 class GroupForm(forms.ModelForm):
     name = forms.CharField(label=_('Group Name'), 
@@ -711,10 +594,7 @@ class AllocationForm(forms.ModelForm):
     component = forms.ModelChoiceField(queryset=Component.objects.all(), 
     label=_('Component Name'))
     vendor = forms.ModelChoiceField(queryset=Vendor.objects.all(), label=_('Vendor Name'))
-    company = forms.ModelChoiceField(queryset=Company.objects.all(), label=_('Company Name'))
-    division = forms.ModelChoiceField(queryset=Division.objects.all(), label=_('Division Name'))
-    branch = forms.ModelChoiceField(queryset=Branch.objects.all(), label=_('Branch Name'))
-    position = forms.ModelChoiceField(queryset=Position.objects.all(), label=_('Position Name'))
+    costumer = forms.ModelChoiceField(queryset=Costumer.objects.all(), label=_('Costumer Name'))
     serial_number = forms.CharField(label=_('Component Serial No.'), max_length=50)
     image = forms.ImageField(label=_('Image'), initial="default.jpeg", required=False)
     purchase_amount = forms.DecimalField(widget=forms.NumberInput, initial=0, max_digits=9, 
@@ -813,37 +693,23 @@ class AllocationForm(forms.ModelForm):
             ),
             AccordionGroup(_('ATTACH TO LOCATION'),
                 Row(
-                        FieldWithButtons('company', StrictButton('',  css_class="btn fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#company"), css_class='form-group col-md-6 mb-0'),
-                        FieldWithButtons('division', StrictButton('',  css_class="btn fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#division"), css_class='form-group col-md-6 mb-0'),
-                    ),
-                Row(
-                        FieldWithButtons('branch', StrictButton('',  css_class="btn fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#branch"), css_class='form-group col-md-6 mb-0'),
-                        FieldWithButtons('position', StrictButton('',  css_class="btn fa fa-plus",
-                        data_bs_toggle="modal", data_bs_target="#position"), css_class='form-group col-md-6 mb-0'),
-                    ),   
-            ),
+                        FieldWithButtons('costumer', StrictButton('',  css_class="btn fa fa-plus",
+                        data_bs_toggle="modal", data_bs_target="#costumer"), css_class='form-group col-md-12 mb-0'), 
+            ),),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
             Submit('save_allocation', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_allocation_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             flush=True,
-            always_open=True),
-           
+            always_open=True),  
         )
 
     def clean(self):
         cleaned_data = super().clean()
-
         allocation_no = cleaned_data.get('allocation_no') 
         component = cleaned_data.get('component') 
         vendor = cleaned_data.get('vendor')   
-        company = cleaned_data.get('company') 
-        division = cleaned_data.get('division') 
-        branch = cleaned_data.get('branch')  
-        position = cleaned_data.get('position')
+        costumer = cleaned_data.get('costumer') 
         serial_number = cleaned_data.get('serial_number')  
         purchase_amount = cleaned_data.get('purchase_amount')
         date_purchased = cleaned_data.get('date_purchased')
@@ -882,22 +748,10 @@ class AllocationForm(forms.ModelForm):
             self.errors['component'] = self.error_class(_("""Invalid Vendor.
             \nPlease choose Vendor from the Dropdown."""))
         
-        if company == "":
-            self.errors['company'] = self.error_class(_("""Invalid Company.
-            \nPlease choose Company from the Dropdown."""))
-        
-        if division == "":
-            self.errors['division'] = self.error_class(_("""Invalid Division.
-            \nPlease choose Division from the Dropdown."""))
-        
-        if branch == "":
-            self.errors['branch'] = self.error_class(_("""Invalid Branch.
-            \nPlease choose Branch from the Dropdown."""))
-        
-        if position == "":
-            self.errors['position'] = self.error_class(_("""Invalid Position.
-            \nPlease choose Position from the Dropdown."""))
-        
+        if costumer == "":
+            self.errors['costumer'] = self.error_class(_("""Invalid Costumer.
+            \nPlease choose Costumer from the Dropdown."""))
+            
         if group == "":
             self.errors['group'] = self.error_class(_("""Invalid Group.
             \nPlease choose Group from the Dropdown."""))
