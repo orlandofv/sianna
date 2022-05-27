@@ -5,10 +5,10 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'Update Tax' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'Update Product' %} {% endblock title %}
 
 {% block breadcrumb %}
-{% include 'breadcrumb.html' with title='Update Tax' path='<a href="/taxes/"> taxes </a>' dest='Update Tax' %}
+{% include 'breadcrumb.html' with title='Update Product' path='<a href="/products/"> Products </a>' dest='Update Product' %}
 {% endblock breadcrumb %}
             
 {% block content %}
@@ -22,4 +22,10 @@
             </div>
         </div>
     </div>
+
+    {% include 'modal.html' with title="Add Costumer" template='asset_app/modals/costumer_modal.html' id='costumer' %}
+    {% include 'modal.html' with title="Add Warehouse" template='isis/modals/warehouse_modal.html' id='warehouse' %}
+    {% include 'modal.html' with title="Add Payment Method" template='isis/modals/payment_method_modal.html' id='payment_method' %}
+    {% include 'modal.html' with title="Add Payment Term" template='isis/modals/payment_term_modal.html' id='payment_term' %}
+
 {% endblock content %}

@@ -269,11 +269,6 @@ class WarehouseForm(forms.ModelForm):
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
 
 
-    class Meta:
-        model = Costumer
-        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
-
-
 class PaymentMethodForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(PaymentMethodForm, self).__init__(*args, **kwargs)

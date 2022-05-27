@@ -531,7 +531,9 @@ def invoice_create_view(request):
         payment_term_form = PaymentTermForm()
         payment_method_form = PaymentMethodForm()
 
-        context = {'form': form, 'costumer_form': costumer_form, 'warehouse_form': warehouse_form}
+        context = {'form': form, 'costumer_form': costumer_form, 
+        'warehouse_form': warehouse_form, 'payment_term_form': payment_term_form,
+        'payment_method_form': payment_method_form}
         return render(request, 'isis/createviews/invoice_create.html', context)
 
 
@@ -679,6 +681,43 @@ def invoice_detail_view(request, slug):
     return render(request, "isis/detailviews/invoice_detail_view.html", context)
 
 
+
+@login_required
+def payment_method_create_view(request):
+    if request.method == 'POST':
+        form = PaymentMethodForm(request.POST)
+        
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.created_by = instance.modified_by = request.user
+            instance.date_created = instance.date_modified = datetime.datetime.now()
+            payment_method = instance
+            parent = request.POST.get('parent')
+            
+            if parent == "":
+                instance.parent = 0
+            else:
+                instance.parent = parent
+            
+            instance = instance.save()
+
+            slug = slugify(payment_method.name)
+            messages.success(request, _("PaymentMethod added successfully!"))
+
+            if request.POST.get('save_payment_method'):
+                return redirect('isis:payment_method_details', slug=slug)
+            else:
+                return redirect('isis:payment_method_create')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('isis:payment_method_create')
+    else:
+        form = PaymentMethodForm()
+        context = {'form': form}
+        return render(request, 'isis/createviews/payment_method_create.html', context)
+
+
 @login_required
 def payment_method_list_view(request):
     payment_method = PaymentMethod.objects.all()
@@ -735,6 +774,42 @@ def payment_method_delete_view(request):
 
 
 @login_required
+def payment_term_create_view(request):
+    if request.method == 'POST':
+        form = PaymentTermForm(request.POST)
+        
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.created_by = instance.modified_by = request.user
+            instance.date_created = instance.date_modified = datetime.datetime.now()
+            payment_term = instance
+            parent = request.POST.get('parent')
+            
+            if parent == "":
+                instance.parent = 0
+            else:
+                instance.parent = parent
+            
+            instance = instance.save()
+
+            slug = slugify(payment_term.name)
+            messages.success(request, _("PaymentTerm added successfully!"))
+
+            if request.POST.get('save_payment_term'):
+                return redirect('isis:payment_term_details', slug=slug)
+            else:
+                return redirect('isis:payment_term_create')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('isis:payment_term_create')
+    else:
+        form = PaymentTermForm()
+        context = {'form': form}
+        return render(request, 'isis/createviews/payment_term_create.html', context)
+
+
+@login_required
 def payment_term_list_view(request):
     payment_term = PaymentTerm.objects.all()
     context = {}
@@ -788,6 +863,41 @@ def payment_term_delete_view(request):
         messages.warning(request, _("PaymentTerm delete successfully!"))
         return redirect('isis:payment_term_list')
 
+
+@login_required
+def receipt_create_view(request):
+    if request.method == 'POST':
+        form = ReceiptForm(request.POST)
+        
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.created_by = instance.modified_by = request.user
+            instance.date_created = instance.date_modified = datetime.datetime.now()
+            receipt = instance
+            parent = request.POST.get('parent')
+            
+            if parent == "":
+                instance.parent = 0
+            else:
+                instance.parent = parent
+            
+            instance = instance.save()
+
+            slug = slugify(receipt.name)
+            messages.success(request, _("Receipt added successfully!"))
+
+            if request.POST.get('save_receipt'):
+                return redirect('isis:receipt_details', slug=slug)
+            else:
+                return redirect('isis:receipt_create')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('isis:receipt_create')
+    else:
+        form = ReceiptForm()
+        context = {'form': form}
+        return render(request, 'isis/createviews/receipt_create.html', context)
 
 
 @login_required
