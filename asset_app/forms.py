@@ -1,6 +1,7 @@
 import datetime
 
 from lib2to3.pgen2.token import RIGHTSHIFTEQUAL
+from secrets import choice
 import sys
 from turtle import onclick
 from django import forms
@@ -397,14 +398,20 @@ class MaintenanceFormModal(forms.ModelForm):
 
 
 class CostumerForm(forms.ModelForm):
+    YES = 1
+    NO = 0
+
+    COSTUMER_CHOICES = ((NO, _("No")), (YES, _("Yes")))
+
     name = forms.CharField(label=_('Costumer Name'), 
     widget=forms.TextInput, max_length=100)
-    parent = forms.ModelChoiceField(label=_('Parent Costumer'), queryset=Costumer.objects.all(), required=False, initial=0)
-    address = forms.CharField(required=False, max_length=255)
-    contacts = forms.CharField(required=False, max_length=255)
-    manager = forms.CharField(max_length=100, required=False)
-    email = forms.EmailField(max_length = 254, required=False)
-    notes = forms.CharField(label=_('Notes'), widget=forms.Textarea, required=False)
+    parent = forms.ModelChoiceField(label=_('Parent Costumer'), queryset=Costumer.objects.all(), 
+    required=False, initial=0)
+    is_supplier = forms.ChoiceField(label="Is Supplier?", widget=forms.RadioSelect, 
+    choices=COSTUMER_CHOICES, initial=NO)
+    email = forms.CharField(max_length = 254, widget=forms.EmailInput, required=False)
+    website = forms.URLField(max_length = 254, widget=forms.URLInput, required=False)
+    current_credit = forms.DecimalField(max_digits=18, decimal_places=6, required=False, initial=0)
 
     def __init__(self, *args, **kwargs):
         super(CostumerForm, self).__init__(*args, **kwargs)
@@ -419,12 +426,21 @@ class CostumerForm(forms.ModelForm):
         """.format(_('Add/Update Costumer'),)),
             BS5Accordion(
             AccordionGroup(_('Costumer Data'),
-            Row(Column('name', css_class='form-group col-md-6 mb-0'),
-            Column('parent', css_class='form-group col-md-6 mb-0'),),
+            Row(
+                Column('name', css_class='form-group col-md-8 mb-0'),
+                Column('parent', css_class='form-group col-md-4 mb-0'),
+                ),
+            Row(
+                Column('max_credit', css_class='form-group col-md-3 mb-0'),
+                Column('is_supplier', css_class='form-group col-md-6 mb-0'),
+            ),
             Row(Column('address', css_class='form-group col-md-12 mb-0'),),
             Row(Column('contacts', css_class='form-group col-md-12 mb-0'),),
             Row(Column('manager', css_class='form-group col-md-12 mb-0'),),
-            Row(Column('email', css_class='form-group col-md-12 mb-0'),),
+            Row(
+                Column('email', css_class='form-group col-md-6 mb-0'),
+                Column('website', css_class='form-group col-md-6 mb-0'),
+                ),
             # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
             Submit('save_costumer', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_costumer_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),

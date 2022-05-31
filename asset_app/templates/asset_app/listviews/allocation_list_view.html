@@ -31,7 +31,7 @@
                     <th style="text-align: left;">System No.</th>
                     <th>Component</th>
                     <th>Serial No.</th>
-                    <th>Company</th>
+                    <th>Costumer</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -49,7 +49,7 @@
                             <td>{{ obj.allocation_no }}</td>
                             <td>{{ obj.component }}</td>
                             <td>{{ obj.serial_number }}</td> </td>
-                            <td>{{ obj.company }}</td>
+                            <td>{{ obj.costumer }}</td>
                             <td> <a href="{% url 'asset_app:allocation_update' obj.slug  %}" 
                                     class="fa fa-pencil btn btn-secondary">
                                     {% trans 'Modify' %} 

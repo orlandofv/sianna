@@ -46,6 +46,9 @@
         margin-right: 20px;
         margin-bottom: 20px;
     }
+
+
+    .alnright { text-align: right; }
 </style>
 
 </head>
@@ -159,6 +162,22 @@
         $(document).on('click', '#removeItem', function () {
             $(this).closest('#itemFormRow').remove();
         });
+
+
+        function fillTax(){
+            console.log('A jobar....')
+            var product = $('#id_product').val();
+            
+            $.ajax({
+                type: "POST",
+                url: "#",
+                data: { csrfmiddlewaretoken: '{{ csrf_token }}', text: text },  
+                success: function callback(response){
+                           /* do whatever with the response */
+                alert(response);
+                } 
+            })
+        }
 
 
         function cloneProduct(url){
@@ -364,7 +383,6 @@
         } 
         
     </script>
-    
 
 </body>
 

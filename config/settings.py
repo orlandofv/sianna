@@ -49,6 +49,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # Application definition
 
 INSTALLED_APPS = [
+    "django.contrib.humanize",
     'users',
     "crispy_forms",
     "crispy_bootstrap5",
@@ -62,6 +63,8 @@ INSTALLED_APPS = [
     'asset_app',
     "debug_toolbar",
     "isis",
+    # This help us use other filters like
+    
 ]
 
 AUTH_USER_MODEL = 'users.User'

@@ -23,8 +23,8 @@
                     <a href="{% url 'asset_app:component_details' data.component.slug %}"> 
                         {{ data.component }}</a> </h1>
                 <hr>
-                <h6> {% trans 'Company' %}: <a href="{% url 'asset_app:company_details' data.company.slug %}" >
-                <strong>{{ data.company }}</strong> </a> </h6>
+                <h6> {% trans 'Costumer' %}: <a href="{% url 'asset_app:costumer_details' data.costumer.slug %}" >
+                <strong>{{ data.costumer }}</strong> </a> </h6>
                 <h6> {% trans 'Division' %}: <a href="{% url 'asset_app:division_details' data.division.slug %}"> 
                 <strong>{{ data.division }}</strong> </a> </h6>
                 <h6> {% trans 'Branch' %}: <a href="{% url 'asset_app:branch_details' data.branch.slug %}"> 

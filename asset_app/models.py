@@ -19,10 +19,10 @@ class Settings(models.Model):
     address = models.CharField(_('Address'), blank=True, max_length=255)
     cell = models.CharField(_('Cell'), blank=True, max_length=255)
     cell_2 = models.CharField(_('Cell 2'), blank=True, max_length=255)
-    telephone = models.CharField(_('Telephone'), blank=True, max_length=255)
+    phone = models.CharField(_('Telephone'), blank=True, max_length=255)
     fax = models.CharField(_('Fax'), blank=True, max_length=255)
     email = models.EmailField(_('Email'))
-    web = models.CharField(_('Web Site'), max_length=255, blank=True)
+    website = models.CharField(_('Web Site'), max_length=255, blank=True)
     logo = models.ImageField(_('Logo'), max_length=255, blank=True)
     logo_square = models.ImageField(_('Logo Square'), max_length=255, blank=True)
     notes = models.TextField(blank=True)
@@ -137,8 +137,8 @@ class Component(models.Model):
 
 
 class Costumer(models.Model):
-    YES = '1'
-    NO = 1
+    YES = 1
+    NO = 0
 
     COSTUMER_CHOICES = ((NO, _("No")), (YES, _("Yes")))
 
@@ -149,9 +149,13 @@ class Costumer(models.Model):
     slug = models.SlugField(unique=True, null=False, editable=False)
     address = models.CharField(blank=True, max_length=255)
     contacts = models.CharField(blank=True, max_length=255)
+    current_credit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     max_credit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
-    email = models.EmailField(max_length = 254, blank=True)
-    website = models.EmailField(max_length = 254, blank=True)
+    max_debit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    credit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    debit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    email = models.CharField(max_length = 254, blank=True)
+    website = models.CharField(max_length = 254, blank=True)
     is_supplier = models.IntegerField(choices=COSTUMER_CHOICES, default=NO)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, 

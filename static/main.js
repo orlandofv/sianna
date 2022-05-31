@@ -24,7 +24,7 @@ var random_number = Math.floor(100000000 + Math.random() * 900000000);
 // Delete view
 // Get table tr elements 
 
-function DeleteItems(element_id, delete_url, redirect_url){
+function DeleteItems(element_id, delete_url, redirect_url, refresh_page=false){
     
     var selected_rows=[];
     var array_rows=[];
@@ -49,8 +49,13 @@ function DeleteItems(element_id, delete_url, redirect_url){
         'csrfmiddlewaretoken': $("[name=csrfmiddlewaretoken]").val()},
         success: function () {
             
-            // Refreh element
+            if (refresh_page == true){
+                location.reload();
+            }else{
+                 // Refreh element
             $(element_id).load(location.href + " " + element_id);
+            }
+           
 
             console.log('Item apagado');
             // window.location.href = redirect_url;

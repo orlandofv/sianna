@@ -5,10 +5,10 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'Company Details' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'Costumer Details' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='Company Details' path='<a href="/companys/"> Companies</a>' dest='Details'  %}
+    {% include 'breadcrumb.html' with title='Costumer Details' path='<a href="/costumers/"> Costumers</a>' dest='Details'  %}
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -23,8 +23,19 @@
                 <hr>
                 <h6>{% trans 'Address' %}: <strong>{{ data.address }}</strong></h6>
                 <h6>{% trans 'Contacts' %}: <strong>{{ data.contacts }}</strong></h6>
-                <h6>{% trans 'Manager' %}: <strong>{{ data.manager }}</strong></h6>
-                <h6>{% trans 'Email' %}: <strong>{{ data.email }}</strong></h6>
+                <h6>{% trans 'Is Supplier' %}: 
+                    <strong>
+                        {% if data.is_supplier %}
+                            {% trans "Yes" %}    
+                        {% else %}
+                            {% trans "No" %}
+                        {% endif %}
+                    </strong>
+                </h6>
+                <h6>{% trans 'Current Debit' %}<strong>{{ data.current_credit | floatformat:2 }}</strong></h6>
+                <h6>{% trans 'Max Credit' %}<strong>{{ data.max_credit | floatformat:2 }}</strong></h6>
+                <h6>{% trans 'Email' %}: <strong><a href="mailto:{{ data.email }}">{{ data.email }}</a></strong></h6>
+                <h6>{% trans 'Website' %}: <strong><a href="{{ data.website }}" target="_blank">{{ data.website }}</a></strong></h6>
                 <h6>{% trans 'Notes' %}: <strong>{{ data.notes }}</strong></h6>
                 
                 <hr>

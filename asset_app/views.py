@@ -547,6 +547,9 @@ class CostumerListView(LoginRequiredMixin, ListView):
 @login_required
 def costumer_create_view(request):
     if request.method == 'POST':
+        
+        print(request.POST)
+
         form = CostumerForm(request.POST)
         if form.is_valid():
             instance = form.save(commit=False)
@@ -581,12 +584,21 @@ def costumer_update_view(request, slug):
     form = CostumerForm(request.POST or None, instance=costumer)
 
     if request.method == 'POST':
-    
+        
+        print(request.POST)
+
         if form.is_valid():
             instance = form.save(commit=False)
             instance.modified_by = request.user
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
+
+            parent = request.POST.get('parent')
+            if parent == "":
+                instance.parent = 0
+            else:
+                instance.parent = parent
+
             instance = instance.save()
             messages.success(request, _("Costumer updated successfully!"))
 
