@@ -137,10 +137,7 @@ class Component(models.Model):
 
 
 class Costumer(models.Model):
-    YES = 1
-    NO = 0
-
-    COSTUMER_CHOICES = ((NO, _("No")), (YES, _("Yes")))
+   
 
     name = models.CharField(_('Costumer Name'), 
     help_text=_('Name of the Costumer, Department, etc'), max_length=100, unique=True)
@@ -156,7 +153,8 @@ class Costumer(models.Model):
     debit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     email = models.CharField(max_length = 254, blank=True)
     website = models.CharField(max_length = 254, blank=True)
-    is_supplier = models.IntegerField(choices=COSTUMER_CHOICES, default=NO)
+    is_supplier = models.IntegerField(default=0)
+    is_costumer = models.IntegerField(default=0)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)

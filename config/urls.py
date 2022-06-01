@@ -32,6 +32,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('asset_app.urls')),
     path('', include('isis.urls')),
+    path('', include('supplier.urls')),
+    path('', include('warehouse.urls')),
     path('', include('users.urls')),
     path('__debug__/', include('debug_toolbar.urls')),
 ]

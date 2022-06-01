@@ -12,11 +12,11 @@
     {% csrf_token %}
 
     <div class="contentContainer">
-        {% url 'isis:invoice_delete' as delete %}
-        {% url 'isis:invoice_create' as create %}
-        {% url 'isis:invoice_list' as redirect %}
+        {% url 'supplier:invoice_delete' as delete %}
+        {% url 'supplier:invoice_create' as create %}
+        {% url 'supplier:invoice_list' as redirect %}
         
-        {% include 'isis/utilities/new_delete_extra_buttons.html' with table_id='#sortTableSmall' delete_url=delete redirect_url=redirect create_url=create %}
+        {% include 'supplier/utilities/new_delete_extra_buttons.html' with table_id='#sortTableSmall' delete_url=delete redirect_url=redirect create_url=create %}
         
         <hr>
 
@@ -41,7 +41,7 @@
                             value="" style="vertical-align: middle">
                         </td>
                         <td> 
-                            <a href="{% url 'isis:invoice_update' obj.slug %}" 
+                            <a href="{% url 'supplier:invoice_update' obj.slug %}" 
                                 class="aler-link">{{ obj.name }}  
                             </a>
                         <td>{{ obj.rate }}</td>
@@ -53,11 +53,11 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{% url 'isis:invoice_update' obj.slug %}" 
+                            <a href="{% url 'supplier:invoice_update' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">
                                     {% trans 'Modify' %} 
                             </a> 
-                            <a href="{% url 'isis:invoice_details' obj.slug %}" 
+                            <a href="{% url 'supplier:invoice_details' obj.slug %}" 
                                     class="fa fa-eye btn btn-secondary">
                                     {% trans 'Details' %} 
                             </a> 

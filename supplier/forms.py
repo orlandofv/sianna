@@ -15,15 +15,15 @@ from crispy_bootstrap5.bootstrap5 import BS5Accordion
 
 from django.utils import timezone
 from users.models import User
-from .models import (Product, Warehouse, Invoice, InvoiceItem, 
+from .models import (Product, Warehouse, SupplierInvoice, SupplierInvoiceItem, 
 PaymentTerm, PaymentMethod)
 
-from isis.models import Tax
+from isis.models import Tax, Costumer
 
 
 from asset_app.fields import ListTextWidget
 
-class InvoiceItemForm(forms.ModelForm):
+class SupplierInvoiceItemForm(forms.ModelForm):
     SERVICE = 'SERVICE'
     PRODUCT = 'PRODUCT'
     
@@ -37,11 +37,13 @@ class InvoiceItemForm(forms.ModelForm):
     quantity = forms.DecimalField(max_digits=18, decimal_places=6, initial=0, widget=forms.TextInput)
     discount = forms.DecimalField(max_digits=4, decimal_places=2, initial=0, widget=forms.TextInput)
     invoice = forms.CharField(required=False)
-    product = forms.ModelChoiceField(required=False, queryset=Product.objects.filter(active_status=1))
+    product = forms.ModelChoiceField(required=False, queryset=Product.objects.filter(active_status=1, 
+    purchase_status=1))
 
     def __init__(self, *args, **kwargs):
-        super(InvoiceItemForm, self).__init__(*args, **kwargs)
-        self.fields['product'].widget = ListTextWidget(data_list=Product.objects.all(), name='product')
+        super(SupplierInvoiceItemForm, self).__init__(*args, **kwargs)
+        self.fields['product'].widget = ListTextWidget(data_list=Product.objects.filter(active_status=1,  
+        purchase_status=1), name='product')
         
         self.helper = FormHelper()
         self.helper.form_id = "invoice-items-form-id"
@@ -91,10 +93,10 @@ class InvoiceItemForm(forms.ModelForm):
         return None
 
     class Meta:
-        model = InvoiceItem
+        model = SupplierInvoiceItem
         fields = "__all__"
 
-class InvoiceForm(forms.ModelForm):
+class SupplierInvoiceForm(forms.ModelForm):
     name = forms.CharField(required=False, max_length=50)
     paid_status = forms.IntegerField(required=False, initial=0)
     delivered_status = forms.IntegerField(initial=0, required=False)
@@ -103,7 +105,7 @@ class InvoiceForm(forms.ModelForm):
     number = forms.IntegerField(initial=0, required=False)
         
     def __init__(self, *args, **kwargs):
-        super(InvoiceForm, self).__init__(*args, **kwargs)
+        super(SupplierInvoiceForm, self).__init__(*args, **kwargs)
 
         self.helper = FormHelper()
         self.helper.form_id = "invoice-form-id"
@@ -112,11 +114,12 @@ class InvoiceForm(forms.ModelForm):
         HTML("""
             <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
             <hr>
-        """.format(_('Add/Update Invoice'),)),
+        """.format(_('Add/Update SupplierInvoice'),)),
         BS5Accordion(
             AccordionGroup(_('INVOICE DATA'),
                 FieldWithButtons('supplier', StrictButton('',  css_class="btn fa fa-plus", 
-                data_bs_toggle="modal", data_bs_target="#supplier"), css_class='form-group col-md-12 mb-0'),
+                data_bs_toggle="modal", data_bs_target="#costumer"), css_class='form-group col-md-12 mb-0'),
+                Column('invoice', css_class='form-group col-md-3 mb-0'),
                 Row(
                     Column('date', css_class='form-group col-md-3 mb-0'),
                     Column('due_date', css_class='form-group col-md-3 mb-0'),
@@ -139,7 +142,68 @@ class InvoiceForm(forms.ModelForm):
         )
 
     class Meta:
-        model = Invoice
+        model = SupplierInvoice
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
 
 
+class SupplierForm(forms.ModelForm):
+    YES = 1
+    NO = 0
+
+    COSTUMER_CHOICES = ((NO, _("No")), (YES, _("Yes")))
+
+    name = forms.CharField(label=_('Supplier Name'), 
+    widget=forms.TextInput, max_length=100)
+    parent = forms.ModelChoiceField(label=_('Parent Supplier'), 
+    queryset=Costumer.objects.filter(is_supplier=1), 
+    required=False, initial=0)
+    is_costumer = forms.ChoiceField(label="Is Costumer?", widget=forms.RadioSelect, 
+    choices=COSTUMER_CHOICES, initial=NO)
+    email = forms.CharField(max_length = 254, widget=forms.EmailInput, required=False)
+    website = forms.URLField(max_length = 254, widget=forms.URLInput, required=False)
+    current_credit = forms.DecimalField(max_digits=18, decimal_places=6, required=False, initial=0)
+    is_supplier = forms.IntegerField(initial=1, required=False, widget=forms.HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super(SupplierForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper(self)
+        self.helper.form_id = "supplier-form-id"
+        self.helper.form_class = "supplier-form-class"
+        self.helper.layout = Layout(
+                HTML("""
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <hr>
+        """.format(_('Add/Update Supplier'),)),
+            BS5Accordion(
+            AccordionGroup(_('Supplier Data'),
+            Row(
+                Column('name', css_class='form-group col-md-8 mb-0'),
+                Column('parent', css_class='form-group col-md-4 mb-0'),
+                ),
+            Row(
+                Column('max_credit', css_class='form-group col-md-3 mb-0'),
+                Column('is_costumer', css_class='form-group col-md-6 mb-0'),
+            ),
+            Row(Column('address', css_class='form-group col-md-12 mb-0'),),
+            Row(Column('contacts', css_class='form-group col-md-12 mb-0'),),
+            Row(Column('manager', css_class='form-group col-md-12 mb-0'),),
+            Row(
+                Column('email', css_class='form-group col-md-6 mb-0'),
+                Column('website', css_class='form-group col-md-6 mb-0'),
+                ),
+            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            Submit('save_supplier', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+            Submit('save_supplier_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
+            Reset('reset', 'Clear', css_class='btn btn-danger'),
+            ),
+             flush=True,
+            always_open=True),
+        )
+    
+    class Meta:
+        model = Costumer
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+    def clean_parent(self):
+        pass

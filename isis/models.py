@@ -13,6 +13,7 @@ from django.utils.functional import lazy
 from django.conf import settings
 
 from asset_app.models import Costumer
+from warehouse.models import Warehouse
 
 
 ACTIVE = 1
@@ -41,42 +42,6 @@ class Tax(models.Model):
     def save(self, *args, **kwargs): # new
         if not self.slug:
             self.slug = slugify(self.name) 
-        return super().save(*args, **kwargs)
-
-    class Meta:
-        ordering = ("name",)
-
-
-class Warehouse(models.Model):
-    
-    OPEN = 'OPEN'
-    CLOSE = 'CLOSE'
-
-    OPEN_STATUS = ((OPEN, 'Open'), (CLOSE, 'Close'))
-
-    name = models.CharField(max_length=25, unique=True)
-    slug = models.SlugField(unique=True, null=False, editable=False)
-    parent = models.IntegerField(default=0)
-    description = models.TextField(blank=True)
-    address = models.CharField(blank=True, max_length=255)
-    contacts = models.CharField(max_length=255, blank=True)
-    active_status = models.IntegerField(choices=STATUSES, default=ACTIVE)
-    open_status = models.CharField(max_length=25, choices=OPEN_STATUS, default=OPEN)
-    notes = models.TextField(blank=True)
-    date_created = models.DateTimeField(editable=False, default=timezone.now)
-    date_modified = models.DateTimeField(editable=False, default=timezone.now)
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-
-    def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse('warehouse_details', kwargs={'slug': self.slug})
-
-    def save(self, *args, **kwargs): # new
-        if not self.slug:
-            self.slug = slugify(self.name)
         return super().save(*args, **kwargs)
 
     class Meta:
@@ -162,7 +127,8 @@ class Product(models.Model):
     slug = models.SlugField(unique=True, null=False, editable=False)
     parent = models.IntegerField(_('Parent Product'), default=0)
     tax = models.ForeignKey(Tax, on_delete=models.PROTECT)
-    warehouse = models.ForeignKey(Warehouse, verbose_name=_('Default Warehouse'), on_delete=models.PROTECT)
+    warehouse = models.ForeignKey(Warehouse, verbose_name=_('Default Warehouse'), 
+    on_delete=models.PROTECT)
     description = models.TextField(_("Detailed Description"), blank=True)
     barcode = models.CharField(_("Barcode"), max_length=255, blank=True)
     sell_price = models.DecimalField(max_digits=18, decimal_places=6, default=0)
@@ -411,22 +377,5 @@ class ReceiptInvoice(models.Model):
 
     def __str__(self):
         return "{}".format(self.invoice, self.receipt)
-
-
-class StockMovement(models.Model):
-    document = models.CharField(max_length=50)
-    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    quantity = models.DecimalField(max_digits=18, decimal_places=6, default=0)
-    date_created = models.DateTimeField(editable=False, default=timezone.now)
-    date_modified = models.DateTimeField(editable=False, default=timezone.now)
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-    
-    def __str__(self):
-        return '{} - {}'.format(self.id , self.date_created)
-
-    class Meta:
-        ordering = ('-date_created',)
 
 

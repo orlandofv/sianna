@@ -18,31 +18,33 @@
             <div class="col-md-12">
                 <div class="conteiner-fluid p-10 m-0" id="results">
                 </div>
-                <div class="col-md-12 text-align-center p-0 m-0"> 
-                    <table class="table table-hover table-striped p-0">
-                        <thead>
-                            <tr>
-                                <th scope="col">{% trans "Grand Total" %}: 
-                                    <span> {{ total.total__sum | floatformat:2 }} </span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td scope="row">{% trans "Sub Total" %}: 
-                                    <span> {{ sub_total.sub_total__sum | floatformat:2 }} </span></td>
-                            </tr>
-                            <tr>
-                                <td scope="row">{% trans "Discount Total" %}: 
-                                    <span> {{ discount_total.discount_total__sum | floatformat:2 }} </span></td>
-                            </tr>
-                            <tr>
-                                <td scope="row">{% trans "Tax Total" %}: 
-                                    <span> {{ tax_total.tax_total__sum | floatformat:2 }} </span></td>
-                            </tr>
-                        </tbody>
-                        </table>
-                </div>
-
+                {% if items %}
+                    <div class="col-md-12 text-align-center p-0 m-0"> 
+                        <table class="table table-hover table-striped p-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">{% trans "Grand Total" %}: 
+                                        <span> {{ total.total__sum | floatformat:2 }} </span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td scope="row">{% trans "Sub Total" %}: 
+                                        <span> {{ sub_total.sub_total__sum | floatformat:2 }} </span></td>
+                                </tr>
+                                <tr>
+                                    <td scope="row">{% trans "Discount Total" %}: 
+                                        <span> {{ discount_total.discount_total__sum | floatformat:2 }} </span></td>
+                                </tr>
+                                <tr>
+                                    <td scope="row">{% trans "Tax Total" %}: 
+                                        <span> {{ tax_total.tax_total__sum | floatformat:2 }} </span></td>
+                                </tr>
+                            </tbody>
+                            </table>
+                    </div>
+                {% endif %}
+                
                 {% csrf_token %}
                 {% crispy form %}
 
@@ -79,8 +81,8 @@
                 </table>
                 
                 <button class="btn btn-danger delete-btn fa fa-minus-square" data-toggle="modal"
-                    onclick="DeleteItems('#sortTableSmall','{% url 'isis:invoice_item_delete' %}', 
-                    '{% url 'isis:invoice_item_create' invoice.slug %}', true)">
+                    onclick="DeleteItems('#sortTableSmall','{% url 'supplier:invoice_item_delete' %}', 
+                    '{% url 'supplier:invoice_item_create' invoice.slug %}', true)">
                     {% trans 'Delete Selected' %} 
                 </button>
                 

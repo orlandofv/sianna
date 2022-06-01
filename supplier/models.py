@@ -7,21 +7,19 @@ from users.models import User
 from django.urls import reverse
 from django.template.defaultfilters import slugify # new
 from django.utils.translation import ugettext_lazy as _
-from django.db.models.signals import post_save, post_init
-from django.dispatch import receiver
-from django.utils.functional import lazy
-from django.conf import settings
 
 from asset_app.models import Costumer
 from isis.models import PaymentMethod, PaymentTerm, Product, Warehouse
 
 
-class Invoice(models.Model):
+class SupplierInvoice(models.Model):
     DELIVERED = 1
     NOT_DELIVERED = 0
 
     DELIVERED_STATUS = ((DELIVERED, _('Delivered')), (NOT_DELIVERED, _('Not delivered')))
 
+    invoice = models.CharField('Invoice Number', help_text='Supplier Invoice Number(Ex: Invoice: 12345)', 
+    max_length=100)
     name =  models.CharField(max_length=50, unique=True)
     number = models.IntegerField(unique=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
@@ -46,7 +44,7 @@ class Invoice(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('invoice_details', kwargs={'slug': self.slug})
+        return reverse('costumer_invoice_details', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs): # new
         invoice = '{} {}'.format(_('Invoice'), self.number)
@@ -60,8 +58,8 @@ class Invoice(models.Model):
         ordering = ('-name',)
 
 
-class InvoiceItem(models.Model):
-    invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT)
+class SupplierInvoiceItem(models.Model):
+    invoice = models.ForeignKey(SupplierInvoice, on_delete=models.PROTECT)
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     tax = models.DecimalField(max_digits=4, decimal_places=2, default=0)
     discount = models.DecimalField(max_digits=4, decimal_places=2, default=0)

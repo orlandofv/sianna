@@ -20,7 +20,7 @@ from .fields import ListTextWidget
 
 
 class SettingsForm(forms.ModelForm):
-    name = forms.CharField(label=_('Costumer Name'))
+    name = forms.CharField(label=_('Company Name'))
     address = forms.CharField(label=_('Address'), required=False, max_length=255)
     cell = forms.CharField(label=_('Cell'), required=False, max_length=255)
     cell_2 = forms.CharField(label=_('Cell 2'), required=False, max_length=255)
@@ -412,6 +412,7 @@ class CostumerForm(forms.ModelForm):
     email = forms.CharField(max_length = 254, widget=forms.EmailInput, required=False)
     website = forms.URLField(max_length = 254, widget=forms.URLInput, required=False)
     current_credit = forms.DecimalField(max_digits=18, decimal_places=6, required=False, initial=0)
+    is_costumer = forms.IntegerField(initial=1, required=False, widget=forms.HiddenInput)
 
     def __init__(self, *args, **kwargs):
         super(CostumerForm, self).__init__(*args, **kwargs)

@@ -17,20 +17,20 @@
         <div class="row">
             <div class="col-md-12">
                 <h1>{{ invoice.name }}</h1>
-                <a href="{% url 'isis:invoice_create' %}" 
+                <a href="{% url 'supplier:invoice_create' %}" 
                     class="fa fa-plus-circle btn btn-primary">
                     {% trans 'New' %} 
                 </a> 
-                <a href="{% url 'isis:invoice_update' invoice.slug %}" 
+                <a href="{% url 'supplier:invoice_update' invoice.slug %}" 
                     class="fa fa-pencil btn btn-secondary">
                     {% trans 'Modify' %} 
                 </a> 
-                <a href="{% url 'isis:invoice_list' %}" 
+                <a href="{% url 'supplier:invoice_list' %}" 
                     class="fa fa-list btn btn-info">
                     {% trans 'List' %} 
                 </a>
                 
-                <button class="btn btn-primary fa fa-copy" onclick="cloneInvoice('{% url 'isis:invoice_create' %}');">
+                <button class="btn btn-primary fa fa-copy" onclick="cloneInvoice('{% url 'supplier:invoice_create' %}');">
                     Clone
                 </button>
                 <hr>
@@ -92,7 +92,7 @@
             <div class="panel-title">Last 5 Costumer Paid Invoices</div>
             <div class='card-body'>
                 {% for paid in paid_invoices %}
-                    <a href="{% url 'isis:invoice_details' paid.slug %}" 
+                    <a href="{% url 'supplier:invoice_details' paid.slug %}" 
                     class="fa fa-book btn btn-default card-text">
                         {{ paid }}
                     </a> 
@@ -106,7 +106,7 @@
             <div class="panel-title">Costumer Noit Paid Invoices</div>
             <div class='card-body'>
                 {% for not_paid in not_paid_invoices %}
-                    <a href="{% url 'isis:invoice_details' not_paid.slug %}" 
+                    <a href="{% url 'supplier:invoice_details' not_paid.slug %}" 
                     class="fa fa-book btn btn-warning card-text">
                         {{ not_paid }}
                     </a> 
@@ -121,7 +121,7 @@
                 Mailbox <span class="btn btn-primary">{{ overdue_invoices | length }}</span></a></div>
             <div class='card-body'>
                 {% for overdue_paid in overdue_invoices %}
-                    <a href="{% url 'isis:invoice_details' overdue_paid.slug %}" 
+                    <a href="{% url 'supplier:invoice_details' overdue_paid.slug %}" 
                     class="fa fa-book btn btn-danger card-text">
                         {{ overdue_paid }}
                     </a> 

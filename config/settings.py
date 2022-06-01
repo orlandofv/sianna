@@ -63,6 +63,8 @@ INSTALLED_APPS = [
     'asset_app',
     "debug_toolbar",
     "isis",
+    "supplier",
+    "warehouse",
     # This help us use other filters like
     
 ]
