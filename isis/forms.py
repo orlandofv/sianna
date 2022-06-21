@@ -137,6 +137,7 @@ class ProductForm(forms.ModelForm):
             ),
             Tab(_('STOCKS'),
                 Row(
+                    Column('min_stock', css_class='form-group col-md-3 mb-0'),
                     Column('desired_stock', css_class='form-group col-md-3 mb-0'),
                     Column('stock_limit', css_class='form-group col-md-3 mb-0'),
                     css_class='form-row'),
@@ -326,20 +327,23 @@ class InvoiceItemForm(forms.ModelForm):
     PRODUCT_CHOICES = ((SERVICE, _('Service')), (PRODUCT, _('Product')))
     type = forms.ChoiceField(choices=PRODUCT_CHOICES, initial=PRODUCT, required=False)
 
-    data = [(x.rate, x.name) for x in Tax.objects.all()]
+    data = [(x.rate, x.name) for x in Tax.objects.filter(active_status=1)]
     tax = forms.ChoiceField(choices=data)
 
-    price = forms.DecimalField(max_digits=18, decimal_places=6, initial=0, widget=forms.TextInput)
+    price = forms.DecimalField(max_digits=18, decimal_places=6, initial=0, 
+    widget=forms.NumberInput(attrs={'autocomplete': "off"}))
     quantity = forms.DecimalField(max_digits=18, decimal_places=6, initial=0, widget=forms.TextInput)
     discount = forms.DecimalField(max_digits=4, decimal_places=2, initial=0, widget=forms.TextInput)
     invoice = forms.CharField(required=False)
-    product = forms.ModelChoiceField(required=False, queryset=Product.objects.filter(active_status=1))
+    product = forms.ModelChoiceField(required=False, queryset=Product.objects.filter(active_status=1),
+    widget=forms.Select(attrs={'class': 'product-select'}))
+
 
     def __init__(self, *args, **kwargs):
         super(InvoiceItemForm, self).__init__(*args, **kwargs)
-        self.fields['product'].widget = ListTextWidget(data_list=Product.objects.filter(active_status=1, sell_status=1), 
-        name='product')
         
+        self.fields['price'].widget = ListTextWidget(data_list=[], name='price_list')
+
         self.helper = FormHelper()
         self.helper.form_id = "invoice-items-form-id"
         self.helper.form_class = "form-inline"
@@ -390,7 +394,7 @@ class InvoiceItemForm(forms.ModelForm):
     class Meta:
         model = InvoiceItem
         fields = "__all__"
-
+        
 class InvoiceForm(forms.ModelForm):
     name = forms.CharField(required=False, max_length=50)
     paid_status = forms.IntegerField(required=False, initial=0)

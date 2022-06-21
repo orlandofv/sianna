@@ -1,0 +1,59 @@
+{% extends 'index.html' %}
+
+{% load humanize %}
+{% load static %}
+{% load i18n %}
+
+{% block breadcrumb %}
+    {% include 'breadcrumb.html' with title='List of Stocks' path='Stocks' %}
+{% endblock breadcrumb %}
+
+{% block content %}
+    
+    {% csrf_token %}
+
+    <div class="contentContainer">
+        {% url 'stock:stock_movement' as redirect %}
+        
+        <hr>
+
+        <table id="sortTableExtraLarger" class="table table-striped display">
+            <thead>
+                <tr class="p-0 m-0">
+                    <th style="padding-left: 11px;">
+                        <input type="checkbox" id="checkall" name="main_Checkbox" 
+                        value="" style="vertical-align: middle"> 
+                    </th>
+                    <th>{% trans "Date" %}</th>
+                    <th>{% trans "Document" %}</th>
+                    <th>{% trans "Product" %}</th>
+                    <th>{% trans "Entity" %}</th>
+                    <th class="text-end">{% trans "Quantity" %}</th>
+                    <th>{% trans "Warehouse" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {% for obj in object_list %}
+                    <tr data-id="{{ obj.id }}" class="row{{ obj.id }}">
+                        <td with="10"> <input type="checkbox" id="{{ obj.id }}" class="rowcheckbox" 
+                            value="" style="vertical-align: middle">
+                        </td>
+                        <td> {{ obj.date_created }}  </td>
+                        <td>
+                            {{ obj.document }}</td>
+                        <td>{{ obj.product.name }} ({{ obj.product.code }})</td>
+                        <td>{{ obj.costumer }}</td>
+                        <td class="text-end">{{ obj.quantity | floatformat:2 |intcomma }}</td>
+                        <td>{{ obj.warehouse.name }}</td>
+                        <td>
+                            <a href="{% url 'stock:stock_item_list' obj.product.slug  %}" class="btn btn-primary fa fa-list"></a>
+                        </td>
+                    </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}
+    

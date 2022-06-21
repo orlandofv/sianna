@@ -12,6 +12,11 @@ from django.dispatch import receiver
 from django.utils.functional import lazy
 from django.conf import settings
 
+ACTIVE = 1
+DEACTIVATED  = 0
+
+STATUSES = ((ACTIVE, _('Active')), (DEACTIVATED , _('Deactivated')))
+
 
 class Settings(models.Model):
     name = models.CharField(_('Costumer Name'), max_length=100, unique=True)
@@ -25,6 +30,7 @@ class Settings(models.Model):
     website = models.CharField(_('Web Site'), max_length=255, blank=True)
     logo = models.ImageField(_('Logo'), max_length=255, blank=True)
     logo_square = models.ImageField(_('Logo Square'), max_length=255, blank=True)
+    active_status = models.IntegerField(_('Status'), choices=STATUSES, default=ACTIVE)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, default=timezone.now)
     date_modified = models.DateTimeField(editable=False, default=timezone.now)
@@ -79,6 +85,7 @@ class Maintenance(models.Model):
     frequency = models.PositiveIntegerField(default=0)
     time_allocated = models.FloatField(default=0)
     time_schedule = models.CharField(choices=MAINTENANCE_SCHEDULE, default=HOURS, max_length=10)
+    active_status = models.IntegerField(_('Status'), choices=STATUSES, default=ACTIVE)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
@@ -113,6 +120,7 @@ class Component(models.Model):
     stock_code = models.CharField(_('Stock Code'), max_length=100, blank=True)
     maintenance = models.ForeignKey(Maintenance, on_delete=models.PROTECT)
     image = models.ImageField(_('Image'), default="default.jpeg", upload_to = 'media')
+    active_status = models.IntegerField(_('Status'), choices=STATUSES, default=ACTIVE)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, default=timezone.now)
     date_modified = models.DateTimeField(editable=False, default=timezone.now)
@@ -141,11 +149,18 @@ class Costumer(models.Model):
 
     name = models.CharField(_('Costumer Name'), 
     help_text=_('Name of the Costumer, Department, etc'), max_length=100, unique=True)
+    country = models.CharField(_('Country'), max_length=100, blank=True)
+    province = models.CharField(_('Province/State'), max_length=100, unique=True)
+    city = models.CharField(_('City'), max_length=100, blank=True)
+    zip_code = models.CharField(_('Zip Code'), max_length=100, blank=True)
     parent = models.IntegerField(_('Parent Costumer'), 
     help_text=_('Choose Parent Costumer'), default=0)
     slug = models.SlugField(unique=True, null=False, editable=False)
     address = models.CharField(blank=True, max_length=255)
-    contacts = models.CharField(blank=True, max_length=255)
+    phone = models.CharField(_('Phone'), blank=True, max_length=255)
+    fax = models.CharField(_('Fax'), blank=True, max_length=255)
+    mobile = models.CharField(_('Mobile'), blank=True, max_length=255)
+    capital = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     current_credit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     max_credit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     max_debit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
@@ -155,6 +170,7 @@ class Costumer(models.Model):
     website = models.CharField(max_length = 254, blank=True)
     is_supplier = models.IntegerField(default=0)
     is_costumer = models.IntegerField(default=0)
+    active_status = models.IntegerField(_('Status'), choices=STATUSES, default=ACTIVE)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
@@ -287,6 +303,7 @@ class Vendor(models.Model):
     contacts = models.CharField(blank=True, max_length=255)
     manager = models.CharField(max_length=100, blank=True)
     email = models.EmailField(max_length = 254, blank=True)
+    active_status = models.IntegerField(_('Status'), choices=STATUSES, default=ACTIVE)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
@@ -349,6 +366,7 @@ class Allocation(models.Model):
     type = models.ForeignKey(Type, on_delete=models.PROTECT)
     subtype = models.ForeignKey(SubType, on_delete=models.PROTECT)
     notes = models.TextField(blank=True)
+    active_status = models.IntegerField(_('Status'), choices=STATUSES, default=ACTIVE)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
     date_modified = models.DateTimeField(editable=False, 
@@ -384,7 +402,7 @@ class WorkOrder(models.Model):
     MEDIUM = 'MEDIUM'
     HIGH = 'HIGH'
 
-    STATUSES = ((PENDING, _('Pending')), (INPROGRESS, _('InProgress')),
+    PROGRESS_STATUSES = ((PENDING, _('Pending')), (INPROGRESS, _('InProgress')),
     (FINISHED, _('Finished')), (ABANDONED, _('Abandoned')))
 
     PRIORITY = ((LOW, _('Low')), (MEDIUM, _('Medium')), (HIGH, _('High')))
@@ -392,14 +410,16 @@ class WorkOrder(models.Model):
     order = models.PositiveIntegerField(_('Order Number'), unique=True)
     priority = models.CharField(_('Priority'), max_length=10, choices=PRIORITY, default=LOW)
     slug = models.SlugField(unique=True, null=False, editable=False)
-    allocation = models.ForeignKey(Allocation, on_delete=models.PROTECT, verbose_name=_('Allocation'))
+    component = models.ManyToManyField(Allocation, related_name='workorders', 
+    verbose_name=_('Component'))
     responsible = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name=_('Person in Charge'))
     start = models.DateTimeField(_("Start date"), default=timezone.now)
     end = models.DateTimeField(_("End date"), default=timezone.now)
     warn_after = models.DateTimeField(_('Warn After'), default=timezone.now) 
-    status = models.CharField(max_length=15, choices=STATUSES, default=PENDING, blank=True)
+    status = models.CharField(_('Progress'), max_length=15, choices=PROGRESS_STATUSES, default=PENDING, blank=True)
     progress = models.DecimalField(_('Work Progress (%)'), max_digits=5, decimal_places=2, default=0)
     notes = models.TextField(blank=True)
+    active_status = models.IntegerField(_('Active Status'), choices=STATUSES, default=ACTIVE)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
     date_modified = models.DateTimeField(editable=False, 
@@ -432,7 +452,10 @@ class WorkOrder(models.Model):
         return False
 
     def __str__(self):
-        return str('{}'.format(self.order))
+        return "%s (%s)" % (
+        self.order,
+        ", ".join(component.name for component in self.components.all()),
+        )
 
     def get_absolute_url(self):
         return reverse('work_details', kwargs={'slug': self.slug})
@@ -455,6 +478,7 @@ class Action(models.Model):
     maintenance = models.ForeignKey(Maintenance, on_delete=models.PROTECT)
     slug = models.SlugField(unique=True, null=False, editable=False)
     notes = models.TextField(blank=True)
+    active_status = models.IntegerField(_('Status'), choices=STATUSES, default=ACTIVE)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
     date_modified = models.DateTimeField(editable=False, 
@@ -496,6 +520,7 @@ class Item(models.Model):
     quantity = models.DecimalField(_('Quantity'), decimal_places=2, max_digits=9)
     cost = models.DecimalField(_('Cost'), decimal_places=2, max_digits=9, default=0)
     unit = models.CharField(_('Unit'), max_length=10, choices=UNITY_CHOICES, default=piece)
+    active_status = models.IntegerField(_('Status'), choices=STATUSES, default=ACTIVE)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, 
     default=timezone.now)
@@ -525,7 +550,8 @@ class MaintenanceItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.PROTECT)
     quantity = models.DecimalField(_('Quantity'), decimal_places=2, max_digits=9, default=0)
     cost = models.DecimalField(_('Cost'), decimal_places=2, max_digits=9, default=0)
-    
+    active_status = models.IntegerField(_('Status'), choices=STATUSES, default=ACTIVE)
+
     def __str__(self):
         return '{} - {}'.format(self.maintenance, self.item)    
 

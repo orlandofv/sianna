@@ -8,7 +8,7 @@ tax_detail_view, invoice_create_view, invoice_list_view, invoice_update_view, in
 invoice_detail_view, receipt_create_view, receipt_list_view, receipt_update_view, receipt_delete_view, 
 payment_method_create_view, payment_method_list_view, payment_method_update_view, payment_method_delete_view, 
 payment_term_create_view, payment_term_list_view, payment_term_update_view, payment_term_delete_view, 
-invoice_item_create_view, invoice_item_delete_view, invoice_show,
+invoice_item_create_view, invoice_item_delete_view, invoice_show, load_sell_prices,
 )
 
 app_name = 'isis'
@@ -45,6 +45,8 @@ urlpatterns = [
     path('payment_terms/', payment_term_list_view, name='payment_term_list'),
     path('payment_terms/<slug:slug>/update/', payment_term_update_view, name='payment_term_update'),
     path('payment_terms/delete/', payment_term_delete_view, name='payment_term_delete'),
+
+    path('ajax/load-prices/', load_sell_prices, name='ajax_load_prices'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

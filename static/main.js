@@ -75,7 +75,7 @@ function DeleteItems(element_id, delete_url, redirect_url, refresh_page=false){
 };
 
 $(document).ready(function() {
-    
+
     console.log("document ready.")
 
     var random_number = Math.floor(100000000 + Math.random() * 900000000);
@@ -165,7 +165,6 @@ $(document).ready(function() {
         order: [[1, 'asc']]
     });    
 });
-
 
 
 

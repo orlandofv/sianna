@@ -1,7 +1,9 @@
 {% extends 'index.html' %}
 
+
 {% load static %}
 {% load crispy_forms_tags %}
+{% load humanize %}
 
 {% load i18n %}
 
@@ -18,31 +20,35 @@
             <div class="col-md-12">
                 <div class="conteiner-fluid p-10 m-0" id="results">
                 </div>
+                
+                {% if tax_total.tax_total__sum %}
+                    
                 <div class="col-md-12 text-align-center p-0 m-0"> 
                     <table class="table table-hover table-striped p-0">
                         <thead>
                             <tr>
                                 <th scope="col">{% trans "Grand Total" %}: 
-                                    <span> {{ total.total__sum | floatformat:2 }} </span></th>
+                                    <span class='text-end'> {{ total.total__sum | floatformat:2 |intcomma }} </span></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td scope="row">{% trans "Sub Total" %}: 
-                                    <span> {{ sub_total.sub_total__sum | floatformat:2 }} </span></td>
+                                    <span> {{ sub_total.sub_total__sum | floatformat:2 |intcomma }} </span></td>
                             </tr>
                             <tr>
                                 <td scope="row">{% trans "Discount Total" %}: 
-                                    <span> {{ discount_total.discount_total__sum | floatformat:2 }} </span></td>
+                                    <span> {{ discount_total.discount_total__sum | floatformat:2 |intcomma }} </span></td>
                             </tr>
                             <tr>
                                 <td scope="row">{% trans "Tax Total" %}: 
-                                    <span> {{ tax_total.tax_total__sum | floatformat:2 }} </span></td>
+                                    <span> {{ tax_total.tax_total__sum | floatformat:2 |intcomma }} </span></td>
                             </tr>
                         </tbody>
                         </table>
                 </div>
-
+                {% endif %}
+                
                 {% csrf_token %}
                 {% crispy form %}
 
@@ -56,10 +62,10 @@
                                 value="" style="vertical-align: middle"> 
                             </th>
                             <th> {% trans "Name" %}</th>
-                            <th>{% trans "Price" %}</th>
-                            <th>{% trans "Quantity" %}</th>
-                            <th>{% trans "Tax" %}</th>
-                            <th>{% trans "Discount" %}</th>
+                            <th class="text-end">{% trans "Price" %}</th>
+                            <th class="text-end">{% trans "Quantity" %}</th>
+                            <th class="text-end">{% trans "Tax" %}</th>
+                            <th class="text-end">{% trans "Discount" %}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,10 +75,10 @@
                                     value="" style="vertical-align: middle">
                                 </td>
                                 <td>{{ item.product }}</td>
-                                <td>{{ item.price | floatformat:2 }}</td>
-                                <td>{{ item.quantity | floatformat:2 }}</td>
-                                <td>{{ item.tax }}</td>
-                                <td>{{ item.discount | floatformat:2 }}</td>
+                                <td class="text-end">{{ item.price | floatformat:2 |intcomma }}</td>
+                                <td class="text-end">{{ item.quantity | floatformat:2 |intcomma }}</td>
+                                <td class="text-end">{{ item.tax }}</td>
+                                <td class="text-end">{{ item.discount | floatformat:2 |intcomma }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

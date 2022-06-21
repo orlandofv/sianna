@@ -20,7 +20,7 @@ MESSAGE_TAGS = {
         messages.SUCCESS: 'alert-success',
         messages.WARNING: 'alert-warning',
         messages.ERROR: 'alert-danger',
- }
+}
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "isis",
     "supplier",
     "warehouse",
+    "stock",
     # This help us use other filters like
     
 ]

@@ -34,8 +34,10 @@ urlpatterns = [
     path('', include('isis.urls')),
     path('', include('supplier.urls')),
     path('', include('warehouse.urls')),
+    path('', include('stock.urls')),
     path('', include('users.urls')),
     path('__debug__/', include('debug_toolbar.urls')),
+
 ]
 
 

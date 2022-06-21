@@ -1339,7 +1339,7 @@ class WorkOrderListView(LoginRequiredMixin, ListView):
 def workorder_create_view(request):
     if request.method == 'POST':
         form = WorkOrderForm(request.POST)
-       
+
         if form.is_valid():
             instance = form.save(commit=False)
             instance.created_by = request.user

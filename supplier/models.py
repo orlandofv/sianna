@@ -56,6 +56,7 @@ class SupplierInvoice(models.Model):
 
     class Meta:
         ordering = ('-name',)
+        unique_together = ('invoice', 'supplier')
 
 
 class SupplierInvoiceItem(models.Model):
@@ -74,7 +75,7 @@ class SupplierInvoiceItem(models.Model):
         return self.invoice
     
     def save(self, *args, **kwargs): # new
-        
+        print("Nao sei que corre antes {}".format(self.invoice.number))
         # Discount is saved on db as whole number so we must divide by 100
         total = round(self.quantity * self.price, 6)
         print('Total: ', total)

@@ -142,6 +142,7 @@ def get_model_name_from_id(model, id):
 @login_required
 def invoice_update_view(request, slug):
     invoice = get_object_or_404(SupplierInvoice, slug=slug)
+    invoice_number = invoice.number
     form = SupplierInvoiceForm(request.POST or None, instance=invoice)
     costumer_form = SupplierForm(request.POST or None)
     warehouse_form = WarehouseForm(request.POST or None)
@@ -187,6 +188,7 @@ def invoice_update_view(request, slug):
             instance.modified_by = request.user
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
+            instance.number = invoice_number
             instance = instance.save()
             messages.success(request, _("SupplierInvoice updated successfully!"))
 
@@ -248,13 +250,13 @@ def invoice_detail_view(request, slug):
     # field names as keys
     invoice = get_object_or_404(SupplierInvoice, slug=slug)
 
-    paid_invoices = SupplierInvoice.objects.filter(costumer=invoice.costumer, 
+    paid_invoices = SupplierInvoice.objects.filter(supplier=invoice.supplier, 
     paid_status=1).exclude(id=invoice.id).order_by('-number')[:5]
     
-    overdue_invoices = SupplierInvoice.objects.filter(costumer=invoice.costumer, 
+    overdue_invoices = SupplierInvoice.objects.filter(supplier=invoice.supplier, 
     paid_status=0, due_date__lt=datetime.datetime.now()).exclude(id=invoice.id).order_by('number')
     
-    not_paid_invoices = SupplierInvoice.objects.filter(costumer=invoice.costumer, 
+    not_paid_invoices = SupplierInvoice.objects.filter(supplier=invoice.supplier, 
     paid_status=0).exclude(id=invoice.id).order_by('number')
     
     context ={}
@@ -284,7 +286,8 @@ def invoice_item_create_view(request, slug):
             document = '{} - {}'.format(_('Invoice'), invoice.id) 
             if invoice.finished_status == 0:
                 for i in items:
-                    manage_stock(request, document ,i.product, i.quantity, invoice.warehouse 
+                    manage_stock(request, document ,i.product, i.quantity, invoice.warehouse, invoice.supplier,
+                    "Supplier Invoice" 
                 )
 
             i = SupplierInvoice.objects.filter(slug=slug).update(finished_status=1)

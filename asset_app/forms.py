@@ -823,13 +823,16 @@ class AllocationForm(forms.ModelForm):
 
 class WorkOrderForm(forms.ModelForm):
     order = forms.IntegerField(label=_('Order Number'))
-    allocation = forms.ModelChoiceField(queryset=Allocation.objects.all(), label=_('Allocation'))
     responsible = forms.ModelChoiceField(queryset=User.objects.all(), label=_('Person in Charge'))
-    start = forms.DateTimeField(label=_("Start date"), initial=timezone.now, widget=(forms.DateTimeInput))
-    end = forms.DateTimeField(label=_("End date"), initial=timezone.now, widget=(forms.DateTimeInput))
-    warn_after = forms.DateTimeField(label=_('Warn After'), initial=timezone.now, widget=(forms.DateTimeInput)) 
+    start = forms.DateTimeField(label=_("Start date"), initial=timezone.now, 
+    widget=forms.DateTimeInput(attrs={'type':'datetime-local'}))
+    end = forms.DateTimeField(label=_("End date"), initial=datetime.datetime.now() + datetime.timedelta(days=30), 
+    widget=(forms.DateTimeInput(attrs={'type':'datetime-local'})))
+    warn_after = forms.DateTimeField(label=_('Warn After'), initial=datetime.datetime.now() + datetime.timedelta(days=15), 
+    widget=(forms.DateTimeInput(attrs={'type':'datetime-local'}))) 
     progress = forms.DecimalField(label=_('Work Progress (%)'), max_digits=5, decimal_places=2, 
     initial=0, required=False)
+    component = forms.ModelMultipleChoiceField(queryset=Component.objects.filter(active_status=1))
 
     def __init__(self, *args, **kwargs):
         super(WorkOrderForm, self).__init__(*args, **kwargs)
@@ -846,22 +849,22 @@ class WorkOrderForm(forms.ModelForm):
             AccordionGroup(_('Work Order Data'),
             Row(
                 Column('order', css_class='form-group col-md-6 mb-0'),
-                Column('allocation', css_class='form-group col-md-6 mb-0'),),
-             Row(
-                Column('priority', css_class='form-group col-md-3 mb-0'),
-                Column('responsible', css_class='form-group col-md-3 mb-0'),
-                Column('start', css_class='form-group col-md-3 mb-0'),
-                Column('end', css_class='form-group col-md-3 mb-0'),),
+                Column('responsible', css_class='form-group col-md-4 mb-0'),
+                Column('priority', css_class='form-group col-md-2 mb-0'),),
             Row(
-                Column(Field('warn_after', datetime_picker="dd MMM yyyy HH:mm"), css_class='form-group col-md-3 mb-0'),
+                Column('active_status', css_class='form-group col-md-2 mb-0'),
+                Column('component', css_class='form-group col-md-10 mb-0'),
                 ),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            Row(
+                Column('start', css_class='form-group col-md-4 mb-0'),
+                Column('end', css_class='form-group col-md-4 mb-0'),
+                Column(Field('warn_after', css_class='form-group col-md-4 mb-0'),),),
             HTML("<hr>"),
             Submit('save_workorder', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_workorder_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             ),
-             flush=True,
+            flush=True,
             always_open=True),)
 
     class Meta:
@@ -873,7 +876,6 @@ class WorkOrderForm(forms.ModelForm):
         cleaned_data = super().clean()
         
         order = cleaned_data.get('order')
-        allocation = cleaned_data.get('allocation')
         responsible = cleaned_data.get('responsible')
         start = cleaned_data.get('start')
         end = cleaned_data.get('end')
@@ -885,10 +887,6 @@ class WorkOrderForm(forms.ModelForm):
             self.errors['order'] = self.error_class(_("""Invalid Order.
             \nOrder Number must be from 1 to 4294967295."""))
 
-        if allocation == "":
-            self.errors['allocation'] = self.error_class(_("""Invalid Allocation Value.
-            \nPlease choose Allocation."""))
-        
         if responsible == "":
             self.errors['responsible'] = self.error_class(_("""Invalid Person in Charge.
             \nPlease choose Person in Charge of the Work."""))
@@ -901,15 +899,6 @@ class WorkOrderForm(forms.ModelForm):
             self.errors['warn_after'] = self.error_class(_("""Invalid Warn Date.
             \nChoose Warning date less than End date  and greater than Start date."""))
         
-        allocation_object = WorkOrder.objects.all()
-        for x in allocation_object:
-            if x.allocation == allocation:        
-                if (x.status in ('Pending', 'Progress') and status in ('Pending', 'InProgress')):
-                    if x.end >= datetime.datetime.now() and x.order != order:
-                        self.errors['status'] = self.error_class(_(f'''The Work Order {x.order}, with the same
-                        Allocation {x.allocation} is in 
-                        {x.status} status. Please put it in "Abandoned" or "Finished" Status before continue.''')) 
-
         return cleaned_data
     
 
