@@ -41,6 +41,114 @@ from .forms import (SupplierInvoiceForm, SupplierInvoiceItemForm, SupplierForm)
 from asset_app.models import (Costumer, Settings)
 from warehouse.forms import WarehouseForm
 
+########################## Costumer ##########################
+class SupplierListView(LoginRequiredMixin, ListView):
+    queryset = Costumer.objects.filter(is_supplier=1)
+    template_name = 'asset_app/listviews/costumer_list_view.html'
+
+
+@login_required
+def supplier_create_view(request):
+    if request.method == 'POST':
+
+        form = SupplierForm(request.POST)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            
+            parent = request.POST.get('parent')
+            
+            if parent == "":
+                instance.parent = 0
+            else:
+                instance.parent = parent
+
+            instance.created_by = instance.modified_by = request.user
+            instance.date_created = instance.date_modified = datetime.datetime.now()
+            instance = instance.save()
+            messages.success(request, _("Costumer added successfully!"))
+
+            if request.POST.get('save_costumer'):
+                return redirect('asset_app:supplier_list')
+            else:
+                return redirect('asset_app:supplier_create')
+        else:
+            print(form.errors)
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('asset_app:supplier_create')
+    else:
+        form = SupplierForm()
+        context = {'form': form}
+        return render(request, 'asset_app/createviews/costumer_create.html', context)
+
+
+@login_required
+def supplier_update_view(request, slug):
+    costumer = get_object_or_404(Costumer, slug=slug)
+    form = SupplierForm(request.POST or None, instance=costumer)
+
+    if request.method == 'POST':
+        
+        if form.is_valid():
+            print(request.POST)
+            
+            instance = form.save(commit=False)
+            instance.modified_by = request.user
+            instance.slug = slugify(instance.name)
+            instance.date_modified = datetime.datetime.now()
+
+            parent = request.POST.get('parent')
+            if parent == "":
+                instance.parent = 0
+            else:
+                instance.parent = parent
+
+            instance = instance.save()
+            messages.success(request, _("Costumer updated successfully!"))
+
+            if request.POST.get('save_costumer'):
+                return redirect('asset_app:supplier_list')
+            else:
+                return redirect('asset_app:supplier_create')
+
+        else:
+            print(form.errors)
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('asset_app:supplier_update', slug=slug)
+       
+    context = {'form': form}
+    return render(request, 'asset_app/updateviews/costumer_update.html', context)
+
+
+@login_required
+def supplier_delete_view(request):
+    if request.is_ajax():
+        selected_ids = request.POST['check_box_item_ids']
+        selected_ids = json.loads(selected_ids)
+        for i, id in enumerate(selected_ids):
+            if id != '':
+                try:
+                    Costumer.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('asset_app:supplier_list')
+        
+        messages.warning(request, _("Costumer delete successfully!"))
+        return redirect('asset_app:supplier_list')
+
+
+@login_required
+def supplier_detail_view(request, slug):
+    # dictionary for initial data with
+    # field names as keys
+    costumer = get_object_or_404(Costumer, slug=slug)
+   
+    context ={}
+    # add the dictionary during initialization
+    context["data"] = costumer    
+    return render(request, "asset_app/detailviews/costumer_detail_view.html", context)
+
 
 @login_required
 def invoice_list_view(request):

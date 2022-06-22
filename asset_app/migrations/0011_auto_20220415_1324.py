@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='allocation',
             name='image',
-            field=models.ImageField(blank=True, default='default.jpeg', upload_to='media', verbose_name='Image'),
+            field=models.ImageField(blank=True, default='default.jpg', upload_to='media', verbose_name='Image'),
         ),
         migrations.AlterField(
             model_name='allocation',
@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='component',
             name='image',
-            field=models.ImageField(default='default.jpeg', upload_to='media', verbose_name='Image'),
+            field=models.ImageField(default='default.jpg', upload_to='media', verbose_name='Image'),
         ),
         migrations.AlterField(
             model_name='component',

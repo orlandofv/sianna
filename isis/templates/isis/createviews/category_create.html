@@ -5,17 +5,19 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'Update Partner' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'New Category' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='Update Partner' path='<a href="/costumers/"> Partners</a>' dest='Update Partner' %}
+{% include 'breadcrumb.html' with title='New Category' path='<a href="/categories/"> categories </a>' dest='New Category' %}
 {% endblock breadcrumb %}
-
+            
 {% block content %}
     
     <div class="contentContainer">
         <div class="row">
             <div class="col-md-12">
+                <div class="conteiner-fluid p-10 m-0" id="results">
+                </div>
                 {% csrf_token %}
                 {% crispy form %}
             </div>

@@ -11,6 +11,8 @@ from django.db.models.signals import post_save, post_init
 from django.dispatch import receiver
 from django.utils.functional import lazy
 from django.conf import settings
+from warehouse.models import Warehouse
+
 
 ACTIVE = 1
 DEACTIVATED  = 0
@@ -119,7 +121,7 @@ class Component(models.Model):
     manufacturer = models.CharField(_('Manufacturer'), max_length=100, blank=True)
     stock_code = models.CharField(_('Stock Code'), max_length=100, blank=True)
     maintenance = models.ForeignKey(Maintenance, on_delete=models.PROTECT)
-    image = models.ImageField(_('Image'), default="default.jpeg", upload_to = 'media')
+    image = models.ImageField(_('Image'), default="{}default.jpg".format(settings.MEDIA_URL), upload_to = 'media')
     active_status = models.IntegerField(_('Status'), choices=STATUSES, default=ACTIVE)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, default=timezone.now)
@@ -145,14 +147,17 @@ class Component(models.Model):
 
 
 class Costumer(models.Model):
-   
+    TYPE_CHOICES = (("Governmental", _("Governmental")), ("Large Company",
+    _("Large Company")), ("Medium Company", _("Medium Company")),
+    ("Small Company", _("Small Company")), ("Individual Company", _("Individual Company")),
+    ("Other", _("Other")))
 
     name = models.CharField(_('Costumer Name'), 
     help_text=_('Name of the Costumer, Department, etc'), max_length=100, unique=True)
     country = models.CharField(_('Country'), max_length=100, blank=True)
-    province = models.CharField(_('Province/State'), max_length=100, unique=True)
+    province = models.CharField(_('Province/State'), max_length=100, blank=True)
     city = models.CharField(_('City'), max_length=100, blank=True)
-    zip_code = models.CharField(_('Zip Code'), max_length=100, blank=True)
+    zip = models.CharField(_('Zip Code'), max_length=100, blank=True)
     parent = models.IntegerField(_('Parent Costumer'), 
     help_text=_('Choose Parent Costumer'), default=0)
     slug = models.SlugField(unique=True, null=False, editable=False)
@@ -160,12 +165,12 @@ class Costumer(models.Model):
     phone = models.CharField(_('Phone'), blank=True, max_length=255)
     fax = models.CharField(_('Fax'), blank=True, max_length=255)
     mobile = models.CharField(_('Mobile'), blank=True, max_length=255)
-    capital = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    capital = models.DecimalField(_("Capital"), max_digits=18, decimal_places=6, default=0)
     current_credit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
-    max_credit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
-    max_debit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
-    credit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
-    debit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    max_credit = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    max_debit = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    credit = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    debit = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
     email = models.CharField(max_length = 254, blank=True)
     website = models.CharField(max_length = 254, blank=True)
     is_supplier = models.IntegerField(default=0)
@@ -178,6 +183,12 @@ class Costumer(models.Model):
     default=timezone.now)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
     modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    warehouse = models.ForeignKey(Warehouse, verbose_name=_("Default Warehouse"), 
+    on_delete=models.PROTECT, null=True, blank=True)
+    type = models.CharField(_("Company Type"), max_length=20, choices=TYPE_CHOICES,
+    default=TYPE_CHOICES[3][1])
+    vat = models.CharField(_("VAT Number"), max_length=15, blank=True)
+
 
     def __str__(self):
         return self.name
@@ -342,7 +353,7 @@ class Allocation(models.Model):
     costumer = models.ForeignKey(Costumer, on_delete=models.PROTECT)
     serial_number = models.CharField(_('Component Serial No.'), max_length=50, unique=True)
     status = models.CharField(_('Status'), max_length=15, choices=STATUS, default=GOOD)
-    image = models.ImageField(_('Image'), default="default.jpeg", 
+    image = models.ImageField(_('Image'), default="{}default.jpg".format(settings.MEDIA_URL), 
     upload_to = 'media', blank=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
     purchase_amount = models.DecimalField(default=0, max_digits=9, decimal_places=2)

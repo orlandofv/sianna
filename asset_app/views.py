@@ -540,20 +540,20 @@ def component_detail_view(request, slug):
 
 ########################## Costumer ##########################
 class CostumerListView(LoginRequiredMixin, ListView):
-    model = Costumer
+    queryset = Costumer.objects.filter(is_costumer=1)
     template_name = 'asset_app/listviews/costumer_list_view.html'
 
 
 @login_required
 def costumer_create_view(request):
     if request.method == 'POST':
-        
-        print(request.POST)
 
         form = CostumerForm(request.POST)
         if form.is_valid():
             instance = form.save(commit=False)
+            
             parent = request.POST.get('parent')
+            
             if parent == "":
                 instance.parent = 0
             else:
@@ -569,6 +569,7 @@ def costumer_create_view(request):
             else:
                 return redirect('asset_app:costumer_create')
         else:
+            print(form.errors)
             for error in form.errors.values():
                 messages.error(request, error)
             return redirect('asset_app:costumer_create')
@@ -585,9 +586,9 @@ def costumer_update_view(request, slug):
 
     if request.method == 'POST':
         
-        print(request.POST)
-
         if form.is_valid():
+            print(request.POST)
+            
             instance = form.save(commit=False)
             instance.modified_by = request.user
             instance.slug = slugify(instance.name)
@@ -608,6 +609,7 @@ def costumer_update_view(request, slug):
                 return redirect('asset_app:costumer_create')
 
         else:
+            print(form.errors)
             for error in form.errors.values():
                 messages.error(request, error)
             return redirect('asset_app:costumer_update', slug=slug)
@@ -1322,7 +1324,7 @@ def allocation_detail_view(request, slug):
     # dictionary for initial data with
     # field names as keys
     allocation = get_object_or_404(Allocation, slug=slug)
-   
+
     context ={}
     # add the dictionary during initialization
     context["data"] = allocation    

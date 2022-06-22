@@ -13,7 +13,7 @@ class MaintenanceAdmin(admin.ModelAdmin):
 
 
 class CostumerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'address', 'contacts', 'notes',)
+    list_display = ('name', 'address', 'phone', 'notes',)
 
 class GroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'notes',)

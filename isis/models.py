@@ -49,7 +49,7 @@ class Tax(models.Model):
 
 
 class Gallery(models.Model):
-    image = models.ImageField(_('Image'), default="default.jpeg", upload_to = 'media')
+    image = models.ImageField(_('Image'), default="{}default.jpg".format(settings.MEDIA_URL), upload_to = 'media')
     date_created = models.DateTimeField(editable=False, default=timezone.now)
     date_modified = models.DateTimeField(editable=False, default=timezone.now)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
@@ -58,6 +58,35 @@ class Gallery(models.Model):
     class Meta:
         verbose_name_plural = 'Gallery'
         ordering = ("-date_created",)
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    parent = models.IntegerField(default=0, blank=True)
+    slug = models.SlugField(unique=True, null=False, editable=False)
+    image = models.ImageField(_('Image'), default="{}default.jpg".format(settings.MEDIA_URL), 
+    upload_to = 'media', blank=True)
+    active_status = models.IntegerField(choices=STATUSES, default=ACTIVE)
+    notes = models.TextField(blank=True)
+    date_created = models.DateTimeField(editable=False, default=timezone.now)
+    date_modified = models.DateTimeField(editable=False, default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    def get_absolute_url(self):
+        return reverse('category_details', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs): # new
+        if not self.slug:
+            self.slug = slugify(self.name) 
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ("name",)
+        verbose_name_plural = _('Categories')
 
 
 class Product(models.Model):
@@ -122,13 +151,14 @@ class Product(models.Model):
     PRODUCT_NATURE = ((RAW_PRODUCT, _('Raw Product')), (MANUFACTURED_PRODUCT, _('Manufactured Product')))
     
     code = models.CharField(_('Product Code'), max_length=50, unique=True)
+    category = models.ForeignKey(Category, verbose_name=_('Product Category'), 
+    on_delete=models.PROTECT)
     name = models.CharField(_('Name of Product'), max_length=255, unique=True)
     type = models.CharField(_('Type'),choices=PRODUCT_CHOICES, max_length=10,  default=PRODUCT)
     slug = models.SlugField(unique=True, null=False, editable=False)
-    parent = models.IntegerField(_('Parent Product'), default=0)
     tax = models.ForeignKey(Tax, on_delete=models.PROTECT)
     warehouse = models.ForeignKey(Warehouse, verbose_name=_('Default Warehouse'), 
-    on_delete=models.PROTECT)
+    on_delete=models.PROTECT, null=True, blank=True)
     description = models.TextField(_("Detailed Description"), blank=True)
     barcode = models.CharField(_("Barcode"), max_length=255, blank=True)
     sell_price = models.DecimalField(max_digits=18, decimal_places=6, default=0)
@@ -143,7 +173,7 @@ class Product(models.Model):
     min_stock = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     stock_limit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     desired_stock = models.DecimalField(max_digits=18, decimal_places=6, default=0)
-    image = models.ImageField(_('Primary Image'), default="default.jpeg", upload_to = 'media', blank=True)
+    image = models.ImageField(_('Primary Image'), default="{}default.jpg".format(settings.MEDIA_URL), upload_to = 'media', blank=True)
     product_nature = models.CharField(max_length=50, choices=PRODUCT_NATURE, default=RAW_PRODUCT, blank=True)
     product_url = models.URLField(max_length=255, blank=True)
     weight = models.DecimalField(max_digits=9, decimal_places=6, default=0)
@@ -261,6 +291,8 @@ class PaymentMethod(models.Model):
 
 class Receipt(models.Model):
     name = models.CharField(max_length=50, unique=True)
+    number = models.IntegerField(unique=True)
+    costumer = models.ForeignKey(Costumer, on_delete=models.PROTECT, default=1)
     slug = models.SlugField(unique=True, null=False, editable=False)
     notes = models.TextField(blank=True)
     date_created = models.DateTimeField(editable=False, default=timezone.now)
@@ -286,7 +318,36 @@ class Receipt(models.Model):
     class Meta:
         ordering = ('-name',)
 
+
+class Files(models.Model):
+    file = models.ImageField(_('Primary Image'), 
+    default="{}default.jpg".format(settings.MEDIA_URL), 
+    upload_to = 'media', blank=True)
+    receipt = models.ForeignKey(Receipt, on_delete=models.PROTECT)
+
+
+class PaymentType(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(unique=True, null=False, editable=False)
+    amount = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    notes = models.CharField(max_length=255, blank=True)
+    receipt = models.ForeignKey(Receipt, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('payment_type_details', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs): # new
+        if not self.slug:
+            self.slug = slugify(self.name)
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ("name",)
     
+
 class Invoice(models.Model):
     DELIVERED = 1
     NOT_DELIVERED = 0

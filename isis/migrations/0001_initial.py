@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             name='Gallery',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(default='default.jpeg', upload_to='media', verbose_name='Image')),
+                ('image', models.ImageField(default='default.jpg', upload_to='media', verbose_name='Image')),
                 ('date_created', models.DateTimeField(default=django.utils.timezone.now, editable=False)),
                 ('date_modified', models.DateTimeField(default=django.utils.timezone.now, editable=False)),
                 ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL)),
@@ -90,7 +90,7 @@ class Migration(migrations.Migration):
                 ('phisical_stock', models.DecimalField(decimal_places=6, default=0, max_digits=18)),
                 ('stock_limit', models.DecimalField(decimal_places=6, default=0, max_digits=18)),
                 ('desired_stock', models.DecimalField(decimal_places=6, default=0, max_digits=18)),
-                ('image', models.ImageField(default='default.jpeg', upload_to='media', verbose_name='Image')),
+                ('image', models.ImageField(default='default.jpg', upload_to='media', verbose_name='Image')),
                 ('product_nature', models.CharField(choices=[('raw_product', 'Raw Product'), ('manufactured_product', 'Manufactured Product')], default='raw_product', max_length=50)),
                 ('product_url', models.URLField(blank=True, max_length=255)),
                 ('weight', models.DecimalField(decimal_places=6, default=0, max_digits=9)),

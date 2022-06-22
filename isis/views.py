@@ -29,16 +29,136 @@ from config import utilities
 from asset_app.forms import CostumerForm
 from asset_app.models import Costumer
 from .models import (Gallery, Product, Tax, Warehouse, Invoice, PaymentTerm, PaymentMethod, Receipt, 
-InvoiceItem)
+InvoiceItem, Category)
 from users.models import User
 from .forms import (ProductForm, TaxForm, PaymentTermForm, 
-PaymentMethodForm, ReceiptForm, InvoiceItemForm, InvoiceForm)
+PaymentMethodForm, ReceiptForm, InvoiceItemForm, InvoiceForm, CategoryForm)
 
 from warehouse.models import Warehouse
 from warehouse.forms import WarehouseForm
 from asset_app.models import (Costumer, Settings)
 from stock.models import Stock
 from stock.forms import StockSearchForm
+
+
+########################## Category ##########################
+class CategoryListView(LoginRequiredMixin, ListView):
+    queryset = Category.objects.all()
+    template_name = 'isis/listviews/category_list.html'
+
+
+@login_required
+def category_create_view(request):
+    if request.method == 'POST':
+
+        form = CategoryForm(request.POST, request.FILES)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            
+            parent = request.POST.get('parent')
+            
+            if parent == "":
+                instance.parent = 0
+            else:
+                instance.parent = parent
+
+            instance.created_by = instance.modified_by = request.user
+            instance.date_created = instance.date_modified = datetime.datetime.now()
+            instance = instance.save()
+            messages.success(request, _("Category added successfully!"))
+
+            if request.POST.get('save_category'):
+                return redirect('isis:category_list')
+            else:
+                return redirect('isis:category_create')
+        else:
+            print(form.errors)
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('isis:category_create')
+    else:
+        form = CategoryForm()
+        context = {'form': form}
+        return render(request, 'isis/createviews/category_create.html', context)
+
+
+@login_required
+def category_update_view(request, slug):
+    category = get_object_or_404(Category, slug=slug)
+    form = CategoryForm(request.POST or None, request.FILES or None, instance=category)
+
+    if request.method == 'POST':
+        
+        if form.is_valid():
+            print(request.POST)
+            
+            instance = form.save(commit=False)
+            instance.modified_by = request.user
+            instance.slug = slugify(instance.name)
+            instance.date_modified = datetime.datetime.now()
+
+            parent = request.POST.get('parent')
+            if parent == "":
+                instance.parent = 0
+            else:
+                instance.parent = parent
+
+            instance = instance.save()
+            messages.success(request, _("Category updated successfully!"))
+
+            if request.POST.get('save_category'):
+                return redirect('isis:category_list')
+            else:
+                return redirect('isis:category_create')
+
+        else:
+            print(form.errors)
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('isis:category_update', slug=slug)
+       
+    context = {'form': form}
+    return render(request, 'isis/updateviews/category_update.html', context)
+
+
+@login_required
+def category_delete_view(request):
+    if request.is_ajax():
+        selected_ids = request.POST['check_box_item_ids']
+        selected_ids = json.loads(selected_ids)
+        for i, id in enumerate(selected_ids):
+            if id != '':
+                try:
+                    Category.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('isis:category_list')
+        
+        messages.warning(request, _("Category delete successfully!"))
+        return redirect('isis:category_list')
+
+
+@login_required
+def category_detail_view(request, slug):
+    # dictionary for initial data with
+    # field names as keys
+    category = get_object_or_404(Category, slug=slug)
+
+    child_categories = Category.objects.filter(parent=category.id)
+    
+    try:
+        parent_category = Category.objects.get(id=category.parent)
+    except Category.DoesNotExist:
+        parent_category = _('No parent')
+
+    context ={}
+    # add the dictionary during initialization
+    context["category"] = category    
+    context["child_categories"] = child_categories    
+    context["parent_category"] = parent_category
+   
+    return render(request, "isis/detailviews/category_detail_view.html", context)
+
 
 @login_required
 def product_list_view(request):
@@ -54,8 +174,10 @@ def product_create_view(request):
         form = ProductForm(request.POST, request.FILES)
         tax_form = TaxForm(request.POST)
         warehouse_form = WarehouseForm(request.POST)
+        category_form = CategoryForm(request.POST)
         
-        if form.is_valid() or tax_form.is_valid() or warehouse_form.is_valid():
+        if form.is_valid() or tax_form.is_valid() or warehouse_form.is_valid() \
+        or category_form.is_valid:
             if request.POST.get('save_tax') or request.POST.get('save_tax_new'):
                 instance = tax_form.save(commit=False)
                 instance.created_by = instance.modified_by = request.user
@@ -72,6 +194,14 @@ def product_create_view(request):
 
                 return redirect('isis:product_create')
             
+            if request.POST.get('save_category') or request.POST.get('save_category_new'):
+                instance = category_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:product_create')
+
             instance = form.save(commit=False)
             instance.created_by = instance.modified_by = request.user
             instance.date_created = instance.date_modified = datetime.datetime.now()
@@ -102,8 +232,11 @@ def product_create_view(request):
         form = ProductForm()
         tax_form = TaxForm()
         warehouse_form = WarehouseForm()
+        category_form = CategoryForm()
         
-        context = {'form': form, 'tax_form': tax_form, 'warehouse_form': warehouse_form}
+        context = {'form': form, 'tax_form': tax_form, 
+        'warehouse_form': warehouse_form, 'category_form': category_form}
+
         return render(request, 'isis/createviews/product_create.html', context)
 
 
@@ -120,10 +253,12 @@ def product_update_view(request, slug):
     form = ProductForm(request.POST or None, request.FILES or None, instance=product)
     tax_form = TaxForm(request.POST or None)
     warehouse_form = WarehouseForm(request.POST or None)
+    category_form = CategoryForm(request.POST or None)
 
     if request.method == 'POST':
 
-        if form.is_valid() or tax_form.is_valid() or warehouse_form.is_valid():
+        if form.is_valid() or tax_form.is_valid() or warehouse_form.is_valid() \
+        or category_form.is_valid:
             if request.POST.get('save_tax') or request.POST.get('save_tax_new'):
                 instance = tax_form.save(commit=False)
                 instance.created_by = instance.modified_by = request.user
@@ -134,6 +269,14 @@ def product_update_view(request, slug):
             
             if request.POST.get('save_warehouse') or request.POST.get('save_warehouse_new'):
                 instance = warehouse_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:product_create')
+
+            if request.POST.get('save_category') or request.POST.get('save_category_new'):
+                instance = category_form.save(commit=False)
                 instance.created_by = instance.modified_by = request.user
                 instance.date_created = instance.date_modified = datetime.datetime.now()
                 instance = instance.save()
@@ -172,7 +315,8 @@ def product_update_view(request, slug):
                 messages.error(request, error)
             return redirect('isis:product_update', slug=slug)
        
-    context = {'form': form, 'tax_form': tax_form, 'warehouse_form': warehouse_form,}
+    context = {'form': form, 'tax_form': tax_form, 'warehouse_form': warehouse_form,
+    'category_form': category_form,}
     return render(request, 'isis/updateviews/product_update.html', context)
 
 
@@ -212,24 +356,24 @@ def product_dashboard_view(request):
     
     return render(request, 'isis/dashboardviews/product_dashboard.html', context=context)
 
+def get_product_type(product):
+    if product.type == "PRODUCT":
+        return 'Product'
+    return 'Service'
+
 @login_required
 def product_detail_view(request, slug):
     # dictionary for initial data with
     # field names as keys
     product = get_object_or_404(Product, slug=slug)
 
-    child_products = Product.objects.filter(parent=product.id)
+    product_type = get_product_type(product)
     
-    try:
-        parent_product = Product.objects.get(id=product.parent)
-    except Product.DoesNotExist:
-        parent_product = _('No parent')
-
     context ={}
     # add the dictionary during initialization
-    context["product"] = product    
-    context["child_products"] = child_products    
-    context["parent_product"] = parent_product    
+    context["product"] = product     
+    context["product_type"] = product_type    
+
     return render(request, "isis/detailviews/product_detail_view.html", context)
 
 

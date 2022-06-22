@@ -9,11 +9,18 @@ invoice_detail_view, receipt_create_view, receipt_list_view, receipt_update_view
 payment_method_create_view, payment_method_list_view, payment_method_update_view, payment_method_delete_view, 
 payment_term_create_view, payment_term_list_view, payment_term_update_view, payment_term_delete_view, 
 invoice_item_create_view, invoice_item_delete_view, invoice_show, load_sell_prices,
+category_create_view, CategoryListView, category_update_view, category_delete_view,
+category_detail_view,
 )
 
 app_name = 'isis'
 
 urlpatterns = [
+    path('categories/new/', category_create_view, name='category_create'),
+    path('categories/', CategoryListView.as_view(), name='category_list'),
+    path('categories/<slug:slug>/update/', category_update_view, name='category_update'),
+    path('categories/delete/', category_delete_view, name='category_delete'),
+    path('categories/<slug:slug>/', category_detail_view, name='category_details'),
     path('products/new/', product_create_view, name='product_create'),
     path('products/', product_list_view, name='product_list'),
     path('products/<slug:slug>/update/', product_update_view, name='product_update'),

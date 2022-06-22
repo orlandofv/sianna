@@ -38,8 +38,9 @@
                 </button>
 
                 <hr>
-                <h6>{% trans 'Parent' %}: <strong><span id="id_parent">{{ parent_product }}</span></></strong></h6>
-                <h6>{% trans 'Item Type' %}: <strong> <span id="id_type">{{ parent_type }}</span></> </strong></h6>
+                <h6>{% trans 'Category' %}: <strong><a href="{% url 'isis:category_details' product.category.slug %}">
+                    <span id="id_category">{{ product.category }}</span></a></strong></h6>
+                <h6>{% trans 'Item Type' %}: <strong> <span id="id_type">{{ product_type }}</span></> </strong></h6>
                 <h6>{% trans 'Active' %}: <strong> 
                     <span id="id_active_status">  
                         {% if product.active_status %} {% trans 'Active' %}
@@ -64,7 +65,7 @@
                 <h6>{% trans 'Stock Limit' %}: <strong> <span id="id_stock_limit">{{ product.stock_limit | floatformat:2 }}</span> </strong></h6>
                 <hr>
                 <h6>{% trans 'Barcode' %}: <strong> <span id="id_barcode">{{ product.barcode }}</span> </strong></h6>
-                <h6>{% trans 'Tax' %}: <strong> <span id="id_tax">{{ product.tax }}</span>  
+                <h6>{% trans 'Tax' %}: <strong> <span id="id_tax">{{ product.tax.name }}</span>  
                     ({{ product.tax.rate }}%)</strong></h6>
                 <h6>{% trans 'Default Warehouse' %}: <strong> <span id="id_warehouse">{{ product.warehouse }}</span> </strong></h6>
                 <hr>

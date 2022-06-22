@@ -13,7 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from crispy_bootstrap5.bootstrap5 import BS5Accordion
 
 from .models import (Product, Gallery, Tax, Invoice, InvoiceItem, 
-PaymentTerm, PaymentMethod, Receipt)
+PaymentTerm, PaymentMethod, Receipt, Category)
 from warehouse.models import Warehouse
 from django.utils import timezone
 from users.models import User
@@ -21,12 +21,58 @@ from users.models import User
 from asset_app.fields import ListTextWidget
 
 
+class CategoryForm(forms.ModelForm):
+    parent = forms.ModelChoiceField(label=_('Parent Category'), 
+    queryset=Category.objects.filter(active_status=1), 
+    required=False, initial=0)
+
+    def __init__(self, *args, **kwargs):
+        super(CategoryForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_id = "category-form-id"
+        self.helper.form_class = "category-form-class"
+        self.helper.layout = Layout(
+        HTML("""
+            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <hr>
+        """.format(_('Add/Update Category'),)),
+        BS5Accordion(
+            AccordionGroup(_('CATEGORY MAIN DATA'),
+                Row(
+                    Column('name', css_class='form-group col-md-6 mb-0'),
+                    Column('parent', css_class='form-group col-md-3 mb-0'),
+                    Column('active_status', css_class='form-group col-md-3 mb-0'),
+                    css_class='form-row'
+                ),
+                Row(
+                    Column('image', css_class='form-group col-md-12 mb-0'),
+                    css_class='form-row'),
+                Row(
+                    Column('notes', css_class='form-group col-md-12 mb-0'),
+                    css_class='form-row'),
+            ),
+                HTML('<br>'),
+                Submit('save_category', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+                Submit('save_category_new', _('Save & Edit'), css_class='btn btn-primary fas fa-save'),
+                Reset('reset', 'Clear', css_class='btn btn-danger'),
+                flush=True,
+                always_open=True),
+        )
+
+    class Meta:
+        model = Category
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+
+    def clean_parent(self):
+        pass
+
+
 class ProductForm(forms.ModelForm):
     code = forms.CharField(max_length=50)
     name = forms.CharField(max_length=255)
-    parent = forms.ModelChoiceField(queryset=Product.objects.all(), required=False)
     tax = forms.ModelChoiceField(queryset=Tax.objects.all(), initial=1)
-    warehouse = forms.ModelChoiceField(queryset=Warehouse.objects.all(), label=_('Default Warehouse'))
     barcode = forms.CharField(max_length=255, required=False)
     sell_price = forms.DecimalField(label=_('Selling Prince'), max_digits=18, decimal_places=6, initial=0, required=False)
     min_sell_price = forms.DecimalField(label=_('Min. Selling Prince'),max_digits=18, decimal_places=6, initial=0, required=False)
@@ -75,7 +121,8 @@ class ProductForm(forms.ModelForm):
                     css_class='form-row'),
                 Row(
                     Column('name', css_class='form-group col-md-6 mb-0'),
-                    Column('parent', css_class='form-group col-md-6 mb-0'),
+                    FieldWithButtons('category', StrictButton('',  css_class="btn fa fa-plus", 
+                    data_bs_toggle="modal", data_bs_target="#category"), css_class='form-group col-md-3 mb-0'),
                     css_class='form-row'),
                 Row(
                     Column('sell_price', css_class='form-group col-md-3 mb-0'),
@@ -153,9 +200,6 @@ class ProductForm(forms.ModelForm):
                 Submit('save_product_new', _('Save & Edit'), css_class='btn btn-primary fas fa-save'),
                 Reset('reset', 'Clear', css_class='btn btn-danger'),
         )
-
-    def clean_parent(self):
-        pass
 
     def clean(self):
         cleaned_data = super().clean()

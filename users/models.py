@@ -7,7 +7,7 @@ from django.core import exceptions
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from phonenumber_field.modelfields import PhoneNumberField
-
+from django.conf import settings
 
 SEX_CHOICES = (
     (1, _("Male")),
@@ -57,7 +57,7 @@ class User(AbstractUser):
     """We change the default user auth by email auth"""
 
     username = models.CharField(_('Username'), max_length=20, blank=True)
-    image = models.ImageField(_('Image'), default="default.jpeg", upload_to = 'images/% Y/% m/% d/')
+    image = models.ImageField(_('Image'), default="{}default.jpg".format(settings.MEDIA_URL), upload_to = 'images/% Y/% m/% d/')
     email = models.EmailField(_('Email'), unique=True, help_text=False)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

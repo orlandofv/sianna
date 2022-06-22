@@ -179,11 +179,25 @@ class SupplierForm(forms.ModelForm):
             AccordionGroup(_('Supplier Data'),
             Row(
                 Column('name', css_class='form-group col-md-8 mb-0'),
-                Column('parent', css_class='form-group col-md-4 mb-0'),
+                Column('vat', css_class='form-group col-md-4 mb-0'),
+                ),
+            Row(
+                Column('country', css_class='form-group col-md-3 mb-0'),
+                Column('province', css_class='form-group col-md-3 mb-0'),
+                Column('city', css_class='form-group col-md-3 mb-0'),
+                Column('zip', css_class='form-group col-md-3 mb-0'),
+                ),
+            Row(
+                Column('warehouse', css_class='form-group col-md-3 mb-0'),
+                Column('type', css_class='form-group col-md-3 mb-0'),
+                Column('capital', css_class='form-group col-md-3 mb-0'),
+                Column('active_status', css_class='form-group col-md-3 mb-0'),
                 ),
             Row(
                 Column('max_credit', css_class='form-group col-md-3 mb-0'),
-                Column('is_costumer', css_class='form-group col-md-6 mb-0'),
+                Column('parent', css_class='form-group col-md-3 mb-0'),
+                Column('is_supplier', css_class='form-group col-md-6 mb-0'),
+                
             ),
             Row(Column('address', css_class='form-group col-md-12 mb-0'),),
             Row(Column('contacts', css_class='form-group col-md-12 mb-0'),),
@@ -207,3 +221,5 @@ class SupplierForm(forms.ModelForm):
 
     def clean_parent(self):
         pass
+
+

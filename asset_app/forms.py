@@ -429,11 +429,25 @@ class CostumerForm(forms.ModelForm):
             AccordionGroup(_('Costumer Data'),
             Row(
                 Column('name', css_class='form-group col-md-8 mb-0'),
-                Column('parent', css_class='form-group col-md-4 mb-0'),
+                Column('vat', css_class='form-group col-md-4 mb-0'),
+                ),
+            Row(
+                Column('country', css_class='form-group col-md-3 mb-0'),
+                Column('province', css_class='form-group col-md-3 mb-0'),
+                Column('city', css_class='form-group col-md-3 mb-0'),
+                Column('zip', css_class='form-group col-md-3 mb-0'),
+                ),
+            Row(
+                Column('warehouse', css_class='form-group col-md-3 mb-0'),
+                Column('type', css_class='form-group col-md-3 mb-0'),
+                Column('capital', css_class='form-group col-md-3 mb-0'),
+                Column('active_status', css_class='form-group col-md-3 mb-0'),
                 ),
             Row(
                 Column('max_credit', css_class='form-group col-md-3 mb-0'),
+                Column('parent', css_class='form-group col-md-3 mb-0'),
                 Column('is_supplier', css_class='form-group col-md-6 mb-0'),
+                
             ),
             Row(Column('address', css_class='form-group col-md-12 mb-0'),),
             Row(Column('contacts', css_class='form-group col-md-12 mb-0'),),
@@ -613,7 +627,7 @@ class AllocationForm(forms.ModelForm):
     vendor = forms.ModelChoiceField(queryset=Vendor.objects.all(), label=_('Vendor Name'))
     costumer = forms.ModelChoiceField(queryset=Costumer.objects.all(), label=_('Costumer Name'))
     serial_number = forms.CharField(label=_('Component Serial No.'), max_length=50)
-    image = forms.ImageField(label=_('Image'), initial="default.jpeg", required=False)
+    image = forms.ImageField(label=_('Image'), initial="default.jpg", required=False)
     purchase_amount = forms.DecimalField(widget=forms.NumberInput, initial=0, max_digits=9, 
     decimal_places=2, label=_('Purchase Amount'))
     date_purchased = forms.DateTimeField(widget=forms.DateTimeInput, initial=timezone.now, 
