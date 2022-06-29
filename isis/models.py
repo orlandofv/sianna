@@ -1,5 +1,5 @@
 from decimal import Decimal
-
+import datetime
 from turtle import position
 from django.db import models
 from django.utils import timezone
@@ -291,7 +291,7 @@ class PaymentMethod(models.Model):
 
 class Receipt(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    number = models.IntegerField(unique=True)
+    number = models.IntegerField(unique=True, default=0)
     costumer = models.ForeignKey(Costumer, on_delete=models.PROTECT, default=1)
     slug = models.SlugField(unique=True, null=False, editable=False)
     notes = models.TextField(blank=True)
@@ -305,15 +305,6 @@ class Receipt(models.Model):
 
     def get_absolute_url(self):
         return reverse('receipt_details', kwargs={'slug': self.slug})
-
-    def save(self, *args, **kwargs): # new
-        receipt = '{} {}'.format(_('Receipt'), self.id)
-        self.name = receipt
-
-        if not self.slug:
-            self.slug = ''.format(receipt)
-
-        return super().save(*args, **kwargs)
 
     class Meta:
         ordering = ('-name',)
@@ -361,7 +352,8 @@ class Invoice(models.Model):
     payment_term = models.ForeignKey(PaymentTerm, on_delete=models.PROTECT, default=1)
     costumer = models.ForeignKey(verbose_name=_('Costumer'), to=Costumer, on_delete=models.PROTECT, default=1)
     date = models.DateTimeField(_('Invoice Date'), default=timezone.now)
-    due_date = models.DateTimeField(_('Due Date'), default=timezone.now)
+    due_date = models.DateTimeField(_('Due Date'), 
+    default=datetime.datetime.now() + datetime.timedelta(days=30))
     warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, default=1)
     paid_status = models.IntegerField(default=0)
     delivered_status = models.IntegerField(default=0)
@@ -373,6 +365,13 @@ class Invoice(models.Model):
     date_modified = models.DateTimeField(editable=False, default=timezone.now)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
     modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    credit = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    debit = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    total = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    total_tax = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    subtotal = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    total_discount = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    
     
     def __str__(self):
         return self.name
@@ -405,7 +404,7 @@ class InvoiceItem(models.Model):
     total = models.DecimalField(max_digits=18, decimal_places=6, default=0)
         
     def __str__(self):
-        return self.invoice
+        return '{} {}'.format(self.invoice, self.product)
     
     def save(self, *args, **kwargs): # new
         
@@ -436,8 +435,13 @@ class InvoiceItem(models.Model):
 class ReceiptInvoice(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT)
     receipt = models.ForeignKey(Receipt, on_delete=models.PROTECT)
+    total = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    paid = models.DecimalField(max_digits=18, decimal_places=6, default=0)
 
     def __str__(self):
         return "{}".format(self.invoice, self.receipt)
+    
+    class Meta:
+        unique_together = ('invoice', 'receipt')
 
 

@@ -5,10 +5,10 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'New Tax' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'New Receipt' %} {% endblock title %}
 
 {% block breadcrumb %}
-{% include 'breadcrumb.html' with title='New Tax' path='<a href="/taxes/"> taxes </a>' dest='New Tax' %}
+{% include 'breadcrumb.html' with title='New Receipt' path='<a href="/receipts/"> Receipts </a>' dest='New Receipt' %}
 {% endblock breadcrumb %}
             
 {% block content %}

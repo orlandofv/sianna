@@ -66,9 +66,15 @@ INSTALLED_APPS = [
     "supplier",
     "warehouse",
     "stock",
-    # This help us use other filters like
-    
+    'cities_light',
+    'utilities',
 ]
+
+# django-cities-light Configure filters to exclude data you don't want
+CITIES_LIGHT_TRANSLATION_LANGUAGES = ['pt', 'en']
+CITIES_LIGHT_INCLUDE_COUNTRIES = ['MZ']
+# CITIES_LIGHT_INCLUDE_CITY_TYPES = ['PPL', 'PPLA', 'PPLA2', 'PPLA3', 'PPLA4', 'PPLC', 'PPLF', 'PPLG', 'PPLL', 'PPLR', 'PPLS', 'STLMT',]
+
 
 AUTH_USER_MODEL = 'users.User'
 

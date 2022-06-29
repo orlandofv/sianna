@@ -1,0 +1,84 @@
+{% load i18n %}
+
+<!-- ============================================================== -->
+<!-- Left Sidebar - style you can find in sidebar.scss  -->
+<!-- ============================================================== -->
+<aside class="left-sidebar" data-sidebarbg="skin6">
+    <!-- Sidebar scroll-->
+    <div class="scroll-sidebar">
+        <!-- Sidebar navigation-->
+        <nav class="sidebar-nav">
+            <ul id="sidebarnav">
+                <!-- User Profile-->
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="/" aria-expanded="false"><i class="me-3 far fa-clock fa-fw"
+                    aria-hidden="true"></i><span class="hide-menu">Dashboard</span></a>
+                </li>
+
+                <hr>
+
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'users:user_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-columns" aria-hidden="true"></i><span class="hide-menu">
+                        {% trans "Users" %}</span></a>
+                </li>
+                <hr>
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'isis:category_list' %}" aria-expanded="false"><i class="me-3 fa 
+                    fa-camera"
+                        aria-hidden="true"></i><span class="hide-menu"> {% trans "Product Category" %}</span></a>
+                </li>
+                
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'isis:product_list' %}" aria-expanded="false"><i class="me-3 fa fa-font"
+                    aria-hidden="true"></i><span class="hide-menu"> {% trans "Products" %} </span></a>
+                </li>
+
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'warehouse:warehouse_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-address-book-o" aria-hidden="true"></i>
+                    <span class="hide-menu">{% trans "Warehouses" %}</span></a>
+                </li>
+                
+                <hr>
+                
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'isis:invoice_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-users" aria-hidden="true"></i>
+                    <span class="hide-menu">{% trans "My Invoices" %}</span></a>
+                </li>
+                
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'isis:receipt_list' %}" aria-expanded="false"><i class="me-3 fa 
+                    fa-building"
+                    aria-hidden="true"></i><span class="hide-menu"> {% trans "My Receipts" %} </span></a>
+                </li>
+
+                <hr>
+
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'supplier:supplier_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-object-group"
+                    aria-hidden="true"></i><span class="hide-menu"> {% trans "Suppliers" %} </span></a>
+                </li>
+                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'supplier:invoice_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-object-group"
+                    aria-hidden="true"></i><span class="hide-menu"> {% trans "Supplier Invoices" %} </span></a>
+                </li>
+                <hr>
+                 <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link"
+                    href="{% url 'stock:stock_summary_list' %}" aria-expanded="false">
+                    <i class="me-3 fa fa-bicycle" aria-hidden="true"></i>
+                    <span class="hide-menu">{% trans "My Stock" %}</span></a>
+                </li>
+            </ul>
+
+        </nav>
+        <!-- End Sidebar navigation -->
+    </div>
+    <!-- End Sidebar scroll-->
+</aside>
+<!-- ============================================================== -->
+<!-- End Left Sidebar - style you can find in sidebar.scss  -->
+<!-- ============================================================== -->

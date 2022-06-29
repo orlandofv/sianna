@@ -8,17 +8,19 @@ from turtle import onclick
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Reset, HTML
-from crispy_forms.bootstrap import FieldWithButtons, StrictButton, AccordionGroup, TabHolder, Tab
+from crispy_forms.bootstrap import (FieldWithButtons, StrictButton, AccordionGroup, 
+TabHolder, Tab, Div)
 from django.utils.translation import ugettext_lazy as _
 from crispy_bootstrap5.bootstrap5 import BS5Accordion
 
 from .models import (Product, Gallery, Tax, Invoice, InvoiceItem, 
-PaymentTerm, PaymentMethod, Receipt, Category)
+PaymentTerm, PaymentMethod, Receipt, Category, ReceiptInvoice)
 from warehouse.models import Warehouse
 from django.utils import timezone
 from users.models import User
 
 from asset_app.fields import ListTextWidget
+from asset_app.models import Costumer
 
 
 class CategoryForm(forms.ModelForm):
@@ -330,6 +332,19 @@ class PaymentTermForm(forms.ModelForm):
 
 
 class ReceiptForm(forms.ModelForm):
+    inv = Invoice.objects.filter(active_status=1, debit__gt=0)
+
+    ids = []
+    for x in inv:
+        ids.append(x.costumer_id)
+
+    costumer = forms.ModelChoiceField(
+        queryset=Costumer.objects.filter(id__in=ids, is_costumer=1, active_status=1),
+        label = _("Please choose Costumer"), initial=1)
+
+    name = forms.CharField(max_length=100, required=False)
+    number = forms.IntegerField(required=False)
+
     def __init__(self, *args, **kwargs):
         super(ReceiptForm, self).__init__(*args, **kwargs)
 
@@ -344,16 +359,11 @@ class ReceiptForm(forms.ModelForm):
         BS5Accordion(
             AccordionGroup(_('RECEIPT DATA'),
                 Row(
-                    Column('name', css_class='form-group col-md-6 mb-0'),
+                    Column('costumer', css_class='form-group col-md-6 mb-0'),
                     css_class='form-row'
-                ),
-                Row(
-                    Column('notes', css_class='form-group col-md-12 mb-0'),
-                    css_class='form-row'),
-            ),
+                ),),
                 HTML('<br>'),
-                Submit('save_receipt', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
-                Submit('save_receipt_new', _('Save & Edit'), css_class='btn btn-primary fas fa-save'),
+                Submit('save_receipt', _('Next'), css_class='btn btn-primary fas fa-save'),
                 Reset('reset', 'Clear', css_class='btn btn-danger'),
                 flush=True,
                 always_open=True),
@@ -363,6 +373,15 @@ class ReceiptForm(forms.ModelForm):
         model = Receipt
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
 
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        costumer = cleaned_data.get('costumer')
+        
+        if costumer is None or costumer == "":
+            self.errors['costumer'] = self.error_class(_("""
+            Please choose Costumer or create Invoices First."""))
 
 class InvoiceItemForm(forms.ModelForm):
     SERVICE = 'SERVICE'
@@ -378,10 +397,9 @@ class InvoiceItemForm(forms.ModelForm):
     widget=forms.NumberInput(attrs={'autocomplete': "off"}))
     quantity = forms.DecimalField(max_digits=18, decimal_places=6, initial=0, widget=forms.TextInput)
     discount = forms.DecimalField(max_digits=4, decimal_places=2, initial=0, widget=forms.TextInput)
-    invoice = forms.CharField(required=False)
+    invoice = forms.CharField(required=False, widget=forms.NumberInput)
     product = forms.ModelChoiceField(required=False, queryset=Product.objects.filter(active_status=1),
     widget=forms.Select(attrs={'class': 'product-select'}))
-
 
     def __init__(self, *args, **kwargs):
         super(InvoiceItemForm, self).__init__(*args, **kwargs)
@@ -449,7 +467,8 @@ class InvoiceForm(forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super(InvoiceForm, self).__init__(*args, **kwargs)
-
+        self.fields['date'].widget = forms.DateTimeInput(attrs={'type':'datetime-local'})
+        self.fields['due_date'].widget = forms.DateTimeInput(attrs={'type':'datetime-local'})
         self.helper = FormHelper()
         self.helper.form_id = "invoice-form-id"
         self.helper.form_class = "invoice-form-class"
@@ -463,10 +482,10 @@ class InvoiceForm(forms.ModelForm):
                 FieldWithButtons('costumer', StrictButton('',  css_class="btn fa fa-plus", 
                 data_bs_toggle="modal", data_bs_target="#costumer"), css_class='form-group col-md-12 mb-0'),
                 Row(
-                    Column('date', css_class='form-group col-md-3 mb-0'),
-                    Column('due_date', css_class='form-group col-md-3 mb-0'),
+                    Column('date', css_class='form-group col-md-4 mb-0'),
+                    Column('due_date', css_class='form-group col-md-4 mb-0'),
                     FieldWithButtons('warehouse', StrictButton('',  css_class="btn fa fa-plus", 
-                    data_bs_toggle="modal", data_bs_target="#warehouse"), css_class='form-group col-md-6 mb-0'),
+                    data_bs_toggle="modal", data_bs_target="#warehouse"), css_class='form-group col-md-4 mb-0'),
                 ),
                 Row(
                 FieldWithButtons('payment_term', StrictButton('',  css_class="btn fa fa-plus", 

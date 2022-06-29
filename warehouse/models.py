@@ -47,3 +47,13 @@ class Warehouse(models.Model):
 
     class Meta:
         ordering = ("name",)
+
+
+class UserWarehouse(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    warehouse = models.ForeignKey(Warehouse,verbose_name=_('Default Warehouse'), 
+    on_delete=models.PROTECT, null=True)
+
+    class Meta:
+        unique_together = ['user', 'warehouse']
+

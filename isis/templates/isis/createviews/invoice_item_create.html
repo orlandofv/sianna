@@ -21,28 +21,45 @@
                 <div class="conteiner-fluid p-10 m-0" id="results">
                 </div>
                 
-                {% if tax_total.tax_total__sum %}
+                {% if total %}
                     
-                <div class="col-md-12 text-align-center p-0 m-0"> 
-                    <table class="table table-hover table-striped p-0">
+                <div class="col-md-12 text-align-center p-0 m-0">
+                    <a href="{% url 'isis:invoice_update' invoice.slug %}" class="btn btn-primary fa fa-pencil"></a> 
+                    <table class="table table-hover table-striped p-0 table-small">
                         <thead>
                             <tr>
-                                <th scope="col">{% trans "Grand Total" %}: 
-                                    <span class='text-end'> {{ total.total__sum | floatformat:2 |intcomma }} </span></th>
+                                <th scope="row" width='20%'><h3> {% trans "Invoice Total" %}: </h3></th>
+                                <th width='12%' class="text-end"> <h3 class='text-end'> {{ total.total | floatformat:2 |intcomma }} </h3></th>
+                                <th width='15%'></th>
+                                <th><h3>{{ invoice.name }}</h3></th>
+                                <th></th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td scope="row">{% trans "Sub Total" %}: 
-                                    <span> {{ sub_total.sub_total__sum | floatformat:2 |intcomma }} </span></td>
+                                <td scope="row">{% trans "Sub Total" %}: </td>
+                                <td class="text-end"> <span> {{ sub_total.subtotal | floatformat:2 |intcomma }} </span></td>
+                                <td> {% trans "Costumer" %} </td>
+                                <td><strong> {{ invoice.costumer }} </strong></td>
+                                <td></td>
+                                <td></td>
                             </tr>
                             <tr>
-                                <td scope="row">{% trans "Discount Total" %}: 
-                                    <span> {{ discount_total.discount_total__sum | floatformat:2 |intcomma }} </span></td>
+                                <td scope="row">{% trans "Discount Total" %}: </td>
+                                <td class="text-end"> <span> {{ discount_total.discount | floatformat:2 |intcomma }} </span></td>
+                                <td> {% trans "Payment Method" %}</td>                               
+                                <td> {{ invoice.payment_method }} </td>
+                                <td> {% trans "Invoice Date" %}</td>                               
+                                <td> {{ invoice.date }} </td>
                             </tr>
                             <tr>
-                                <td scope="row">{% trans "Tax Total" %}: 
-                                    <span> {{ tax_total.tax_total__sum | floatformat:2 |intcomma }} </span></td>
+                                <td scope="row">{% trans "Tax Total" %}: </td>
+                                <td class="text-end"> <span> {{ tax_total.tax | floatformat:2 |intcomma }} </span></td>
+                                <td> {% trans "Payment Term" %} </td>
+                                <td> {{ invoice.payment_term }} </td>
+                                <td> {% trans "Due on" %} </td>
+                                <td> {{ invoice.due_date }} </td>
                             </tr>
                         </tbody>
                         </table>

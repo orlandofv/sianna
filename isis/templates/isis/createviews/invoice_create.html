@@ -5,10 +5,10 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'New Product' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'New Invoice' %} {% endblock title %}
 
 {% block breadcrumb %}
-{% include 'breadcrumb.html' with title='New Product' path='<a href="/products/"> Products </a>' dest='New Product' %}
+{% include 'breadcrumb.html' with title='New Invoice' path='<a href="/invoices/"> Invoices </a>' dest='New Invoice' %}
 {% endblock breadcrumb %}
             
 {% block content %}

@@ -4,7 +4,9 @@ from decimal import Decimal
 import sys
 import os
 
-from django.db.models import Sum, Value as V
+from django.db.models import DecimalField
+from django.db.models import Sum, Value as V, F
+from django.db.models.functions import Coalesce
 from django.db.models.functions import Coalesce
 from django.db import connection, IntegrityError
 from django.template.defaultfilters import slugify
@@ -29,7 +31,7 @@ from config import utilities
 from asset_app.forms import CostumerForm
 from asset_app.models import Costumer
 from .models import (Gallery, Product, Tax, Warehouse, Invoice, PaymentTerm, PaymentMethod, Receipt, 
-InvoiceItem, Category)
+InvoiceItem, Category, ReceiptInvoice)
 from users.models import User
 from .forms import (ProductForm, TaxForm, PaymentTermForm, 
 PaymentMethodForm, ReceiptForm, InvoiceItemForm, InvoiceForm, CategoryForm)
@@ -40,6 +42,9 @@ from asset_app.models import (Costumer, Settings)
 from stock.models import Stock
 from stock.forms import StockSearchForm
 
+from utilities import increment_document_number
+
+INVOICE_SLUG = 0
 
 ########################## Category ##########################
 class CategoryListView(LoginRequiredMixin, ListView):
@@ -481,7 +486,7 @@ def invoice_list_view(request):
 
     if request.method == "POST":
         search_form = StockSearchForm(request.POST)
-        start_date = request.POST.get("start_date")
+        start_date = request.POST.get("start_date".replace('T', " "))
         end_date = request.POST.get("end_date")
 
         invoice = Invoice.objects.raw("""
@@ -489,7 +494,9 @@ def invoice_list_view(request):
         SUM(item.tax_total) AS tax, SUM(item.total) AS tt 
         FROM isis_invoice AS inv
         LEFT JOIN isis_invoiceitem item ON inv.id=item.invoice_id
-        GROUP BY inv.id WHERE inv.date_created BETWEEN '{}' AND '{}' """.format(start_date, end_date))
+        WHERE inv.date_created BETWEEN '{}' AND '{}'
+        GROUP BY inv.id  
+        """.format(str(start_date).replace('T', " "), str(end_date).replace('T', " ")))
     else:
         search_form = StockSearchForm()
         invoice = Invoice.objects.raw("""
@@ -506,15 +513,6 @@ def invoice_list_view(request):
 
     return render(request, 'isis/listviews/invoice_list.html', context) 
 
-def increment_document_number(model):
-    # Returns the first object matched by the queryset, or None if there is no matching object. 
-    i = model.objects.order_by('-id').first()
-    if i is not None:
-        document_number = i.number + 1
-    else:
-        document_number = 1
-
-    return document_number
 
 @login_required
 def invoice_create_view(request):
@@ -562,7 +560,7 @@ def invoice_create_view(request):
             instance = form.save(commit=False)
             instance.created_by = instance.modified_by = request.user
             instance.date_created = instance.date_modified = datetime.datetime.now()
-            
+    
             document_number = increment_document_number(Invoice)
 
             instance.number = document_number
@@ -571,7 +569,9 @@ def invoice_create_view(request):
             slug = slugify(name)
             instance.slug = slug
             instance = instance.save()
-            
+        
+            INVOICE_SLUG = slug
+
             messages.success(request, _("Invoice created successfully!"))
 
             return redirect('isis:invoice_item_create', slug=slug)
@@ -601,6 +601,8 @@ def invoice_update_view(request, slug):
     warehouse_form = WarehouseForm(request.POST or None)
     payment_term_form = PaymentTermForm(request.POST or None)
     payment_method_form = PaymentMethodForm(request.POST or None)
+
+    invoice_number = invoice.number
 
     if request.method == 'POST':
 
@@ -641,21 +643,22 @@ def invoice_update_view(request, slug):
             instance.modified_by = request.user
             instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
+            instance.number = invoice_number
             instance = instance.save()
             messages.success(request, _("Invoice updated successfully!"))
+            
+            INVOICE_SLUG = slug
 
-            if request.POST.get('save_invoice'):
-                return redirect('isis:invoice_details', slug=slug)
-            else:
-                return redirect('isis:invoice_create')
-
+            return redirect('isis:invoice_item_create', slug=slug)
         else:
             for error in form.errors.values():
                 messages.error(request, error)
             return redirect('isis:invoice_update', slug=slug)
 
-    context = {'form': form, 'costumer_form': costumer_form, 'warehouse_form': warehouse_form,}
-    return render(request, 'isis/updateviews/invoice_update.html', context)
+    context = {'form': form, 'costumer_form': costumer_form, 
+        'warehouse_form': warehouse_form, 'payment_term_form': payment_term_form,
+        'payment_method_form': payment_method_form}
+    return render(request, 'isis/createviews/invoice_create.html', context)
 
 
 @login_required
@@ -724,22 +727,29 @@ def get_or_save_product(request, product_name, tax, warehouse):
         product = Product.objects.get(name=product_name)
     except Product.DoesNotExist:
         product = None
+    
+    print(product)
 
     if not product:
-        import random
+        if request.user.is_staff:
+            import random
 
-        user = request.user
-        chars = 'ABCDEFGHIJKLMNOPKRSTUVXYZabcdefghijklmnopkqrstuvxwz1234567890'
-        code = ''.join(random.choice(chars) for i in range(8))
-        type = request.POST.get('type')
-        sell_price = request.POST.get('price')
-        tax_object = Tax.objects.get(rate=tax)
+            user = request.user
+            chars = 'ABCDEFGHIJKLMNOPKRSTUVXYZabcdefghijklmnopkqrstuvxwz1234567890'
+            code = ''.join(random.choice(chars) for i in range(8))
+            type = request.POST.get('type') or 'PRODUCT'
+            sell_price = request.POST.get('price') or '0'
+            tax_object = Tax.objects.get(rate=tax) or '0'
 
-        slug = slugify(product_name)
-        product = Product(code=code, name=product_name, slug=slug, tax=tax_object, warehouse=warehouse, 
-        created_by=user, modified_by=request.user, type=type, sell_price=sell_price)
-        product.save()
-    
+            category = Category.objects.all().first()
+
+            slug = slugify(product_name)
+            product = Product(code=code, name=product_name, slug=slug, tax=tax_object, warehouse=warehouse, 
+            created_by=user, category=category, modified_by=request.user, type=type, sell_price=sell_price)
+            product.save()
+        else:
+            messages.error(request, _("Please contact Administrator to add new Products!"))
+        
     return product
 
 def get_static(path):
@@ -773,7 +783,7 @@ def create_pdf():
         loader.page().printToPdf("test.pdf", pageLayout=layout)
 
     loader.loadFinished.connect(emit_pdf)
-    sys.exit(app.exec_())
+    app.exec_()
 
 def manage_stock(request,  document, product, quantity, warehouse, costumer, origin):
     user = request.user
@@ -786,14 +796,22 @@ def manage_stock(request,  document, product, quantity, warehouse, costumer, ori
     return stock
 
 def load_sell_prices(request):
-    print(request)
+    print(request.POST)
+    print(request.GET)
     product_id = request.GET.get('product')
-    prices = Product.objects.get(id=product_id)
+    
+    warehouse = Warehouse.objects.all().first()
+    tax = Tax.objects.all().first()
 
-    print(prices)
-
-    return render(request, 'isis/partials/sell_price_list.html', {'prices': prices})
-
+    product_object = get_or_save_product(request, product_id, tax.rate, warehouse)
+    
+    try:
+        prices = Product.objects.get(id=product_object.id)
+        return render(request, 'isis/partials/sell_price_list.html', {'prices': prices})
+    except Product.DoesNotExist as e:
+        print(e)
+    
+    
 @login_required
 def invoice_show(request, slug):
     """
@@ -815,7 +833,6 @@ def invoice_show(request, slug):
     'total': total, 'costumer': costumer, 'company': company}
 
     instance = Invoice.objects.filter(id=invoice.id).update(finished_status=1)
-    messages.success(request, _("Add some algo!"))
     return render(request, 'isis/documents/invoice.html', context) 
 
 
@@ -827,25 +844,29 @@ def invoice_item_create_view(request, slug):
     invoice = get_object_or_404(Invoice, slug=slug)
     items = InvoiceItem.objects.filter(invoice=invoice)
 
-    tax_total = items.aggregate(Sum('tax_total'))
-    discount_total = items.aggregate(Sum('discount_total'))
-    sub_total = items.aggregate(Sum('sub_total'))
-    total = items.aggregate(Sum('total'))
+    tax_total = items.aggregate(tax=Coalesce(Sum('tax_total'), V(0), output_field=DecimalField()))
+    discount_total = items.aggregate(discount=Coalesce(Sum('discount_total'), V(0), output_field=DecimalField()))
+    sub_total = items.aggregate(subtotal=Coalesce(Sum('sub_total'), V(0), output_field=DecimalField()))
+    total = items.aggregate(total=Coalesce(Sum('total'), V(0), output_field=DecimalField()))
 
     if request.method == 'POST':
         form = InvoiceItemForm(request.POST)
 
         if request.POST.get('validate'):
-            document = '{} - {}'.format(_('Invoice'), invoice.id) 
+            document = '{} - {}'.format(_('Invoice'), invoice.id)
+
+            # Records stock movement 
             if invoice.finished_status == 0:
                 for i in items:
                     manage_stock(request, document, i.product, -i.quantity, invoice.warehouse, invoice.costumer, 
                 "Costumer Invoice")
             
+            # Changes the Invoice status to finished_status
             inv = Invoice.objects.filter(id=invoice.id).update(finished_status=1)
             invoice_show(request, slug)
             return redirect('isis:invoice_show', slug=slug)         
         else:
+            # Records a line to Invoice
             name = request.POST.get('product')
             quantity = Decimal(request.POST.get('quantity'))
             tax = Decimal(request.POST.get('tax'))
@@ -857,12 +878,16 @@ def invoice_item_create_view(request, slug):
             product_object = get_or_save_product(request, name, tax, warehouse)
             print(product_object)
 
+            if not product_object:
+                return redirect('isis:invoice_item_create', slug=slug)
+
             # save the data and after fetch the object in instance
             instance = InvoiceItem(invoice=invoice, tax=tax, quantity=quantity,
             discount= discount, price=price, product=product_object) 
             instance.save()
-
             
+            increase_decrease_invoice_totals(invoice.id)
+
         return redirect('isis:invoice_item_create', slug=slug)
     else:
         form = InvoiceItemForm(None)
@@ -871,21 +896,56 @@ def invoice_item_create_view(request, slug):
         'discount_total': discount_total, 'sub_total': sub_total, 'total': total})
 
 
+def increase_decrease_invoice_totals(invoice_id):
+    items = InvoiceItem.objects.filter(invoice=invoice_id)
+
+    tax_total = items.aggregate(tax=Coalesce(Sum('tax_total'), V(0), output_field=DecimalField()))
+    discount_total = items.aggregate(discount=Coalesce(Sum('discount_total'), V(0), output_field=DecimalField()))
+    sub_total = items.aggregate(subtotal=Coalesce(Sum('sub_total'), V(0), output_field=DecimalField()))
+    total = items.aggregate(total=Coalesce(Sum('total'), V(0), output_field=DecimalField()))
+
+    print(tax_total, discount_total, sub_total, total)
+
+    inv = Invoice.objects.filter(id=invoice_id).update(
+    debit=total['total'],
+    total=total['total'],
+    subtotal=sub_total['subtotal'],
+    total_tax=tax_total['tax'],
+    total_discount=discount_total['discount']
+    )
+
+    print(inv)
+
+def get_invoice_from_items(item_id):
+    try:
+        Invoice.objects.get()
+    except Exception:
+        print('Not possible')
+
+
 @login_required
 def invoice_item_delete_view(request):
+    
     if request.is_ajax():
         selected_ids = request.POST['check_box_item_ids']
         selected_ids = json.loads(selected_ids)
+        
         print(selected_ids)
+        if len(selected_ids) == 1 and selected_ids[0] == 'None':
+            return redirect('isis:invoice_item_create')
 
-        for i, id in enumerate(selected_ids):
-            if id != '':
-                try:
-                    InvoiceItem.objects.filter(id__in=selected_ids).delete()
-                except Exception as e:
-                    messages.warning(request, _("Not Deleted! {}.".format(e)))
-                    return redirect('isis:invoice_create')
+        if len(selected_ids) > 1:
+            item = InvoiceItem.objects.filter(id=int(selected_ids[1])).first()
+        else:
+            item = InvoiceItem.objects.filter(id=int(selected_ids[0])).first()
 
+        try:
+            InvoiceItem.objects.filter(id__in=selected_ids).delete()
+            increase_decrease_invoice_totals(item.invoice_id)
+        except Exception as e:
+            messages.warning(request, _("Not Deleted! {}.".format(e)))
+            print(e)
+            return redirect('isis:invoice_create')
         return redirect('isis:invoice_create')
 
 
@@ -951,7 +1011,7 @@ def payment_method_update_view(request, slug):
             for error in form.errors.values():
                 messages.error(request, error)
             return redirect('isis:payment_method_update', slug=slug)
-       
+
     context = {'form': form}
     return render(request, 'isis/updateviews/payment_method_update.html', context)
 
@@ -1035,7 +1095,7 @@ def payment_term_update_view(request, slug):
             for error in form.errors.values():
                 messages.error(request, error)
             return redirect('isis:payment_term_update', slug=slug)
-       
+
     context = {'form': form}
     return render(request, 'isis/updateviews/payment_term_update.html', context)
 
@@ -1057,26 +1117,50 @@ def payment_term_delete_view(request):
         return redirect('isis:payment_term_list')
 
 
+class ReceiptListView(LoginRequiredMixin, ListView):
+    model = Receipt
+    template_name = 'isis/listviews/receipt_list.html'
+
+
+@login_required
+def receipt_invoice_view(request, slug):
+    receipt = get_object_or_404(Receipt, slug=slug)
+    invoices = Invoice.objects.filter(costumer=receipt.costumer).order_by('-date_created')
+
+    if request.method == 'POST':
+        print(request.POST)
+
+    context = {'receipt': receipt, 'invoices': invoices}
+    return render(request, 'isis/createviews/receipt_invoice.html', context=context)
+
+
 @login_required
 def receipt_create_view(request):
     if request.method == 'POST':
         form = ReceiptForm(request.POST)
-        
         if form.is_valid():
             instance = form.save(commit=False)
             instance.created_by = instance.modified_by = request.user
             instance.date_created = instance.date_modified = datetime.datetime.now()
-            receipt = instance
+            instance.credit = 0
+            instance.debit = 0
+
+            document_number = increment_document_number(Receipt)
+
+            instance.number = document_number
+            name = '{} {}'.format(_('Receipt'), document_number)
+        
+            instance.name = name
+            slug = slugify(name)
+            instance.slug = slugify(name)
             instance = instance.save()
+            
+            messages.success(request, _("Receipt created successfully!"))
 
-            slug = slugify(receipt.name)
-            messages.success(request, _("Receipt added successfully!"))
-
-            if request.POST.get('save_receipt'):
-                return redirect('isis:receipt_details', slug=slug)
-            else:
-                return redirect('isis:receipt_create')
+            return redirect('isis:receipt_invoice', slug=slug)
+            
         else:
+            print(form.errors)
             for error in form.errors.values():
                 messages.error(request, error)
             return redirect('isis:receipt_create')
@@ -1087,21 +1171,11 @@ def receipt_create_view(request):
 
 
 @login_required
-def receipt_list_view(request):
-    receipt = Receipt.objects.all()
-    context = {}
-    context['object_list'] = receipt
-
-    return render(request, 'isis/listviews/receipt_list.html', context) 
-
-
-@login_required
 def receipt_update_view(request, slug):
     receipt = get_object_or_404(Receipt, slug=slug)
     form = ReceiptForm(request.POST or None, instance=receipt)
-	
-    if request.method == 'POST':
 
+    if request.method == 'POST':
         if form.is_valid():
             instance = form.save(commit=False)
             instance.modified_by = request.user
@@ -1119,7 +1193,7 @@ def receipt_update_view(request, slug):
             for error in form.errors.values():
                 messages.error(request, error)
             return redirect('isis:receipt_update', slug=slug)
-    
+
     context = {'form': form}
     return render(request, 'isis/updateviews/receipt_update.html', context)
 
@@ -1139,4 +1213,16 @@ def receipt_delete_view(request):
         
         messages.warning(request, _("Receipt delete successfully!"))
         return redirect('isis:receipt_list')
+
+
+@login_required
+def receipt_detail_view(request, slug):
+    # dictionary for initial data with
+    # field names as keys
+    receipt = get_object_or_404(Receipt, slug=slug)
+
+    context ={}
+    # add the dictionary during initialization
+    context["data"] = receipt    
+    return render(request, "isis/detailviews/receipt_detail_view.html", context)
 

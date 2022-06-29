@@ -1,3 +1,5 @@
+import datetime
+import json
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, ListView, DetailView
 from django.contrib.auth.views import LoginView
@@ -14,14 +16,21 @@ from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponseRedirect, HttpResponse
 from django.template import RequestContext
 from django.views.defaults import page_not_found, server_error
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 
 
-from .models import User, Profile
-from .forms import UserForm, ProfileForm, ProfileEditForm, LoginForm
+from .models import User
+from .forms import UserForm, LoginForm, RegisterForm
 from django.conf import settings
+from warehouse.models import UserWarehouse, Warehouse
 
 
 def user_login(request):
+    # Redirects user to home if a user is already logged in, and is not anonymous
+    if request.user.is_anonymous is not True:
+        return redirect('/')
+
     # Like before, obtain the context for the user's request.
     context = {}
     # If the request is a HTTP POST, try to pull out the relevant information.
@@ -63,80 +72,32 @@ def user_login(request):
 
 
 def signup(request):
-    if request.method == 'POST':
-        form = UserForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            user.username = request.POST.get('email')
-            user.set_password(user.password)
-            user.save()
-            return redirect('/')
-    else:
-        form = UserForm()
-    return render(request, 'user/register.html', {'form': form})
+    if request.user.is_anonymous is not True:
+        return redirect('/')
 
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            if form.is_valid():
+                user = form.save()
+                user.username = request.POST.get('username')
+                # user.last_login = timezone.now
+                user.is_active = 1
+                user.set_password(user.password)
+                user.save()
+                return redirect('users:login')
+
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('users:register')
+    else:
+        form = RegisterForm()
+    return render(request, 'user/register.html', {'form': form})
 
 def logout_view(request):
     logout(request)
     return redirect('/')
-
-
-
-# Edits the profile given the user
-class EditUserProfileView(LoginRequiredMixin, UpdateView):  # Note that we are using UpdateView and not FormView
-    model = Profile
-    template_name = "user/profile.html"
-    form_class = ProfileEditForm
-
-    def get_success_url(self, *args, **kwargs):
-        user = self.kwargs['pk']
-        return reverse('user:user-profile', kwargs={'pk': user})
-
-    def get_object(self, *args, **kwargs):
-        user = get_object_or_404(User, pk=self.kwargs['pk'])
-
-        try:
-            profile = Profile.objects.get(user_id=user)
-        except ObjectDoesNotExist:
-            u = '{}'.format(self.request.user).split('@')
-            print("User Name: ", u[0])
-            profile = Profile.objects.create(user_id=user.id, user_name=u[0], contacto='+258840000000',
-                                             sexo=1, terms=1, data_nascimento="2000-01-01")
-        print("Usuario a Editar: ", profile)
-
-        # profile = Profile.objects.get(user_id=user)
-        return profile
-
-
-# User Profile View
-class UserProfile(LoginRequiredMixin, DetailView):
-    queryset = User
-    template_name = './user/user_home.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(UserProfile, self).get_context_data(**kwargs)
-        user = self.request.user
-        user_id = user.id
-        try:
-            profile = Profile.objects.get(user_id=user_id)
-        except ObjectDoesNotExist:
-            profile = []
-            print("Perfil para esse usuario nao existe")
-
-        print("User em causa: ", user_id, "Perfil: ", profile)
-        context['profile'] = profile
-        context['user'] = user
-
-        return context
-
-
-def user_exists(user_name):
-    try:
-        Profile.objects.get(user_name=user_name)
-    except ObjectDoesNotExist:
-        return False
-
-    return True
 
 
 def get_user_id(email_or_user_name):
@@ -151,4 +112,123 @@ def handler404(request, exception, template_name="./internationaldonations/404.h
 
 def handler500(request, template_name="./internationaldonations/500.html"):
     return server_error(request, template_name)
+
+
+@login_required
+def user_create_view(request):
+    if request.method == 'POST':
+        form = UserForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.created_by = instance.modified_by = request.user
+            instance.date_created = instance.date_modified = datetime.datetime.now()
+            instance.username = request.POST.get('username')
+            # user.last_login = timezone.now
+            instance.is_active = 1
+            instance.set_password(instance.password)
+            user = instance
+            instance = instance.save()
+            
+            # Saves the warehouse in warehouse_userwarehouse table
+            warehouse = Warehouse.objects.filter(id=int(request.POST.get('warehouse'))).first()
+    
+            w = UserWarehouse(warehouse=warehouse, user=user)
+            w.save()
+            
+            messages.success(request, _("User added successfully!"))
+
+            if request.POST.get('save_user'):
+                return redirect('users:user_details', pk=user.pk)
+            else:
+                return redirect('users:user_create')
+        else:
+            print(form.errors)
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('users:user_create')
+    else:
+        form = UserForm()
+        context = {'form': form}
+        return render(request, 'user/createviews/user_create.html', context)
+
+
+@login_required
+def user_list_view(request):
+    user = User.objects.all()
+    context = {}
+    context['object_list'] = user
+
+    return render(request, 'user/listviews/user_list.html', context) 
+
+
+@login_required
+def user_update_view(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    form = UserForm(request.POST or None, request.FILES or None, instance=user)
+	
+    if request.method == 'POST':
+
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.created_by = instance.modified_by = request.user
+            instance.date_created = instance.date_modified = datetime.datetime.now()
+            instance.username = request.POST.get('username')
+            # user.last_login = timezone.now
+            instance.is_active = 1
+            instance.set_password(instance.password)
+            user = instance
+            instance = instance.save()
+
+            # Deletes existing warehouse_userwarehouse data
+            UserWarehouse.objects.filter(user=user).delete()
+
+            # Saves the warehouse in warehouse_userwarehouse table
+            warehouse = Warehouse.objects.filter(id=int(request.POST.get('warehouse'))).first()
+    
+            w = UserWarehouse(warehouse=warehouse, user=user)
+            w.save()
+
+            messages.success(request, _("User updated successfully!"))
+
+            if request.POST.get('save_user'):
+                return redirect('users:user_list')
+            else:
+                return redirect('users:user_create')
+
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('users:user_update', pk=pk)
+
+    context = {'form': form}
+    return render(request, 'user/updateviews/user_update.html', context)
+
+
+@login_required
+def user_delete_view(request):
+    if request.is_ajax():
+        selected_ids = request.POST['check_box_item_ids']
+        selected_ids = json.loads(selected_ids)
+        for i, id in enumerate(selected_ids):
+            if id != '':
+                try:
+                    User.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('users:user_list')
+        
+        messages.warning(request, _("User delete successfully!"))
+        return redirect('users:user_list')
+
+@login_required
+def user_detail_view(request, pk):
+    # dictionary for initial data with
+    # field names as keys
+    user = get_object_or_404(User, pk=pk)
+
+    context ={}
+    # add the dictionary during initialization
+    context["user"] = user    
+    return render(request, "user/detailviews/user_detail_view.html", context)
 

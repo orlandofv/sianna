@@ -4,7 +4,7 @@
 {% load i18n %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='List of Taxes' path='Taxes' %}
+    {% include 'breadcrumb.html' with title='List of Receipts' path='Receipts' %}
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -12,9 +12,9 @@
     {% csrf_token %}
 
     <div class="contentContainer">
-        {% url 'isis:tax_delete' as delete %}
-        {% url 'isis:tax_create' as create %}
-        {% url 'isis:tax_list' as redirect %}
+        {% url 'isis:receipt_delete' as delete %}
+        {% url 'isis:receipt_create' as create %}
+        {% url 'isis:receipt_list' as redirect %}
         
         {% include 'isis/utilities/new_delete_extra_buttons.html' with table_id='#sortTableSmall' delete_url=delete redirect_url=redirect create_url=create %}
         
@@ -41,7 +41,7 @@
                             value="" style="vertical-align: middle">
                         </td>
                         <td> 
-                            <a href="{% url 'isis:tax_update' obj.slug %}" 
+                            <a href="{% url 'isis:receipt_update' obj.slug %}" 
                                 class="aler-link">{{ obj.name }}  
                             </a>
                         <td>{{ obj.rate }}</td>
@@ -53,11 +53,11 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{% url 'isis:tax_update' obj.slug %}" 
+                            <a href="{% url 'isis:receipt_update' obj.slug %}" 
                                     class="fa fa-pencil btn btn-secondary">
                                     {% trans 'Modify' %} 
                             </a> 
-                            <a href="{% url 'isis:tax_details' obj.slug %}" 
+                            <a href="{% url 'isis:receipt_details' obj.slug %}" 
                                     class="fa fa-eye btn btn-secondary">
                                     {% trans 'Details' %} 
                             </a> 

@@ -1,5 +1,7 @@
+import datetime
 from email.mime import image
 from operator import mod
+import re
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import ugettext as _
@@ -8,12 +10,15 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from phonenumber_field.modelfields import PhoneNumberField
 from django.conf import settings
+from django.utils import timezone
+from django.template.defaultfilters import slugify # new
+from django.urls import reverse
 
-SEX_CHOICES = (
+
+GENDER_CHOICES = (
     (1, _("Male")),
     (2, _("Female"))
 )
-
 
 class UserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
@@ -55,37 +60,64 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     """We change the default user auth by email auth"""
+    EMPLOYEE_CHOICES = ((1, 'Yes'), (2, 'No'))
+    TITLE_CHOICES = (('mr', 'Mr.'), ('miss', 'Miss'), 
+    ('dr', 'dr.'), ('Dr', 'Dr.'),)
 
-    username = models.CharField(_('Username'), max_length=20, blank=True)
-    image = models.ImageField(_('Image'), default="{}default.jpg".format(settings.MEDIA_URL), upload_to = 'images/% Y/% m/% d/')
+    last_active = datetime.datetime.now() + datetime.timedelta(days=365)
+    print(last_active)
+
+    username = models.CharField(_('Username'), max_length=20, blank=True, unique=True)
     email = models.EmailField(_('Email'), unique=True, help_text=False)
+    image = models.ImageField(_('Image'), default="{}default.jpg".format(settings.MEDIA_URL), 
+    upload_to = 'images/% Y/% m/% d/')
+    title = models.CharField(_('Title'), max_length=10, blank=True, choices=TITLE_CHOICES, default='mr')
+    gender = models.IntegerField(_('Gender'), blank=True, choices=GENDER_CHOICES, default=1)
+    employee = models.IntegerField(_('Employee'), blank=True, choices=EMPLOYEE_CHOICES, 
+    default=1)
+    first_active_date = models.DateTimeField(_('First Active Date'), blank=True, 
+    default=timezone.now)
+    last_active_date = models.DateTimeField(_('Last Active Date'), blank=True, 
+    default=last_active)
+    country = models.CharField(_('Country'), max_length=100, blank=True)
+    province = models.CharField(_('Province/State'), max_length=100, blank=True)
+    city = models.CharField(_('City'), max_length=100, blank=True)
+    zip = models.CharField(_('Zip Code'), max_length=100, blank=True)
+    address = models.CharField(_('Address'), blank=True, max_length=255)
+    phone = models.CharField(_('Phone'), blank=True, max_length=255)
+    fax = models.CharField(_('Fax'), blank=True, max_length=255)
+    mobile = models.CharField(_('Mobile'), blank=True, max_length=255)
+    vat = models.CharField(_("VAT Number"), max_length=15, blank=True)
+    website = models.CharField(_('Website'), max_length = 254, blank=True)
+    date_created = models.DateTimeField(editable=False, 
+    default=timezone.now)
+    date_modified = models.DateTimeField(editable=False, 
+    default=timezone.now)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     objects = UserManager()
 
-    def __str__(self):
-        return str(self.email) or ''
-
-
-class Profile(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    user_name = models.CharField(null=False, blank=False, help_text=False, verbose_name=_("Nome do Usuário"),
-                                 max_length=20, unique=True)
-    contacto = PhoneNumberField(verbose_name=_('Telefone'), null=True, help_text=False, blank=True)
-    data_nascimento = models.DateField(_('Data de Nascimento'), help_text=False, null=True, blank=True)
-    sexo = models.IntegerField(verbose_name=_('Sexo'), choices=SEX_CHOICES, default=1, help_text=False)
-    terms = models.BooleanField(verbose_name=_("Termos"), help_text=False)
-
-    def save(self, *args, **kwargs):
-        if self.terms is False:
-            self.save(commit=False)
-            raise exceptions.ValidationError(_("Please accept our terms and conditions to create Account!'"))
-
-        return super(Profile, self).save(*args, **kwargs)
+    def get_full_name(self):
+        if self.first_name is not None or self.first_name != "":
+            return '{} {}'.format(self.first_name, self.last_name)
+        else:
+            return self.username
 
     def __str__(self):
-        return str(self.user.email) or ''
+        return self.username
 
+    def get_absolute_url(self):
+        return reverse('user_details', kwargs={'pk': self.id})
 
+    class Meta:
+        ordering = ('-username',)
+
+    @property
+    def is_anonymous(self):
+        if self.email == None:
+            return True
+        else:
+            return False
 
 

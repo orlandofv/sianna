@@ -1,0 +1,70 @@
+{% extends 'index.html' %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% load i18n %}
+
+{% block title %} {{ block.super }} | {% trans 'Receipt Details' %} {% endblock title %}
+
+{% block breadcrumb %}
+{% include 'breadcrumb.html' with title='Receipt Details' path='<a href="/receipts/"> Receipts </a>' dest='New Receipt' %}
+{% endblock breadcrumb %}
+            
+{% block content %}
+    
+    <div class="contentContainer">
+        <div class="row">
+
+            <div class="conteiner-fluid p-10 m-0" id="results">
+            </div>
+            <table class='table table-bordered'>
+                <thead>
+                    <tr>
+                        <th>
+                            {% trans "Invoice #" %}
+                        </th>
+                        <th>
+                            {% trans "Date" %}
+                        </th>
+                        <th>
+                            {% trans "Due on" %}
+                        </th>
+                        <th>
+                            {% trans "Total Amount" %}
+                        </th>
+                        <th>
+                            {% trans "Amount Paid" %}
+                        </th>
+                        <th>
+                            {% trans "UnPaid" %}
+                        </th>
+                        <th>
+                            {% trans "Payment" %}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <form id='invoice-item'> 
+                        {% csrf_token %}
+
+                        {% for invoice in invoices  %}
+                            <tr>
+                                <td>{{ invoice.number }}</td>
+                                <td>{{ invoice.date }}</td>
+                                <td>{{ invoice.due_date }}</td>
+                                <td>{{ invoice.total }}</td>
+                                <td>{{ invoice.credit }}</td>
+                                <td>{{ invoice.debit }}</td>
+                                <td><input type="number" name="total" value="0" step="1" 
+                                    class="numberinput form-control" id="id_total"></td>
+                            </tr>
+                        {% empty %}
+                            <p> {% trans 'This costumer has no Invoice(s)' %} </p>       
+                        {% endfor %}
+                    </form>
+                </tbody>
+            </table>  
+        </div>
+    </div>
+{% endblock content %}

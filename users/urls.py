@@ -11,9 +11,12 @@ handler500 = '{app_name}.views.handler500'.format(app_name=app_name)
 
 urlpatterns = [
     path('users/register/', views.signup, name='register'),
-    path('users/profile/<int:pk>', views.UserProfile.as_view(), name='user-profile'),
     path('users/login/', views.user_login, name='login'),
     path('users/logout/', views.logout_view, name='logout'),
-    path('users/profile/<int:pk>/edit/', views.EditUserProfileView.as_view(), name="edit-user-profile"),
+    path('users/new/', views.user_create_view, name='user_create'),
+    path('users/', views.user_list_view, name='user_list'),
+    path('users/<pk>/update/', views.user_update_view, name='user_update'),
+    path('users/delete/', views.user_delete_view, name='user_delete'),
+    path('users/<pk>/', views.user_detail_view, name='user_details'),
 ]
 

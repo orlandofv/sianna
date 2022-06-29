@@ -5,10 +5,10 @@
 
 {% load i18n %}
 
-{% block title %} {{ block.super }} | {% trans 'Tax Details' %} {% endblock title %}
+{% block title %} {{ block.super }} | {% trans 'Receipt Details' %} {% endblock title %}
 
 {% block breadcrumb %}
-    {% include 'breadcrumb.html' with title='Tax Details' path='<a href="/taxes/"> taxes</a>' dest='Details'  %}
+    {% include 'breadcrumb.html' with title='Receipt Details' path='<a href="/receipts/"> Receipts</a>' dest='Details'  %}
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -16,39 +16,39 @@
     <div class="contentContainer">
         <div class="row">
             <div class="col-md-12">
-                <h1>{{ tax.name }}</h1>
-                <a href="{% url 'isis:tax_create' %}" 
+                <h1>{{ receipt.name }}</h1>
+                <a href="{% url 'isis:receipt_create' %}" 
                     class="fa fa-plus-circle btn btn-primary">
                     {% trans 'New' %} 
                 </a> 
-                <a href="{% url 'isis:tax_update' tax.slug %}" 
+                <a href="{% url 'isis:receipt_update' receipt.slug %}" 
                     class="fa fa-pencil btn btn-secondary">
                     {% trans 'Modify' %} 
                 </a> 
-                <a href="{% url 'isis:tax_list' %}" 
+                <a href="{% url 'isis:receipt_list' %}" 
                     class="fa fa-list btn btn-info">
                     {% trans 'List' %} 
                 </a>
                 
-                <button class="btn btn-primary fa fa-copy" onclick="cloneTax('{% url 'isis:tax_create' %}');">
+                <button class="btn btn-primary fa fa-copy" onclick="cloneReceipt('{% url 'isis:receipt_create' %}');">
                     Clone
                 </button>
                 <hr>
-                <h6>{% trans 'Rate (%)' %}: <strong> <span>{{ tax.rate }}</span></strong> </strong></h6>
+                <h6>{% trans 'Rate (%)' %}: <strong> <span>{{ receipt.rate }}</span></strong> </strong></h6>
                 <h6>{% trans 'Active' %}: <strong> 
                     <span>  
-                        {% if tax.active_status %} {% trans 'Active' %}
+                        {% if receipt.active_status %} {% trans 'Active' %}
                         {% else %} {% trans 'Not Active' %}
                         {% endif %}
                     </span> </strong>
                 </h6>
-                <h6>{% trans 'Notes' %}: <strong> <span>{{ tax.notes }}</span></strong> </strong></h6>
+                <h6>{% trans 'Notes' %}: <strong> <span>{{ receipt.notes }}</span></strong> </strong></h6>
     
                 <hr>
-                <p>{% trans 'Created on' %}: <i>{{ tax.date_created}}</i></p>
-                <p>{% trans 'Creted by' %}: <i>{{ tax.created_by }}</i></p>
-                <p>{% trans 'Modified on' %}: <i>{{ tax.date_modified }}</i></p>
-                <p>{% trans 'Modified by' %}: <i>{{ tax.modified_by }}</i></p>
+                <p>{% trans 'Created on' %}: <i>{{ receipt.date_created}}</i></p>
+                <p>{% trans 'Creted by' %}: <i>{{ receipt.created_by }}</i></p>
+                <p>{% trans 'Modified on' %}: <i>{{ receipt.date_modified }}</i></p>
+                <p>{% trans 'Modified by' %}: <i>{{ receipt.modified_by }}</i></p>
             </div>
         </div>
         {% csrf_token %}

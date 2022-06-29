@@ -10,6 +10,19 @@
 {% endblock %}
 
 {% block content %}
+    {% for message in messages %}
+    <div class="container p-0 m-0" id="alerta{{ forloop.counter }}">
+        <div class="alert {{ message.tags }} alert-dismissible" role="alert" 
+        style="margin:0px; padding:0px;">
+            <button type="button" class="btn close" style="vertical-align: center; 
+            horizontal-align: right;" data-dismiss="alert" aria-label="Close"
+            <span aria-hidden="True" onclick="Hide(alerta{{ forloop.counter }})">&times;</span>
+            </button>
+            {{ message|striptags }}
+        </div>
+    </div>
+    {% endfor %}
+
      <!-- ##### Breadcrumb Area Start ##### -->
     <section class="breadcrumb-area bg-img bg-overlay jarallax" style="background-image: url({% static 'img/bg-img/13.jpg' %});">
         <div class="container h-100">
