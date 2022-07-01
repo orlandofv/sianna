@@ -19,11 +19,11 @@
                 <h1>{{ invoice.name }}</h1>
                 <a href="{% url 'supplier:invoice_create' %}" 
                     class="fa fa-plus-circle btn btn-primary">
-                    {% trans 'New' %} 
+                   
                 </a> 
                 <a href="{% url 'supplier:invoice_update' invoice.slug %}" 
                     class="fa fa-pencil btn btn-secondary">
-                    {% trans 'Modify' %} 
+                     
                 </a> 
                 <a href="{% url 'supplier:invoice_list' %}" 
                     class="fa fa-list btn btn-info">
@@ -34,11 +34,11 @@
                     Clone
                 </button>
                 <hr>
-                <h6>{% trans 'Costumer' %}: <strong> <span>{{ invoice.costumer }}</span></strong> </strong></h6>
-                <h6>{% trans 'Date' %}: <strong> <span>{{ invoice.date }}</span></strong> </strong></h6>
-                <h6>{% trans 'Due Date' %}: <strong> <span>{{ invoice.due_date }}</span></strong> </strong></h6>
-                <h6>{% trans 'Payment Method' %}: <strong> <span>{{ invoice.payment_method }}</span></strong> </strong></h6>
-                <h6>{% trans 'Payment Term' %}: <strong> <span>{{ invoice.payment_term }}</span></strong> </strong></h6>
+                <h6>{% trans 'Costumer' %}: <strong> <span>{{ invoice.costumer }}</span></strong></h6>
+                <h6>{% trans 'Date' %}: <strong> <span>{{ invoice.date }}</span></strong></h6>
+                <h6>{% trans 'Due Date' %}: <strong> <span>{{ invoice.due_date }}</span></strong></h6>
+                <h6>{% trans 'Payment Method' %}: <strong> <span>{{ invoice.payment_method }}</span></strong></h6>
+                <h6>{% trans 'Payment Term' %}: <strong> <span>{{ invoice.payment_term }}</span></strong></h6>
                 <h6>{% trans 'Paid Status' %}: <strong> 
                     <span>
                         {% if invoice.paid_status %}
@@ -46,7 +46,7 @@
                         {% else %}
                             {% trans "Not Paid" %}
                         {% endif %}
-                    </span></strong> </strong>
+                    </span></strong>
                 </h6>
                 
                 <h6>{% trans 'Delivered Status' %}: <strong> 
@@ -56,7 +56,7 @@
                         {% else %}
                             {% trans "Not Delivered" %}
                         {% endif %}
-                    </span></strong> </strong>
+                    </span></strong>
                 </h6>
                 
                 <h6>{% trans 'Finished Status' %}: <strong> 
@@ -66,7 +66,7 @@
                         {% else %}
                             {% trans "Not Validated" %}
                         {% endif %}
-                    </span></strong> </strong>
+                    </span></strong>
                 </h6>
                 
                 <h6>{% trans 'Active' %}: <strong> 
@@ -77,7 +77,7 @@
                     </span> </strong>
                 </h6>
 
-                <h6>{% trans 'Notes' %}: <strong> <span>{{ invoice.notes }}</span></strong> </strong></h6>
+                <h6>{% trans 'Notes' %}: <strong> <span>{{ invoice.notes }}</span></strong></h6>
     
                 <hr>
                 <p>{% trans 'Created on' %}: <i>{{ invoice.date_created}}</i></p>

@@ -12,17 +12,7 @@
 <link rel="stylesheet" href="assets/css/print.css" media="print">
 
   <title>Title</title>
-  <script type="text/javascript">
-    function printInvoice(){
-      var prtContent = document.getElementById("printDoc");
-      var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
-      WinPrint.document.write(prtContent.innerHTML);
-      WinPrint.document.close();
-      WinPrint.focus();
-      WinPrint.print();
-      WinPrint.close();
-    }
-  </script>
+ 
 </head>
 <body>
   <div class="offset-xl-2 col-xl-8 col-lg-12 col-md-12 col-sm-12 col-12 p-5" id="printDoc">

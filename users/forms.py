@@ -50,7 +50,7 @@ class UserForm(forms.ModelForm):
         self.helper.form_class = "user-form-class"
         self.helper.layout = Layout(
         HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update User'),)),
         BS5Accordion(

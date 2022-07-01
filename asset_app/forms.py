@@ -40,7 +40,7 @@ class SettingsForm(forms.ModelForm):
         self.helper.form_class = "settings-form-class"
         self.helper.layout = Layout(
         HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Settings'),)),
         BS5Accordion(
@@ -95,7 +95,7 @@ class ComponentForm(forms.ModelForm):
         self.helper.form_class = "component-form-class"
         self.helper.layout = Layout(
              HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Component'),)),
             BS5Accordion(
@@ -115,7 +115,7 @@ class ComponentForm(forms.ModelForm):
                     ),
             FieldWithButtons('maintenance', StrictButton('',  css_class="btn fa fa-plus",
             data_bs_toggle="modal", data_bs_target="#maintenance")),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            # Row(Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
             Submit('save_component', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_component_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
@@ -197,7 +197,7 @@ class MaintenanceForm(forms.ModelForm):
         self.helper.form_class = "maintenance-form-class"
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Maintenance'),)),
             BS5Accordion(
@@ -336,7 +336,7 @@ class MaintenanceFormModal(forms.ModelForm):
         self.helper.form_class = "maintenance-form-class"
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Maintenance'),)),
             BS5Accordion(
@@ -351,7 +351,7 @@ class MaintenanceFormModal(forms.ModelForm):
             ),
             Row(
                 Column('action', css_class='form-group col-md-12 mb-0'),),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0')),
+            # Row(Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0')),
             Submit('save_maintenance_modal', _('Save'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
             flush=True,
@@ -422,7 +422,7 @@ class CostumerForm(forms.ModelForm):
         self.helper.form_class = "costumer-form-class"
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Costumer'),)),
             BS5Accordion(
@@ -456,7 +456,7 @@ class CostumerForm(forms.ModelForm):
                 Column('email', css_class='form-group col-md-6 mb-0'),
                 Column('website', css_class='form-group col-md-6 mb-0'),
                 ),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            # Row(Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
             Submit('save_costumer', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_costumer_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
@@ -486,13 +486,13 @@ class GroupForm(forms.ModelForm):
         self.helper.form_class = "group-form-class"
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Group'),)),
             BS5Accordion(
             AccordionGroup(_('Group Data'),
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            # Row(Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
             Submit('save_group', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_group_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
@@ -521,7 +521,7 @@ class SystemForm(forms.ModelForm):
         self.helper.form_class = "system-form-class"
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update System'),)),
             BS5Accordion(
@@ -529,7 +529,7 @@ class SystemForm(forms.ModelForm):
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
             FieldWithButtons('group', StrictButton('',  css_class="btn fa fa-plus",
             data_bs_toggle="modal", data_bs_target="#group")),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            # Row(Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
             Submit('save_system', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_system_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
@@ -558,7 +558,7 @@ class TypeForm(forms.ModelForm):
         self.helper.form_class = "type-form-class"
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Type'),)),
             BS5Accordion(
@@ -566,7 +566,7 @@ class TypeForm(forms.ModelForm):
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
             FieldWithButtons('system', StrictButton('',  css_class="btn fa fa-plus",
             data_bs_toggle="modal", data_bs_target="#system")),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            # Row(Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
             Submit('save_type', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_type_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
@@ -596,7 +596,7 @@ class SubTypeForm(forms.ModelForm):
         self.helper.form_class = "subtype-form-class"
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update SubType'),)),
             BS5Accordion(
@@ -604,7 +604,7 @@ class SubTypeForm(forms.ModelForm):
             Row(Column('name', css_class='form-group col-md-12 mb-0'),),
             FieldWithButtons('type', StrictButton('',  css_class="btn fa fa-plus",
             data_bs_toggle="modal", data_bs_target="#type")),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            # Row(Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
             Submit('save_subtype', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_subtype_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
@@ -661,7 +661,7 @@ class AllocationForm(forms.ModelForm):
         self.helper.form_class = "allocation-form-class"
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Allocation'),)),
             BS5Accordion(
@@ -727,7 +727,7 @@ class AllocationForm(forms.ModelForm):
                         FieldWithButtons('costumer', StrictButton('',  css_class="btn fa fa-plus",
                         data_bs_toggle="modal", data_bs_target="#costumer"), css_class='form-group col-md-12 mb-0'), 
             ),),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            # Row(Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
             Submit('save_allocation', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_allocation_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),
@@ -856,7 +856,7 @@ class WorkOrderForm(forms.ModelForm):
         self.helper.form_class = "work-form-class"
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Work Order'),)),
             BS5Accordion(
@@ -933,7 +933,7 @@ class VendorForm(forms.ModelForm):
         self.helper.form_class = "vendor-form-class"
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Vendor'),)),
             BS5Accordion(
@@ -943,7 +943,7 @@ class VendorForm(forms.ModelForm):
             Row(Column('contacts', css_class='form-group col-md-12 mb-0'),),
             Row(Column('manager', css_class='form-group col-md-12 mb-0'),),
             Row(Column('email', css_class='form-group col-md-12 mb-0'),),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            # Row(Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
             Submit('save_vendor', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_vendor_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),

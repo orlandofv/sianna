@@ -44,7 +44,6 @@ from stock.forms import StockSearchForm
 
 from utilities import increment_document_number
 
-INVOICE_SLUG = 0
 
 ########################## Category ##########################
 class CategoryListView(LoginRequiredMixin, ListView):
@@ -569,8 +568,6 @@ def invoice_create_view(request):
             slug = slugify(name)
             instance.slug = slug
             instance = instance.save()
-        
-            INVOICE_SLUG = slug
 
             messages.success(request, _("Invoice created successfully!"))
 
@@ -596,6 +593,11 @@ def invoice_create_view(request):
 @login_required
 def invoice_update_view(request, slug):
     invoice = get_object_or_404(Invoice, slug=slug)
+
+    if invoice.is_finished():
+        messages.warning(request,_('Invoice is closed.'))
+        return redirect('isis:invoice_list')
+
     form = InvoiceForm(request.POST or None, instance=invoice)
     costumer_form = CostumerForm(request.POST or None)
     warehouse_form = WarehouseForm(request.POST or None)
@@ -647,8 +649,6 @@ def invoice_update_view(request, slug):
             instance = instance.save()
             messages.success(request, _("Invoice updated successfully!"))
             
-            INVOICE_SLUG = slug
-
             return redirect('isis:invoice_item_create', slug=slug)
         else:
             for error in form.errors.values():
@@ -702,6 +702,13 @@ def invoice_detail_view(request, slug):
     # dictionary for initial data with
     # field names as keys
     invoice = get_object_or_404(Invoice, slug=slug)
+    payments = ReceiptInvoice.objects.filter(invoice=invoice)
+
+    total_payment = [Invoice.objects.filter(id=i.invoice_id) for i in payments]
+
+    total = total_payment[0].aggregate(total=Coalesce(Sum('total'), V(0), output_field=DecimalField()))
+    total_paid = payments.aggregate(total=Coalesce(Sum('paid'), V(0), output_field=DecimalField()))
+    total_debt = payments.aggregate(total=Coalesce(Sum('remaining'), V(0), output_field=DecimalField()))
 
     paid_invoices = Invoice.objects.filter(costumer=invoice.costumer, 
     paid_status=1).exclude(id=invoice.id).order_by('-number')[:5]
@@ -718,6 +725,11 @@ def invoice_detail_view(request, slug):
     context["paid_invoices"] = paid_invoices     
     context["not_paid_invoices"] = not_paid_invoices     
     context["overdue_invoices"] = overdue_invoices     
+    context["payments"] = payments
+    context["total"] = total
+    context["total_paid"] = total_paid
+    context["total_debt"] = total_debt
+    
     return render(request, "isis/detailviews/invoice_detail_view.html", context)
 
 
@@ -837,11 +849,35 @@ def invoice_show(request, slug):
 
 
 @login_required
+def receipt_show(request, slug):
+    """
+    Displays Receipt for printing, export, ...
+    """
+    receipt = get_object_or_404(Receipt, slug=slug)
+    items = ReceiptInvoice.objects.filter(receipt=receipt)
+
+
+    total = items.aggregate(total=Coalesce(Sum('paid'), V(0), output_field=DecimalField()))
+
+    costumer = Costumer.objects.get(id=receipt.costumer.id)
+    company = Settings.objects.first()
+
+    context = {'receipt': receipt, 'items': items,  
+    'total': total, 'costumer': costumer, 'company': company}
+
+    return render(request, 'documents/receipt.html', context) 
+
+@login_required
 def invoice_item_create_view(request, slug):
     """
     Creates or Adds Invoice Items
     """
     invoice = get_object_or_404(Invoice, slug=slug)
+    
+    if invoice.is_finished():
+        messages.warning(request,_('Invoice is closed.'))
+        return redirect('isis:invoice_list')
+
     items = InvoiceItem.objects.filter(invoice=invoice)
 
     tax_total = items.aggregate(tax=Coalesce(Sum('tax_total'), V(0), output_field=DecimalField()))
@@ -1121,22 +1157,99 @@ class ReceiptListView(LoginRequiredMixin, ListView):
     model = Receipt
     template_name = 'isis/listviews/receipt_list.html'
 
+def make_payment(receipt, invoice, debit, credit, total, payment):
+    print(receipt, debit, invoice, credit, total, payment)
+    
+    # Total payment is equal or superior to debt
+    if Decimal(payment) + Decimal(credit) >= Decimal(total):
+        payment = Decimal(total) - Decimal(credit)
+        inv = Invoice.objects.filter(id=invoice.id).update(
+            credit=Decimal(total),
+            debit=0,
+            paid_status=1
+            )
+    else:
+        inv = Invoice.objects.filter(id=invoice.id).update(
+            credit=F('credit') + Decimal(payment),
+            debit=F('debit') - Decimal(payment)
+        )
+
+    r = ReceiptInvoice(receipt=receipt, invoice=invoice, debit=Decimal(debit),
+    paid=Decimal(payment), remaining=invoice.debit-Decimal(payment))
+    r.save()
+
+    return inv
+
 
 @login_required
 def receipt_invoice_view(request, slug):
     receipt = get_object_or_404(Receipt, slug=slug)
-    invoices = Invoice.objects.filter(costumer=receipt.costumer).order_by('-date_created')
+
+    if receipt.is_finished():
+        messages.warning(request,_('Receipt is closed.'))
+        return redirect('isis:receipt_list')
+
+    invoices = Invoice.objects.filter(costumer=receipt.costumer,
+    paid_status=0, active_status=1, finished_status=1).order_by('date_created')
+
+    if not invoices:
+        messages.warning(request, _("This costumer has no pending invoices!"))
+        return redirect('isis:receipt_list')
 
     if request.method == 'POST':
-        print(request.POST)
+        # convert django query dict to python dictionary
+        data = dict(request.POST)
+        invoices = data['invoices']
+        t = 0
+        for inv in invoices:
+            credit = data['invoice_credit'][t]
+            total = data['invoice_total'][t]
+            payment = data['payment'][t]
+            debit = data['invoice_debit'][t]
+
+            print(credit, total, payment)
+
+            invoice = Invoice.objects.get(id=int(inv))
+
+            make_payment(receipt, invoice, debit, credit, total, payment)
+            t += 1
+
+        Receipt.objects.filter(id=receipt.id).update(finished_status=1)
+        return redirect('isis:receipt_show', slug=slug)
 
     context = {'receipt': receipt, 'invoices': invoices}
     return render(request, 'isis/createviews/receipt_invoice.html', context=context)
 
 
+def check_costumer_invoices(costumer):
+    '''
+    # Checks weather costumer has pending Invoices or not
+    '''
+    invoices = Invoice.objects.filter(costumer_id=int(costumer),
+    paid_status=0, active_status=1, finished_status=1).order_by('date_created')
+
+    if not invoices:
+        return False
+    
+    return True
+
 @login_required
 def receipt_create_view(request):
+    print(request)
+
     if request.method == 'POST':
+        costumer = request.POST.get('costumer')
+        if not costumer:
+            messages.warning(request, _("There are no invoices with pending payments! Please create Invoice First."))
+            return redirect('isis:invoice_create')
+        
+        costumer_invoices = check_costumer_invoices(costumer)
+
+        # Checks weather costumer has pending Invoices or not
+        if not costumer_invoices:
+            messages.warning(request, _("This costumer has no pending invoices!"))
+            return redirect('isis:receipt_list')
+
         form = ReceiptForm(request.POST)
         if form.is_valid():
             instance = form.save(commit=False)
@@ -1217,12 +1330,21 @@ def receipt_delete_view(request):
 
 @login_required
 def receipt_detail_view(request, slug):
-    # dictionary for initial data with
-    # field names as keys
     receipt = get_object_or_404(Receipt, slug=slug)
+    invoice_items = ReceiptInvoice.objects.filter(receipt=receipt)
+
+    # Field totals
+    total = invoice_items.aggregate(total=Coalesce(Sum('debit'), V(0), output_field=DecimalField()))
+    total_paid = invoice_items.aggregate(total=Coalesce(Sum('paid'), V(0), output_field=DecimalField()))
+    total_debt = invoice_items.aggregate(total=Coalesce(Sum('remaining'), V(0), output_field=DecimalField()))
 
     context ={}
     # add the dictionary during initialization
-    context["data"] = receipt    
+    context["receipt"] = receipt    
+    context["invoices"] = invoice_items
+    context["total"] = total
+    context["total_paid"] = total_paid
+    context["total_debt"] = total_debt
+
     return render(request, "isis/detailviews/receipt_detail_view.html", context)
 

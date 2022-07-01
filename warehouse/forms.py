@@ -4,7 +4,7 @@ from .models import (Warehouse)
 
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Reset, HTML
+from crispy_forms.layout import Layout, Submit, Row, Column, Reset, HTML, Field
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton, AccordionGroup, TabHolder, Tab
 from django.utils.translation import ugettext_lazy as _
 from crispy_bootstrap5.bootstrap5 import BS5Accordion
@@ -22,7 +22,7 @@ class WarehouseForm(forms.ModelForm):
         self.helper.form_class = "warehouse-form-class"
         self.helper.layout = Layout(
         HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Warehouse'),)),
         BS5Accordion(
@@ -45,11 +45,11 @@ class WarehouseForm(forms.ModelForm):
                     Column('open_status', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'),
                 Row(
-                    Column('description', css_class='form-group col-md-12 mb-0'),
+                    Column(Field('description', rows='2'), css_class='form-group col-md-12 mb-0'),
                 css_class='form-row'),
                 
                 Row(
-                    Column('notes', css_class='form-group col-md-12 mb-0'),
+                    Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),
                     css_class='form-row'),
             ),
                 HTML('<br>'),

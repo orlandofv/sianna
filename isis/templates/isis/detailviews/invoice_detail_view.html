@@ -4,6 +4,7 @@
 {% load crispy_forms_tags %}
 
 {% load i18n %}
+{% load humanize %}
 
 {% block title %} {{ block.super }} | {% trans 'Invoice Details' %} {% endblock title %}
 
@@ -16,14 +17,20 @@
     <div class="contentContainer">
         <div class="row">
             <div class="col-md-12">
-                <h1>{{ invoice.name }}</h1>
+                <h1
+                {% if invoice.is_paid %}
+                    style="color: green;"
+                {% else %}
+                    style="color: orange;"
+                {% endif %}
+                >{{ invoice.name }}</h1>
                 <a href="{% url 'isis:invoice_create' %}" 
                     class="fa fa-plus-circle btn btn-primary">
-                    {% trans 'New' %} 
+                   
                 </a> 
                 <a href="{% url 'isis:invoice_update' invoice.slug %}" 
                     class="fa fa-pencil btn btn-secondary">
-                    {% trans 'Modify' %} 
+                     
                 </a> 
                 <a href="{% url 'isis:invoice_list' %}" 
                     class="fa fa-list btn btn-info">
@@ -34,56 +41,52 @@
                     Clone
                 </button>
                 <hr>
-                <h6>{% trans 'Costumer' %}: <strong> <span>{{ invoice.costumer }}</span></strong> </strong></h6>
-                <h6>{% trans 'Date' %}: <strong> <span>{{ invoice.date }}</span></strong> </strong></h6>
-                <h6>{% trans 'Due Date' %}: <strong> <span>{{ invoice.due_date }}</span></strong> </strong></h6>
-                <h6>{% trans 'Payment Method' %}: <strong> <span>{{ invoice.payment_method }}</span></strong> </strong></h6>
-                <h6>{% trans 'Payment Term' %}: <strong> <span>{{ invoice.payment_term }}</span></strong> </strong></h6>
-                <h6>{% trans 'Paid Status' %}: <strong> 
-                    <span>
-                        {% if invoice.paid_status %}
-                            {% trans "Paid" %}
-                        {% else %}
-                            {% trans "Not Paid" %}
-                        {% endif %}
-                    </span></strong> </strong>
-                </h6>
+                <table class="table table-small">
+                <tr><td width="15%">{% trans 'Total' %}: <td>{{ invoice.total | floatformat:2 |intcomma }}</td></tr>
+                <tr><td>{% trans 'Paid' %}: </td> <td>{{ invoice.credit | floatformat:2 |intcomma }}</td></tr>
+                <tr><td>{% trans 'Debit' %}: </td> <td>{{ invoice.debit | floatformat:2 |intcomma }}</td></tr>
+                <tr><td>{% trans 'Costumer' %}: </td> <td>{{ invoice.costumer }}</td></tr>
+                <tr><td>{% trans 'Date' %}: </td> <td>{{ invoice.date }}</td></tr>
+                <tr><td>{% trans 'Due Date' %}: </td> <td>{{ invoice.due_date }}</td></tr>
+                <tr><td>{% trans 'Payment Method' %}: </td> <td>{{ invoice.payment_method }}</td></tr>
+                <tr><td>{% trans 'Payment Term' %}: </td> <td>{{ invoice.payment_term }}</td></tr>
+                <tr><td>{% trans 'Paid Status' %}:  </td>
+                    <td>
+                        {{ invoice.payment_status }}
+                    </td>
+                </tr>
                 
-                <h6>{% trans 'Delivered Status' %}: <strong> 
-                    <span>
-                        {% if invoice.delivered_status %}
-                            {% trans "Delivered" %}
-                        {% else %}
-                            {% trans "Not Delivered" %}
-                        {% endif %}
-                    </span></strong> </strong>
-                </h6>
+                <tr><td> {% trans 'Delivered Status' %}:  </td>
+                    <td>
+                        {{ invoice.delivery_status }}
+                    </td>
+                </tr>
                 
-                <h6>{% trans 'Finished Status' %}: <strong> 
-                    <span>
+                <tr><td>{% trans 'Finished Status' %}: </td> 
+                    <td>
                         {% if invoice.finished_status %}
                             {% trans "Validated" %}
                         {% else %}
                             {% trans "Not Validated" %}
                         {% endif %}
-                    </span></strong> </strong>
-                </h6>
+                    </td>
+                </tr>
                 
-                <h6>{% trans 'Active' %}: <strong> 
-                    <span>  
+                <tr><td>{% trans 'Active' %}: </td>
+                    <td>  
                         {% if invoice.active_status %} {% trans 'Active' %}
                         {% else %} {% trans 'Canceled' %}
                         {% endif %}
-                    </span> </strong>
-                </h6>
+                    </td>
+                </tr>
 
-                <h6>{% trans 'Notes' %}: <strong> <span>{{ invoice.notes }}</span></strong> </strong></h6>
-    
-                <hr>
-                <p>{% trans 'Created on' %}: <i>{{ invoice.date_created}}</i></p>
-                <p>{% trans 'Creted by' %}: <i>{{ invoice.created_by }}</i></p>
-                <p>{% trans 'Modified on' %}: <i>{{ invoice.date_modified }}</i></p>
-                <p>{% trans 'Modified by' %}: <i>{{ invoice.modified_by }}</i></p>
+                <tr><td>{% trans 'Notes' %}: </td> <td>{{ invoice.notes }}</td></tr>
+            </table>
+                
+            <p>{% trans 'Created on' %}: <i>{{ invoice.date_created}}</i></p>
+            <p>{% trans 'Creted by' %}: <i>{{ invoice.created_by }}</i></p>
+            <p>{% trans 'Modified on' %}: <i>{{ invoice.date_modified }}</i></p>
+            <p>{% trans 'Modified by' %}: <i>{{ invoice.modified_by }}</i></p>
             </div>
         </div>
         
@@ -118,7 +121,7 @@
         {% if overdue_invoices %}
         <div class="panel panel-warning mt-2">
             <div class="panel-title"><a href="#">Costumer Overdue Invoices 
-                Mailbox <span class="btn btn-primary">{{ overdue_invoices | length }}</span></a></div>
+                Mailbox <span class="btn btn-primary">{{ overdue_invoices | length }}</td></a></div>
             <div class='card-body'>
                 {% for overdue_paid in overdue_invoices %}
                     <a href="{% url 'isis:invoice_details' overdue_paid.slug %}" 
@@ -130,5 +133,48 @@
         </div>
         {% endif %}
 
+        {% if payments %}
+            <div class="panel panel-primary mt-2">
+                <div class="panel-title">{% trans "Payments" %}</div>
+                <div class='card-body'>
+                    <table class='table table-small'>
+                        <thead>
+                            <tr>
+                                <th>{% trans "Receipt" %}</th>
+                                <th>{% trans "Date" %}</th>
+                                <th class="text-end">{% trans "Total" %}</th>
+                                <th class="text-end">{% trans "Paid" %}</th>
+                                <th class="text-end">{% trans "Ramaining" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in payments %}
+                                <tr>
+                                    <td>    
+                                        <a href="{% url 'isis:receipt_details' item.receipt.slug %}" 
+                                        class="fa fa-book btn btn-default card-text">
+                                            {{ item.receipt.name }}
+                                        </a>
+                                    </td> 
+                                    <td>{{ item.receipt.date_created }}</td>
+                                    <td class="text-end">{{ item.debit | floatformat:2 |intcomma }}</td>
+                                    <td class="text-end">{{ item.paid | floatformat:2 |intcomma }}</td>
+                                    <td class="text-end">{{ item.remaining | floatformat:2 |intcomma }}</td>
+                                </tr>
+                            {% endfor %}
+                            <tr>
+                                <th>{% trans "Totals" %}</th>
+                                <th></th>
+                                <th class="text-end">{{ total.total | floatformat:2 |intcomma }}</th>
+                                <th class="text-end">{{ total_paid.total | floatformat:2 |intcomma }}</th>
+                                <th class="text-end">{{ total_debt.total | floatformat:2 |intcomma }}</th>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+        
     </div>
 {% endblock content %}

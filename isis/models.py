@@ -299,6 +299,14 @@ class Receipt(models.Model):
     date_modified = models.DateTimeField(editable=False, default=timezone.now)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
     modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    active_status = models.IntegerField(default=1, blank=True)
+    finished_status = models.IntegerField(default=0, blank=True)
+    
+    def is_finished(self):
+        if self.finished_status == 1:
+            return True
+        else:
+            return False
 
     def __str__(self):
         return self.name
@@ -372,7 +380,67 @@ class Invoice(models.Model):
     subtotal = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
     total_discount = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
     
+    def is_overdue(self):
+        if datetime.datetime.now() > self.due_date:
+            return True
+        else:
+            return False
     
+    @property
+    def overdue_status(self):
+        if self.is_overdue():
+            overdue = _('Overdue')
+        else:
+            overdue = _('On date')
+
+        return overdue
+
+
+    def is_paid(self):
+        if self.credit == self.total:
+            return True
+        return False
+
+    @property
+    def payment_status(self):
+        if self.debit == self.total:
+            paid = _('Not paid')
+        elif self.debit == 0:
+            paid = ('Paid Totally')
+        else:
+            paid = ('Paid Partially')
+
+        return paid
+
+    def is_delivered(self):
+        if self.delivered_status == 1:
+            return True
+        else:
+            return False
+
+    @property
+    def delivery_status(self):
+        if self.is_delivered():
+            delivered = _('Delivered')
+        else:
+            delivered = _('Not Delivered')
+        
+        return delivered
+
+    def is_active(self):
+        if self.active_status == 1:
+            active = _('Active')
+        else:
+            active = _('Canceled')
+
+        return active
+
+    def is_finished(self):
+        if self.finished_status == 1:
+            return True
+        else:
+            return False
+        
     def __str__(self):
         return self.name
 
@@ -435,13 +503,15 @@ class InvoiceItem(models.Model):
 class ReceiptInvoice(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT)
     receipt = models.ForeignKey(Receipt, on_delete=models.PROTECT)
-    total = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    debit = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    remaining = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     paid = models.DecimalField(max_digits=18, decimal_places=6, default=0)
 
     def __str__(self):
         return "{}".format(self.invoice, self.receipt)
     
     class Meta:
-        unique_together = ('invoice', 'receipt')
-
+        verbose_name = _('Receipt Invoice')
+        verbose_name_plural = _('Receipt Invoices')
+        unique_together = ['receipt', 'invoice']
 

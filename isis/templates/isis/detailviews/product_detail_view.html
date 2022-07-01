@@ -22,11 +22,11 @@
                 <h1><span id="id_name">{{ product.name }}</span> ( <span id="id_code">{{ product.code }}</span> )</h1>
                 <a href="{% url 'isis:product_create' %}" 
                     class="fa fa-plus-circle btn btn-primary">
-                    {% trans 'New' %} 
+                   
                 </a> 
                 <a href="{% url 'isis:product_update' product.slug %}" 
                     class="fa fa-pencil btn btn-secondary">
-                    {% trans 'Modify' %} 
+                     
                 </a> 
                 <a href="{% url 'isis:product_list' %}" 
                     class="fa fa-list btn btn-info">
@@ -96,19 +96,5 @@
                 <p>{% trans 'Modified by' %}: <i>{{ product.modified_by }}</i></p>
             </div>
         </div>
-            
-        {% if child_products %}
-            <div class="panel panel-primary mt-2">
-                <div class="panel-title">Child Products <span class="badge">{{ child_products | length }}</span></div>
-                <div class='card-body'>
-                    {% for rel in child_products %}
-                        <a href="{% url 'isis:product_details' rel.slug %}" 
-                        class="fa fa-book btn btn-default card-text">
-                            {{ rel }}
-                        </a> 
-                    {% endfor %}
-                </div>
-            </div>
-        {% endif %}
     </div>
 {% endblock content %}

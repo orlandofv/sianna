@@ -19,11 +19,11 @@
                 <h1>{{ tax.name }}</h1>
                 <a href="{% url 'isis:tax_create' %}" 
                     class="fa fa-plus-circle btn btn-primary">
-                    {% trans 'New' %} 
+                   
                 </a> 
                 <a href="{% url 'isis:tax_update' tax.slug %}" 
                     class="fa fa-pencil btn btn-secondary">
-                    {% trans 'Modify' %} 
+                     
                 </a> 
                 <a href="{% url 'isis:tax_list' %}" 
                     class="fa fa-list btn btn-info">
@@ -34,7 +34,7 @@
                     Clone
                 </button>
                 <hr>
-                <h6>{% trans 'Rate (%)' %}: <strong> <span>{{ tax.rate }}</span></strong> </strong></h6>
+                <h6>{% trans 'Rate (%)' %}: <strong> <span>{{ tax.rate }}</span></strong></h6>
                 <h6>{% trans 'Active' %}: <strong> 
                     <span>  
                         {% if tax.active_status %} {% trans 'Active' %}
@@ -42,7 +42,7 @@
                         {% endif %}
                     </span> </strong>
                 </h6>
-                <h6>{% trans 'Notes' %}: <strong> <span>{{ tax.notes }}</span></strong> </strong></h6>
+                <h6>{% trans 'Notes' %}: <strong> <span>{{ tax.notes }}</span></strong></h6>
     
                 <hr>
                 <p>{% trans 'Created on' %}: <i>{{ tax.date_created}}</i></p>

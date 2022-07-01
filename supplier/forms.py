@@ -112,7 +112,7 @@ class SupplierInvoiceForm(forms.ModelForm):
         self.helper.form_class = "invoice-form-class"
         self.helper.layout = Layout(
         HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update SupplierInvoice'),)),
         BS5Accordion(
@@ -132,8 +132,8 @@ class SupplierInvoiceForm(forms.ModelForm):
                 FieldWithButtons('payment_method', StrictButton('',  css_class="btn fa fa-plus", 
                 data_bs_toggle="modal", data_bs_target="#payment_method"), css_class='form-group col-md-3 mb-0'),
                 ),
-                Column('notes', css_class='form-group col-md-12 mb-0'),
-                Column('public_notes', css_class='form-group col-md-12 mb-0'),),
+                Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),
+                Column(Field('public_notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
                 HTML('<br>'),
                 Submit('save_invoice', _('Next'), css_class='btn btn-primary fas fa-save'),
                 Reset('reset', 'Clear', css_class='btn btn-danger'),
@@ -172,7 +172,7 @@ class SupplierForm(forms.ModelForm):
         self.helper.form_class = "supplier-form-class"
         self.helper.layout = Layout(
                 HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Supplier'),)),
             BS5Accordion(
@@ -206,7 +206,7 @@ class SupplierForm(forms.ModelForm):
                 Column('email', css_class='form-group col-md-6 mb-0'),
                 Column('website', css_class='form-group col-md-6 mb-0'),
                 ),
-            # Row(Column('notes', css_class='form-group col-md-12 mb-0'),),
+            # Row(Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
             Submit('save_supplier', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
             Submit('save_supplier_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
             Reset('reset', 'Clear', css_class='btn btn-danger'),

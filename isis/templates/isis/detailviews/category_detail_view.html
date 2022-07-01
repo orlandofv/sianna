@@ -19,11 +19,11 @@
                 <h1>{{ category.name }}</h1>
                 <a href="{% url 'isis:category_create' %}" 
                     class="fa fa-plus-circle btn btn-primary">
-                    {% trans 'New' %} 
+                   
                 </a> 
                 <a href="{% url 'isis:category_update' category.slug %}" 
                     class="fa fa-pencil btn btn-secondary">
-                    {% trans 'Modify' %} 
+                     
                 </a> 
                 <a href="{% url 'isis:category_list' %}" 
                     class="fa fa-list btn btn-info">
@@ -34,8 +34,8 @@
                     Clone
                 </button>
                 <hr>
-                <h6>{% trans 'Name' %}: <strong> <span>{{ category.name }}</span></strong> </strong></h6>
-                <h6>{% trans 'Parent' %}: <strong> <span>{{ parent_category }}</span></strong> </strong></h6>
+                <h6>{% trans 'Name' %}: <strong> <span>{{ category.name }}</span></strong></h6>
+                <h6>{% trans 'Parent' %}: <strong> <span>{{ parent_category }}</span></strong></h6>
                 <h6>{% trans 'Active' %}: <strong> 
                     <span>  
                         {% if category.active_status %} {% trans 'Active' %}
@@ -43,7 +43,7 @@
                         {% endif %}
                     </span> </strong>
                 </h6>
-                <h6>{% trans 'Notes' %}: <strong> <span>{{ category.notes }}</span></strong> </strong></h6>
+                <h6>{% trans 'Notes' %}: <strong> <span>{{ category.notes }}</span></strong></h6>
     
                 <hr>
                 <p>{% trans 'Created on' %}: <i>{{ category.date_created}}</i></p>

@@ -1,10 +1,9 @@
 {% load i18n %}
 
 <a href="{{ create_url }}" class="btn btn-info fa fa-plus-circle">
-    {% trans 'New' %} 
 </a>
 
 <button class="btn btn-danger delete-btn fa fa-minus-square" data-toggle="modal" 
 onclick="DeleteItems('{{ table_id }}', '{{ delete_url }}', '{{ redirect_url }}')">
-    {% trans 'Delete Selected' %} 
+
 </button>

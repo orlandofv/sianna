@@ -22,11 +22,11 @@
                 <h1>{{ warehouse.name }}</h1>
                 <a href="{% url 'warehouse:warehouse_create' %}" 
                     class="fa fa-plus-circle btn btn-primary">
-                    {% trans 'New' %} 
+                   
                 </a> 
                 <a href="{% url 'warehouse:warehouse_update' warehouse.slug %}" 
                     class="fa fa-pencil btn btn-secondary">
-                    {% trans 'Modify' %} 
+                     
                 </a> 
                 <a href="{% url 'warehouse:warehouse_list' %}" 
                     class="fa fa-list btn btn-info">
@@ -38,10 +38,10 @@
                 </button>
 
                 <hr>
-                <h6>{% trans 'Parent' %}: <strong> <span>{{ parent_warehouse }}</span></strong> </strong></h6>
-                <h6>{% trans 'Address' %}: <strong> <span>{{ warehouse.address }}</span></strong> </strong></h6>
-                <h6>{% trans 'Contacts' %}: <strong> <span>{{ warehouse.contacts }}</span></strong> </strong></h6>
-                <h6>{% trans 'Open Status' %}: <strong> <span>{{ warehouse.open_status }}</span></strong> </strong></h6>
+                <h6>{% trans 'Parent' %}: <strong> <span>{{ parent_warehouse }}</span></strong></h6>
+                <h6>{% trans 'Address' %}: <strong> <span>{{ warehouse.address }}</span></strong></h6>
+                <h6>{% trans 'Contacts' %}: <strong> <span>{{ warehouse.contacts }}</span></strong></h6>
+                <h6>{% trans 'Open Status' %}: <strong> <span>{{ warehouse.open_status }}</span></strong></h6>
                 <h6>{% trans 'Active' %}: <strong> 
                     <span>  
                         {% if warehouse.active_status %} {% trans 'Active' %}
@@ -49,8 +49,8 @@
                         {% endif %}
                     </span> </strong>
                 </h6>
-                <h6>{% trans 'Description' %}: <strong> <span>{{ warehouse.description }}</span></strong> </strong></h6>
-                <h6>{% trans 'Notes' %}: <strong> <span>{{ warehouse.notes }}</span></strong> </strong></h6>
+                <h6>{% trans 'Description' %}: <strong> <span>{{ warehouse.description }}</span></strong></h6>
+                <h6>{% trans 'Notes' %}: <strong> <span>{{ warehouse.notes }}</span></strong></h6>
     
                 <hr>
                 <p>{% trans 'Created on' %}: <i>{{ warehouse.date_created}}</i></p>

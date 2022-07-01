@@ -74,6 +74,16 @@ function DeleteItems(element_id, delete_url, redirect_url, refresh_page=false){
     })
 };
 
+function printDocument(){
+    var prtContent = document.getElementById("section-to-print");
+    var WinPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
+    WinPrint.document.write(prtContent.innerHTML);
+    WinPrint.document.close();
+    WinPrint.focus();
+    WinPrint.print();
+    WinPrint.close();
+  }
+
 $(document).ready(function() {
 
     console.log("document ready.")
@@ -109,7 +119,21 @@ $(document).ready(function() {
             { orderable: false, targets: 7 },
             { "width": "1%", "targets": 0 }
         ],
-        order: [[1, 'asc']]
+        order: [[1, 'asc']],
+        responsive: {
+            breakpoints: [
+              {name: 'bigdesktop', width: Infinity},
+              {name: 'meddesktop', width: 1480},
+              {name: 'smalldesktop', width: 1280},
+              {name: 'medium', width: 1188},
+              {name: 'tabletl', width: 1024},
+              {name: 'btwtabllandp', width: 848},
+              {name: 'tabletp', width: 768},
+              {name: 'mobilel', width: 480},
+              {name: 'mobilep', width: 320}
+            ]
+          },
+        "scrollX": true
     });
 
     // Use DataTables to display table
@@ -119,7 +143,9 @@ $(document).ready(function() {
             { orderable: false, targets: 6 },
             { "width": "1%", "targets": 0 }
         ],
-        order: [[1, 'asc']]
+        order: [[1, 'asc']],
+        responsive: true,
+        "scrollX": true
     });
 
     // Use DataTables to display table
@@ -129,42 +155,60 @@ $(document).ready(function() {
             { orderable: false, targets: 5 },
             { "width": "1%", "targets": 0 }
         ],
-        order: [[1, 'asc']]
+        order: [[1, 'asc']],
+        "scrollX": true,
+        responsive: {
+            breakpoints: [
+              {name: 'bigdesktop', width: Infinity},
+              {name: 'meddesktop', width: 1480},
+              {name: 'smalldesktop', width: 1280},
+              {name: 'medium', width: 1188},
+              {name: 'tabletl', width: 1024},
+              {name: 'btwtabllandp', width: 848},
+              {name: 'tabletp', width: 768},
+              {name: 'mobilel', width: 480},
+              {name: 'mobilep', width: 320}
+            ]
+          }
     });
 
      // Use DataTables to display table
      $('#sortTableMedium').DataTable({
         stateSave: true,
         "bFilter" : true,
-        "responsive" : true,
         "iDisplayLength": 10,
         columnDefs: [
             { orderable: false, targets: 0 },
             { orderable: false, targets: 4 },
             { "width": "1%", "targets": 0 }
         ],
-        order: [[1, 'asc']]
+        order: [[1, 'asc']],
+        responsive: true,
+        "scrollX": true
+        
     });
 
      // Use DataTables to display table
-     $('#sortTableSmall').DataTable({
+    $('#sortTableSmall').DataTable({
         columnDefs: [
             { orderable: false, targets: 0 },
             { orderable: false, targets: 3 },
             { "width": "1%", "targets": 0 }
         ],
-        order: [[1, 'asc']]
+        order: [[1, 'asc']],
+        responsive: true,
+        "scrollX": true
     });
 
      // Use DataTables to display table
-     $('#sortTableSmaller').DataTable({
+    $('#sortTableSmaller').DataTable({
         columnDefs: [
             { orderable: false, targets: 0 },
             { "width": "1%", "targets": 0 }
         ],
-        order: [[1, 'asc']]
+        order: [[1, 'asc']],
+        responsive: true,
+        "scrollX": true
     });    
 });
-
-
 

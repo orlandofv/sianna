@@ -1,0 +1,116 @@
+<!--
+Main template for invoices and other documents
+-->
+
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load humanize %}
+{% load static %}
+
+
+{% block title %} Invoicing System {% endblock title %}
+
+
+<!-- Override main css script, the main css uses bootstrap 5 
+and invoices uses bootstrap 4 -->
+{% block main_css %}
+
+<link href='https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css' rel='stylesheet'>
+
+<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+
+<style>
+    ::-webkit-scrollbar {
+  width: 8px;
+}
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+} body{
+
+background-color: #000;
+}
+
+.padding{
+
+padding: 2rem !important;
+}
+
+.card {
+margin-bottom: 30px;
+border: none;
+-webkit-box-shadow: 0px 1px 2px 1px rgba(154, 154, 204, 0.22);
+-moz-box-shadow: 0px 1px 2px 1px rgba(154, 154, 204, 0.22);
+box-shadow: 0px 1px 2px 1px rgba(154, 154, 204, 0.22);
+}
+
+.card-header {
+background-color: #fff;
+border-bottom: 1px solid #e6e6f2;
+}
+
+h3 {
+font-size: 20px;
+}
+
+h5 {
+font-size: 15px;
+line-height: 26px;
+color: #3d405c;
+margin: 0px 0px 15px 0px;
+font-family: 'Circular Std Medium';
+}
+
+.text-dark {
+color: #3d405c !important;
+}</style>
+{% endblock main_css %}
+
+{% block layout %}
+{% endblock layout %}
+
+{% block jsscripts %}
+<script type='text/javascript' src='https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js'></script>
+<script src="{% static 'assets/plugins/html2canvas-1.4.1/html2canvas.min.js' %}"></script>
+<script src="{% static 'assets/plugins/jspdf.min.js_1.5.3/cdnjs/jspdf.min.js' %}"></script> 
+
+
+<script type="text/javascript">
+    //Create PDf from HTML...
+    function CreatePDFfromHTML() {
+        var HTML_Width = $(".html-content").width();
+        var HTML_Height = $(".html-content").height();
+        var top_left_margin = 15;
+        var PDF_Width = HTML_Width + (top_left_margin * 2);
+        var PDF_Height = (PDF_Width * 1.5) + (top_left_margin * 2);
+        var canvas_image_width = HTML_Width;
+        var canvas_image_height = HTML_Height;
+
+        var totalPDFPages = Math.ceil(HTML_Height / PDF_Height) - 1;
+
+        html2canvas($(".html-content")[0]).then(function (canvas) {
+            var imgData = canvas.toDataURL("image/jpeg", 1.0);
+            var pdf = new jsPDF('p', 'pt', [PDF_Width, PDF_Height]);
+            pdf.addImage(imgData, 'JPG', top_left_margin, top_left_margin, canvas_image_width, canvas_image_height);
+            for (var i = 1; i <= totalPDFPages; i++) { 
+                pdf.addPage(PDF_Width, PDF_Height);
+                pdf.addImage(imgData, 'JPG', top_left_margin, -(PDF_Height*i)+(top_left_margin*4),canvas_image_width,canvas_image_height);
+            }
+            var random_number = Math.floor(100000000 + Math.random() * 900000000);
+            pdf.save("document - " + random_number + ".pdf");
+            /* $(".html-content").hide(); */
+        });
+    }
+</script>
+{% endblock jsscripts %}

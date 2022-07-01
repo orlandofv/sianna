@@ -1,4 +1,4 @@
-from dataclasses import Field
+from dataclasses import Field as field
 import datetime
 from itertools import product
 from math import prod
@@ -7,7 +7,7 @@ import sys
 from turtle import onclick
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Row, Column, Reset, HTML
+from crispy_forms.layout import Layout, Submit, Row, Column, Reset, HTML, Field
 from crispy_forms.bootstrap import (FieldWithButtons, StrictButton, AccordionGroup, 
 TabHolder, Tab, Div)
 from django.utils.translation import ugettext_lazy as _
@@ -36,7 +36,7 @@ class CategoryForm(forms.ModelForm):
         self.helper.form_class = "category-form-class"
         self.helper.layout = Layout(
         HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Category'),)),
         BS5Accordion(
@@ -51,7 +51,7 @@ class CategoryForm(forms.ModelForm):
                     Column('image', css_class='form-group col-md-12 mb-0'),
                     css_class='form-row'),
                 Row(
-                    Column('notes', css_class='form-group col-md-12 mb-0'),
+                    Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),
                     css_class='form-row'),
             ),
                 HTML('<br>'),
@@ -111,7 +111,7 @@ class ProductForm(forms.ModelForm):
         self.helper.form_class = "product-form-class"
         self.helper.layout = Layout(
         HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update product'),)),
         TabHolder(
@@ -193,7 +193,7 @@ class ProductForm(forms.ModelForm):
             ),
             Tab(_('PRIVATE NOTES'),
                 Row(
-                    Column('notes', css_class='form-group col-md-12 mb-0'),
+                    Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),
                     css_class='form-row'),
             ),
         ),
@@ -233,7 +233,7 @@ class TaxForm(forms.ModelForm):
         self.helper.form_class = "tax-form-class"
         self.helper.layout = Layout(
         HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Tax'),)),
         BS5Accordion(
@@ -245,7 +245,7 @@ class TaxForm(forms.ModelForm):
                     css_class='form-row'
                 ),
                 Row(
-                    Column('notes', css_class='form-group col-md-12 mb-0'),
+                    Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),
                     css_class='form-row'),
             ),
                 HTML('<br>'),
@@ -270,7 +270,7 @@ class PaymentMethodForm(forms.ModelForm):
         self.helper.form_class = "payment_method-form-class"
         self.helper.layout = Layout(
         HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Payment Method'),)),
         BS5Accordion(
@@ -280,7 +280,7 @@ class PaymentMethodForm(forms.ModelForm):
                     css_class='form-row'
                 ),
                 Row(
-                    Column('notes', css_class='form-group col-md-12 mb-0'),
+                    Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),
                     css_class='form-row'),
             ),
                 HTML('<br>'),
@@ -305,7 +305,7 @@ class PaymentTermForm(forms.ModelForm):
         self.helper.form_class = "payment_term-form-class"
         self.helper.layout = Layout(
         HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Payment Term'),)),
         BS5Accordion(
@@ -315,7 +315,7 @@ class PaymentTermForm(forms.ModelForm):
                     css_class='form-row'
                 ),
                 Row(
-                    Column('notes', css_class='form-group col-md-12 mb-0'),
+                    Column(Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),
                     css_class='form-row'),
             ),
                 HTML('<br>'),
@@ -332,7 +332,8 @@ class PaymentTermForm(forms.ModelForm):
 
 
 class ReceiptForm(forms.ModelForm):
-    inv = Invoice.objects.filter(active_status=1, debit__gt=0)
+    inv = Invoice.objects.filter(active_status=1, debit__gt=0, 
+    finished_status=1, paid_status=0)
 
     ids = []
     for x in inv:
@@ -353,7 +354,7 @@ class ReceiptForm(forms.ModelForm):
         self.helper.form_class = "receipt-form-class"
         self.helper.layout = Layout(
         HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Receipt'),)),
         BS5Accordion(
@@ -474,7 +475,7 @@ class InvoiceForm(forms.ModelForm):
         self.helper.form_class = "invoice-form-class"
         self.helper.layout = Layout(
         HTML("""
-            <p><strong style="float: center; font-size: 24px; margin-bottom: 0px;">{}</strong></p>
+            <p><strong style="font-size: 18px;">{}</strong></p>
             <hr>
         """.format(_('Add/Update Invoice'),)),
         BS5Accordion(
@@ -493,8 +494,9 @@ class InvoiceForm(forms.ModelForm):
                 FieldWithButtons('payment_method', StrictButton('',  css_class="btn fa fa-plus", 
                 data_bs_toggle="modal", data_bs_target="#payment_method"), css_class='form-group col-md-3 mb-0'),
                 ),
-                Column('notes', css_class='form-group col-md-12 mb-0'),
-                Column('public_notes', css_class='form-group col-md-12 mb-0'),),
+                Column(
+                    Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),
+                Column(Field('public_notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
                 HTML('<br>'),
                 Submit('save_invoice', _('Next'), css_class='btn btn-primary fas fa-save'),
                 Reset('reset', 'Clear', css_class='btn btn-danger'),
@@ -505,5 +507,17 @@ class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+
+    def clean(self):
+
+        cleaned_data = super().clean()
+
+        date = cleaned_data.get('date')
+        due_date = cleaned_data.get('due_date')
+
+        if due_date <= date:
+            self.errors['date'] = self.error_class(_("""Due date must be greater than Invoice date
+            """))
 
 
