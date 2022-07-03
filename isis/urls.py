@@ -13,6 +13,7 @@ payment_term_create_view, payment_term_list_view, payment_term_update_view, paym
 invoice_item_create_view, invoice_item_delete_view, invoice_show, load_sell_prices,
 category_create_view, CategoryListView, category_update_view, category_delete_view,
 category_detail_view,
+DocumentListView, document_update_view, document_delete_view, document_create_view, document_detail_view,
 )
 
 app_name = 'isis'
@@ -35,7 +36,7 @@ urlpatterns = [
     path('invoices/delete/', invoice_delete_view, name='invoice_delete'),
     path('invoices/<slug:slug>/details/', invoice_detail_view, name='invoice_details'),
     path('invoices/<slug:slug>/items/', invoice_item_create_view, name='invoice_item_create'),
-    path('invoices/items/delete', invoice_item_delete_view, name='invoice_item_delete'),
+    path('invoices/items/delete/', invoice_item_delete_view, name='invoice_item_delete'),
     path('invoices/<slug:slug>/show/', invoice_show, name='invoice_show'),
     path('receipts/new/', receipt_create_view, name='receipt_create'),
     path('receipts/', ReceiptListView.as_view(), name='receipt_list'),
@@ -57,6 +58,11 @@ urlpatterns = [
     path('payment_terms/', payment_term_list_view, name='payment_term_list'),
     path('payment_terms/<slug:slug>/update/', payment_term_update_view, name='payment_term_update'),
     path('payment_terms/delete/', payment_term_delete_view, name='payment_term_delete'),
+    path('documents/', DocumentListView.as_view(), name='document_list'),
+    path('documents/new/', document_create_view, name='document_create'),
+    path('documents/<slug:slug>/update/', document_update_view, name='document_update'),
+    path('documents/delete/', document_delete_view, name='document_delete'),
+    path('documents/<slug:slug>/', document_detail_view, name='document_details'),
 
     path('ajax/load-prices/', load_sell_prices, name='ajax_load_prices'),
 ]

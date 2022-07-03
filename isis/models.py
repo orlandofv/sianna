@@ -210,37 +210,6 @@ class Product(models.Model):
         ordering = ("name",)
 
 
-class Documents(models.Model):
-    MODIFY_STOCK = 1
-    NOT_MODIFY_STOCK = 0
-
-    STOCK_STATUS = ((MODIFY_STOCK, _('Modify')), (NOT_MODIFY_STOCK, _('Not Modify')))
-
-    name =  models.CharField(max_length=20, unique=True)
-    slug = models.SlugField(unique=True, null=False, editable=False)
-    modify_stock = models.IntegerField(choices=STOCK_STATUS, default=NOT_MODIFY_STOCK)
-    active_status = models.IntegerField(choices=STATUSES, default=ACTIVE)
-    notes = models.TextField(blank=True)
-    date_created = models.DateTimeField(editable=False, default=timezone.now)
-    date_modified = models.DateTimeField(editable=False, default=timezone.now)
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
-
-    def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse('document_details', kwargs={'slug': self.slug})
-
-    def save(self, *args, **kwargs): # new
-        if not self.slug:
-            self.slug = slugify(self.name)
-        return super().save(*args, **kwargs)
-
-    class Meta:
-        ordering = ("name",)
-
-
 class PaymentTerm(models.Model):
     name = models.CharField(_('Name'), max_length=100, unique=True)
     slug = models.SlugField(unique=True, null=False, editable=False)
@@ -289,6 +258,184 @@ class PaymentMethod(models.Model):
         ordering = ("name",)
 
 
+
+class Document(models.Model):
+    YES = 1
+    NO = 0
+
+    TRACK_STATUS = ((YES, _('Yes')), (NO, _('No')))
+
+    name =  models.CharField(max_length=20, unique=True)
+    short_name =  models.CharField(max_length=10, unique=True, default=None)
+    slug = models.SlugField(unique=True, null=False, editable=False)
+    # Checks if the document modifies stock or not
+    modify_stock = models.IntegerField(_("Modify Stock?"), choices=TRACK_STATUS, default=NO)
+    active_status = models.IntegerField(choices=STATUSES, default=ACTIVE)
+    notes = models.TextField(blank=True)
+    date_created = models.DateTimeField(editable=False, default=timezone.now)
+    date_modified = models.DateTimeField(editable=False, default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    track_payment = models.IntegerField(_('Track Payment?'), default=NO, choices=TRACK_STATUS)
+    track_due_date = models.IntegerField(_('Track Due Date?'), default=NO, choices=TRACK_STATUS)
+    template = models.FileField(_('Template'), 
+    default="document_template.html".format(settings.MEDIA_URL), 
+    upload_to = 'media', blank=True)
+
+    def __str__(self):
+        return self.get_name
+
+    def get_name(self):
+        if self.short_name:
+            return self.short_name
+        else:
+            return self.name
+
+    def get_payment_status(self):
+        if self.track_payment == 1:
+            return _("Yes")
+        else:
+            return _("No")
+    
+    def get_due_status(self):
+        if self.track_due_date == 1:
+            return _("Yes")
+        else:
+            return _("No")
+    
+    def get_stock_status(self):
+        if self.modify_stock == 1:
+            return _("Yes")
+        else:
+            return _("No")
+
+    def get_absolute_url(self):
+        return reverse('document_details', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs): # new
+        if not self.slug:
+            self.slug = slugify(self.name)
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ("name",)
+
+
+class Invoicing(models.Model):
+
+    DELIVERED = 1
+    NOT_DELIVERED = 0
+
+    DELIVERED_STATUS = ((DELIVERED, _('Delivered')), (NOT_DELIVERED, _('Not delivered')))
+    
+    name =  models.CharField(max_length=50, unique=True)
+    document =  models.ForeignKey(Document, verbose_name=_('Document'), on_delete=models.PROTECT)
+    number = models.IntegerField(unique=True)
+    slug = models.SlugField(unique=True, null=False, editable=False)
+    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.PROTECT, default=1)
+    payment_term = models.ForeignKey(PaymentTerm, on_delete=models.PROTECT, default=1)
+    costumer = models.ForeignKey(verbose_name=_('Costumer'), to=Costumer, on_delete=models.PROTECT, default=1)
+    date = models.DateTimeField(_('Date'), default=timezone.now)
+    due_date = models.DateTimeField(_('Due Date'), 
+    default=datetime.datetime.now() + datetime.timedelta(days=30))
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, default=1)
+    credit = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    debit = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    total = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    total_tax = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    subtotal = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    total_discount = models.DecimalField(max_digits=18, decimal_places=6, default=0, blank=True)
+    paid_status = models.IntegerField(default=0)
+    delivered_status = models.IntegerField(default=0)
+    finished_status = models.IntegerField(default=0)
+    active_status = models.IntegerField(default=1)
+    notes = models.TextField(_('Private Notes'), blank=True)
+    public_notes = models.TextField(_('Public Notes'), blank=True)
+    date_created = models.DateTimeField(editable=False, default=timezone.now)
+    date_modified = models.DateTimeField(editable=False, default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    
+    
+    def is_overdue(self):
+        if datetime.datetime.now() > self.due_date:
+            return True
+        else:
+            return False
+    
+    @property
+    def overdue_status(self):
+        if self.is_overdue():
+            overdue = _('Overdue')
+        else:
+            overdue = _('On date')
+
+        return overdue
+
+
+    def is_paid(self):
+        if self.credit == self.total:
+            return True
+        return False
+
+    @property
+    def payment_status(self):
+        if self.debit == self.total:
+            paid = _('Not paid')
+        elif self.debit == 0:
+            paid = ('Paid Totally')
+        else:
+            paid = ('Paid Partially')
+
+        return paid
+
+    def is_delivered(self):
+        if self.delivered_status == 1:
+            return True
+        else:
+            return False
+
+    @property
+    def delivery_status(self):
+        if self.is_delivered():
+            delivered = _('Delivered')
+        else:
+            delivered = _('Not Delivered')
+        
+        return delivered
+
+    def is_active(self):
+        if self.active_status == 1:
+            active = _('Active')
+        else:
+            active = _('Canceled')
+
+        return active
+
+    def is_finished(self):
+        if self.finished_status == 1:
+            return True
+        else:
+            return False
+        
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('invoice_details', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs): # new
+        invoice = '{} {}'.format(_('Invoice'), self.number)
+        self.name = invoice
+
+        if not self.slug:
+            self.slug = slugify(invoice)
+        return super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ('-name',)
+
+
 class Receipt(models.Model):
     name = models.CharField(max_length=50, unique=True)
     number = models.IntegerField(unique=True, default=0)
@@ -319,7 +466,7 @@ class Receipt(models.Model):
 
 
 class Files(models.Model):
-    file = models.ImageField(_('Primary Image'), 
+    file = models.ImageField(_('Add File'), 
     default="{}default.jpg".format(settings.MEDIA_URL), 
     upload_to = 'media', blank=True)
     receipt = models.ForeignKey(Receipt, on_delete=models.PROTECT)
@@ -367,7 +514,7 @@ class Invoice(models.Model):
     delivered_status = models.IntegerField(default=0)
     finished_status = models.IntegerField(default=0)
     active_status = models.IntegerField(default=1)
-    notes = models.TextField(_('Invoice Notes'), blank=True)
+    notes = models.TextField(_('Private Notes'), blank=True)
     public_notes = models.TextField(_('Public Notes'), blank=True)
     date_created = models.DateTimeField(editable=False, default=timezone.now)
     date_modified = models.DateTimeField(editable=False, default=timezone.now)

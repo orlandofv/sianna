@@ -14,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from crispy_bootstrap5.bootstrap5 import BS5Accordion
 
 from .models import (Product, Gallery, Tax, Invoice, InvoiceItem, 
-PaymentTerm, PaymentMethod, Receipt, Category, ReceiptInvoice)
+PaymentTerm, PaymentMethod, Receipt, Category, ReceiptInvoice, Document, Invoicing)
 from warehouse.models import Warehouse
 from django.utils import timezone
 from users.models import User
@@ -521,3 +521,111 @@ class InvoiceForm(forms.ModelForm):
             """))
 
 
+class DocumentForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(DocumentForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_id = "document-form-id"
+        self.helper.form_class = "document-form-class"
+        self.helper.layout = Layout(
+        HTML("""
+            <p><strong style="font-size: 18px;">{}</strong></p>
+            <hr>
+        """.format(_('Add/Update Document'),)),
+        BS5Accordion(
+            AccordionGroup(_('DOCUMENT DATA'),
+                Row(
+                    Column('name', css_class='form-group col-md-9 mb-0'),
+                    Column('short_name', css_class='form-group col-md-3 mb-0'),
+                ),
+                Row(
+                Column('active_status', css_class='form-group col-md-3 mb-0'),
+                Column('modify_stock', css_class='form-group col-md-3 mb-0'),
+                Column('track_payment', css_class='form-group col-md-3 mb-0'),
+                Column('track_due_date', css_class='form-group col-md-3 mb-0'),
+                ),
+                Row(
+                    Column(
+                    Field('template', rows='2'), css_class='form-group col-md-12 mb-0'),
+                ),
+                Row(
+                    Column(
+                    Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),
+                ),
+                HTML('<br>'),
+                Submit('save_document', _('Save'), css_class='btn btn-primary fas fa-save'),
+                Reset('reset', 'Clear', css_class='btn btn-danger'),
+                flush=True,
+                always_open=True),
+        ))
+
+    class Meta:
+        model = Document
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+
+class InvoicingForm(forms.ModelForm):
+    name = forms.CharField(required=False, max_length=50)
+    paid_status = forms.IntegerField(required=False, initial=0)
+    delivered_status = forms.IntegerField(initial=0, required=False)
+    finished_status = forms.IntegerField(initial=0, required=False)
+    active_status = forms.IntegerField(initial=1, required=False)
+    number = forms.IntegerField(initial=0, required=False)
+        
+    def __init__(self, *args, **kwargs):
+        super(InvoicingForm, self).__init__(*args, **kwargs)
+        self.fields['date'].widget = forms.DateTimeInput(attrs={'type':'datetime-local'})
+        self.fields['due_date'].widget = forms.DateTimeInput(attrs={'type':'datetime-local'})
+        self.helper = FormHelper()
+        self.helper.form_id = "invoicing-form-id"
+        self.helper.form_class = "invoicing-form-class"
+        self.helper.layout = Layout(
+        HTML("""
+            <p><strong style="font-size: 18px;">{}</strong></p>
+            <hr>
+        """.format(_('Add/Update Invoicing'),)),
+        BS5Accordion(
+            AccordionGroup(_('DOCUMENT DATA'),
+                Row( FieldWithButtons('costumer', StrictButton('',  css_class="btn fa fa-plus", 
+                data_bs_toggle="modal", data_bs_target="#costumer"), css_class='form-group col-md-9 mb-0'),
+                FieldWithButtons('document', StrictButton('',  css_class="btn fa fa-plus", 
+                data_bs_toggle="modal", data_bs_target="#document"), css_class='form-group col-md-3 mb-0'),),
+                Row(
+                    Column('date', css_class='form-group col-md-4 mb-0'),
+                    Column('due_date', css_class='form-group col-md-4 mb-0'),
+                    FieldWithButtons('warehouse', StrictButton('',  css_class="btn fa fa-plus", 
+                    data_bs_toggle="modal", data_bs_target="#warehouse"), css_class='form-group col-md-4 mb-0'),
+                ),
+                Row(
+                FieldWithButtons('payment_term', StrictButton('',  css_class="btn fa fa-plus", 
+                data_bs_toggle="modal", data_bs_target="#payment_term"), css_class='form-group col-md-3 mb-0'),
+                FieldWithButtons('payment_method', StrictButton('',  css_class="btn fa fa-plus", 
+                data_bs_toggle="modal", data_bs_target="#payment_method"), css_class='form-group col-md-3 mb-0'),
+                ),
+                Column(
+                    Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),
+                Column(Field('public_notes', rows='2'), css_class='form-group col-md-12 mb-0'),),
+                HTML('<br>'),
+                Submit('save_invoicing', _('Next'), css_class='btn btn-primary fas fa-save'),
+                Reset('reset', 'Clear', css_class='btn btn-danger'),
+                flush=True,
+                always_open=True),
+        )
+
+    class Meta:
+        model = Invoicing
+        exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
+
+
+    def clean(self):
+
+        cleaned_data = super().clean()
+
+        date = cleaned_data.get('date')
+        due_date = cleaned_data.get('due_date')
+
+        if due_date <= date:
+            self.errors['date'] = self.error_class(_("""Due date must be greater than Invoicing date
+            """))

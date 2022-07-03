@@ -31,10 +31,11 @@ from config import utilities
 from asset_app.forms import CostumerForm
 from asset_app.models import Costumer
 from .models import (Gallery, Product, Tax, Warehouse, Invoice, PaymentTerm, PaymentMethod, Receipt, 
-InvoiceItem, Category, ReceiptInvoice)
+InvoiceItem, Category, ReceiptInvoice, Document, Invoicing)
 from users.models import User
 from .forms import (ProductForm, TaxForm, PaymentTermForm, 
-PaymentMethodForm, ReceiptForm, InvoiceItemForm, InvoiceForm, CategoryForm)
+PaymentMethodForm, ReceiptForm, InvoiceItemForm, InvoiceForm, CategoryForm, 
+DocumentForm, InvoicingForm)
 
 from warehouse.models import Warehouse
 from warehouse.forms import WarehouseForm
@@ -318,7 +319,7 @@ def product_update_view(request, slug):
             for error in form.errors.values():
                 messages.error(request, error)
             return redirect('isis:product_update', slug=slug)
-       
+
     context = {'form': form, 'tax_form': tax_form, 'warehouse_form': warehouse_form,
     'category_form': category_form,}
     return render(request, 'isis/updateviews/product_update.html', context)
@@ -1347,4 +1348,350 @@ def receipt_detail_view(request, slug):
     context["total_debt"] = total_debt
 
     return render(request, "isis/detailviews/receipt_detail_view.html", context)
+
+
+########################## Document ##########################
+class DocumentListView(LoginRequiredMixin, ListView):
+    model = Document
+    template_name = 'isis/listviews/document_list.html'
+
+
+@login_required
+def document_create_view(request):
+    if request.method == 'POST':
+        form = DocumentForm(request.POST)
+
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.created_by = instance.modified_by = request.user
+            instance.date_created = instance.date_modified = datetime.datetime.now()
+            instance = instance.save()
+            messages.success(request, _("Document added successfully!"))
+
+            if request.POST.get('save_document'):
+                return redirect('isis:document_list')
+            else:
+                return redirect('isis:document_create')
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('isis:document_create')
+    else:
+        form = DocumentForm()
+        context = {'form': form}
+        return render(request, 'isis/createviews/document_create.html', context)
+
+
+@login_required
+def document_update_view(request, slug):
+    document = get_object_or_404(Document, slug=slug)
+    form = DocumentForm(request.POST or None, instance=document)
+
+    if request.method == 'POST':
+        
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.modified_by = request.user
+            instance.slug = slugify(instance.name)
+            instance.date_modified = datetime.datetime.now()
+            instance = instance.save()
+            messages.success(request, _("Document updated successfully!"))
+
+            if request.POST.get('save_document'):
+                return redirect('isis:document_list')
+            else:
+                return redirect('isis:document_create')
+
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('isis:document_update', slug=slug)
+
+    context = {'form': form}
+    return render(request, 'isis/updateviews/document_update.html', context)
+
+
+@login_required
+def document_delete_view(request):
+    if request.is_ajax():
+        selected_ids = request.POST['check_box_item_ids']
+        selected_ids = json.loads(selected_ids)
+        for i, id in enumerate(selected_ids):
+            if id != '':
+                try:
+                    Document.objects.filter(id__in=selected_ids).delete()
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('isis:document_list')
+        
+        messages.warning(request, _("Document delete successfully!"))
+        return redirect('isis:document_list')
+
+
+@login_required
+def document_detail_view(request, slug):
+    # dictionary for initial data with
+    # field names as keys
+    document = get_object_or_404(Document, slug=slug)
+
+    context ={}
+    # add the dictionary during initialization
+    context["document"] = document    
+    return render(request, "isis/detailviews/document_detail_view.html", context)
+
+
+@login_required
+def invoicing_list_view(request):
+
+    start_date = datetime.datetime.now() - datetime.timedelta(days=30)
+    end_date = datetime.datetime.now()
+
+    if request.method == "POST":
+        search_form = StockSearchForm(request.POST)
+        start_date = request.POST.get("start_date".replace('T', " "))
+        end_date = request.POST.get("end_date")
+
+        invoicing = Invoicing.objects.raw("""
+        SELECT inv.*, SUM(item.discount_total) AS ds, SUM(item.sub_total) AS sb, 
+        SUM(item.tax_total) AS tax, SUM(item.total) AS tt 
+        FROM isis_invoicing AS inv
+        LEFT JOIN isis_invoicingitem item ON inv.id=item.invoicing_id
+        WHERE inv.date_created BETWEEN '{}' AND '{}'
+        GROUP BY inv.id  
+        """.format(str(start_date).replace('T', " "), str(end_date).replace('T', " ")))
+    else:
+        search_form = StockSearchForm()
+        invoicing = Invoicing.objects.raw("""
+        SELECT inv.*, SUM(item.discount_total) AS ds, SUM(item.sub_total) AS sb, 
+        SUM(item.tax_total) AS tax, SUM(item.total) AS tt 
+        FROM isis_invoicing AS inv
+        LEFT JOIN isis_invoicingitem item ON inv.id=item.invoicing_id
+        WHERE inv.date_created BETWEEN '{}' AND '{}'
+        GROUP BY inv.id  """.format(start_date, end_date))
+    
+    context = {}
+    context['search_form'] = search_form
+    context['object_list'] = invoicing
+
+    return render(request, 'isis/listviews/invoicing_list.html', context) 
+
+
+@login_required
+def invoicing_create_view(request):
+    if request.method == 'POST':
+        form = InvoicingForm(request.POST)
+        costumer_form = CostumerForm(request.POST)
+        warehouse_form = WarehouseForm(request.POST)
+        payment_term_form = PaymentTermForm(request.POST)
+        payment_method_form = PaymentMethodForm(request.POST)
+
+        if form.is_valid() or costumer_form.is_valid() or warehouse_form.is_valid() \
+            or payment_method_form.is_valid() or payment_term_form.is_valid():
+            if request.POST.get('save_costumer') or request.POST.get('save_costumer_new'):
+                instance = costumer_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:invoicing_create')
+            
+            if request.POST.get('save_warehouse') or request.POST.get('save_warehouse_new'):
+                instance = warehouse_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:invoicing_create')
+            
+            if request.POST.get('save_payment_method') or request.POST.get('save_payment_method_new'):
+                instance = payment_method_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:invoicing_create')
+            
+            if request.POST.get('save_payment_term') or request.POST.get('save_payment_method_term'):
+                instance = payment_term_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:invoicing_create')
+            
+            instance = form.save(commit=False)
+            instance.created_by = instance.modified_by = request.user
+            instance.date_created = instance.date_modified = datetime.datetime.now()
+    
+            document_number = increment_document_number(Invoicing)
+
+            instance.number = document_number
+            name = '{} {}'.format(_('Invoicing'), document_number)
+            instance.name = name
+            slug = slugify(name)
+            instance.slug = slug
+            instance = instance.save()
+
+            messages.success(request, _("Invoicing created successfully!"))
+
+            return redirect('isis:invoicing_item_create', slug=slug)
+
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('isis:invoicing_create')
+    else:
+        form = InvoicingForm()
+        costumer_form = CostumerForm()
+        warehouse_form = WarehouseForm()
+        payment_term_form = PaymentTermForm()
+        payment_method_form = PaymentMethodForm()
+
+        context = {'form': form, 'costumer_form': costumer_form, 
+        'warehouse_form': warehouse_form, 'payment_term_form': payment_term_form,
+        'payment_method_form': payment_method_form}
+        return render(request, 'isis/createviews/invoicing_create.html', context)
+
+
+@login_required
+def invoicing_update_view(request, slug):
+    invoicing = get_object_or_404(Invoicing, slug=slug)
+
+    if invoicing.is_finished():
+        messages.warning(request,_('Invoicing is closed.'))
+        return redirect('isis:invoicing_list')
+
+    form = InvoicingForm(request.POST or None, instance=invoicing)
+    costumer_form = CostumerForm(request.POST or None)
+    warehouse_form = WarehouseForm(request.POST or None)
+    payment_term_form = PaymentTermForm(request.POST or None)
+    payment_method_form = PaymentMethodForm(request.POST or None)
+
+    invoicing_number = invoicing.number
+
+    if request.method == 'POST':
+
+        if form.is_valid() or costumer_form.is_valid() or warehouse_form.is_valid():
+            if request.POST.get('save_costumer') or request.POST.get('save_costumer_new'):
+                instance = costumer_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:invoicing_create')
+            
+            if request.POST.get('save_warehouse') or request.POST.get('save_warehouse_new'):
+                instance = warehouse_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:invoicing_create')
+
+            if request.POST.get('save_payment_method') or request.POST.get('save_payment_method_new'):
+                instance = payment_method_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:invoicing_create')
+            
+            if request.POST.get('save_payment_term') or request.POST.get('save_payment_method_term'):
+                instance = payment_term_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:invoicing_create')
+            
+            instance = form.save(commit=False)
+            instance.modified_by = request.user
+            instance.slug = slugify(instance.name)
+            instance.date_modified = datetime.datetime.now()
+            instance.number = invoicing_number
+            instance = instance.save()
+            messages.success(request, _("Invoicing updated successfully!"))
+            
+            return redirect('isis:invoicing_item_create', slug=slug)
+        else:
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('isis:invoicing_update', slug=slug)
+
+    context = {'form': form, 'costumer_form': costumer_form, 
+        'warehouse_form': warehouse_form, 'payment_term_form': payment_term_form,
+        'payment_method_form': payment_method_form}
+    return render(request, 'isis/createviews/invoicing_create.html', context)
+
+
+@login_required
+def invoicing_delete_view(request):
+    if request.is_ajax():
+        selected_ids = request.POST['check_box_item_ids']
+        selected_ids = json.loads(selected_ids)
+        for i, id in enumerate(selected_ids):
+            if id != '':
+                try:
+                    Invoicing.objects.filter(id__in=selected_ids).delete()
+                    # Set parent to No parent in invoicings with deleted parents
+                    Invoicing.objects.filter(parent__in=selected_ids).update(parent=0)
+                except Exception as e:
+                    messages.warning(request, _("Not Deleted! {}".format(e)))
+                    return redirect('isis:invoicing_list')
+        
+        messages.warning(request, _("Invoicing delete successfully!"))
+        return redirect('isis:invoicing_list')
+
+
+def invoicing_dashboard_view(request):
+    ROUTINE = 'Routine'
+    PREVENTIVE = 'Preventive'
+    CORRECTIVE = 'Corrective'
+    PREDECTIVE = 'Predective'
+
+    last_invoicings =  Invoicing.objects.all().order_by('-date_created')[:15]
+    total_invoicings =  Invoicing.objects.all().count()
+    all_invoicings = Invoicing.objects.all().order_by('name')
+    
+    context = {}
+    context['total'] = total_invoicings
+    context['last'] = last_invoicings
+    context['all'] = all_invoicings
+    
+    return render(request, 'isis/dashboardviews/invoicing_dashboard.html', context=context)
+
+@login_required
+def invoicing_detail_view(request, slug):
+    # dictionary for initial data with
+    # field names as keys
+    invoicing = get_object_or_404(Invoicing, slug=slug)
+    payments = ReceiptInvoicing.objects.filter(invoicing=invoicing)
+
+    total_payment = [Invoicing.objects.filter(id=i.invoicing_id) for i in payments]
+
+    total = total_payment[0].aggregate(total=Coalesce(Sum('total'), V(0), output_field=DecimalField()))
+    total_paid = payments.aggregate(total=Coalesce(Sum('paid'), V(0), output_field=DecimalField()))
+    total_debt = payments.aggregate(total=Coalesce(Sum('remaining'), V(0), output_field=DecimalField()))
+
+    paid_invoicings = Invoicing.objects.filter(costumer=invoicing.costumer, 
+    paid_status=1).exclude(id=invoicing.id).order_by('-number')[:5]
+    
+    overdue_invoicings = Invoicing.objects.filter(costumer=invoicing.costumer, 
+    paid_status=0, due_date__lt=datetime.datetime.now()).exclude(id=invoicing.id).order_by('number')
+    
+    not_paid_invoicings = Invoicing.objects.filter(costumer=invoicing.costumer, 
+    paid_status=0).exclude(id=invoicing.id).order_by('number')
+    
+    context ={}
+    # add the dictionary during initialization
+    context["invoicing"] = invoicing    
+    context["paid_invoicings"] = paid_invoicings     
+    context["not_paid_invoicings"] = not_paid_invoicings     
+    context["overdue_invoicings"] = overdue_invoicings     
+    context["payments"] = payments
+    context["total"] = total
+    context["total_paid"] = total_paid
+    context["total_debt"] = total_debt
+    
+    return render(request, "isis/detailviews/invoicing_detail_view.html", context)
 
