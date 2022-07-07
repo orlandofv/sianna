@@ -1,0 +1,32 @@
+{% extends 'index.html' %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% load i18n %}
+
+{% block title %} {{ block.super }} | {% trans 'Update Invoicing' %} {% endblock title %}
+
+{% block breadcrumb %}
+{% include 'breadcrumb.html' with title='Update Invoicing' path='<a href="/invoicing/"> Invoicings </a>' dest='Update Invoicing' %}
+{% endblock breadcrumb %}
+            
+{% block content %}
+    
+    <div class="contentContainer">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="conteiner-fluid p-10 m-0" id="results"></div>
+                {% csrf_token %}
+                {% crispy form %}
+            </div>
+        </div>
+    </div>
+    {% include 'modal.html' with title="Add Document" template='isis/modals/document_modal.html' id='document' %}
+    {% include 'modal.html' with title="Add Costumer" template='asset_app/modals/costumer_modal.html' id='costumer' %}
+    {% include 'modal.html' with title="Add Warehouse" template='isis/modals/warehouse_modal.html' id='warehouse' %}
+    {% include 'modal.html' with title="Add Payment Method" template='isis/modals/payment_method_modal.html' id='payment_method' %}
+    {% include 'modal.html' with title="Add Payment Term" template='isis/modals/payment_term_modal.html' id='payment_term' %}
+   
+
+{% endblock content %}

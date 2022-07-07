@@ -14,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from crispy_bootstrap5.bootstrap5 import BS5Accordion
 
 from .models import (Product, Gallery, Tax, Invoice, InvoiceItem, 
-PaymentTerm, PaymentMethod, Receipt, Category, ReceiptInvoice, Document, Invoicing)
+PaymentTerm, PaymentMethod, Receipt, Category, ReceiptInvoice, Document, Invoicing, InvoicingItem)
 from warehouse.models import Warehouse
 from django.utils import timezone
 from users.models import User
@@ -555,7 +555,8 @@ class DocumentForm(forms.ModelForm):
                     Field('notes', rows='2'), css_class='form-group col-md-12 mb-0'),
                 ),
                 HTML('<br>'),
-                Submit('save_document', _('Save'), css_class='btn btn-primary fas fa-save'),
+                Submit('save_document', _('Save & Close'), css_class='btn btn-primary fas fa-save'),
+                Submit('save_document_new', _('Save & New'), css_class='btn btn-primary fas fa-save'),
                 Reset('reset', 'Clear', css_class='btn btn-danger'),
                 flush=True,
                 always_open=True),
@@ -618,14 +619,90 @@ class InvoicingForm(forms.ModelForm):
         model = Invoicing
         exclude = ('date_created', 'date_modified', 'slug', 'created_by', 'modified_by')
 
-
     def clean(self):
 
         cleaned_data = super().clean()
 
         date = cleaned_data.get('date')
         due_date = cleaned_data.get('due_date')
-
+        
         if due_date <= date:
             self.errors['date'] = self.error_class(_("""Due date must be greater than Invoicing date
             """))
+
+
+class InvoicingItemForm(forms.ModelForm):
+    SERVICE = 'SERVICE'
+    PRODUCT = 'PRODUCT'
+    
+    PRODUCT_CHOICES = ((SERVICE, _('Service')), (PRODUCT, _('Product')))
+    type = forms.ChoiceField(choices=PRODUCT_CHOICES, initial=PRODUCT, required=False)
+
+    data = [(x.rate, x.name) for x in Tax.objects.filter(active_status=1)]
+    tax = forms.ChoiceField(choices=data)
+
+    price = forms.DecimalField(max_digits=18, decimal_places=6, initial=0, 
+    widget=forms.NumberInput(attrs={'autocomplete': "off"}))
+    quantity = forms.DecimalField(max_digits=18, decimal_places=6, initial=0, widget=forms.TextInput)
+    discount = forms.DecimalField(max_digits=4, decimal_places=2, initial=0, widget=forms.TextInput)
+    invoicing = forms.CharField(required=False, widget=forms.NumberInput)
+    product = forms.ModelChoiceField(required=False, queryset=Product.objects.filter(active_status=1),
+    widget=forms.Select(attrs={'class': 'product-select'}))
+
+    def __init__(self, *args, **kwargs):
+        super(InvoicingItemForm, self).__init__(*args, **kwargs)
+        
+        self.fields['price'].widget = ListTextWidget(data_list=[], name='price_list')
+
+        self.helper = FormHelper()
+        self.helper.form_id = "invoicing-items-form-id"
+        self.helper.form_class = "form-inline"
+        self.helper.layout = Layout(
+        BS5Accordion(
+            AccordionGroup(_('INVOICE ITEMS'),
+            Row(
+                Column('product', css_class='form-group col-md-4 mb-0'),
+                Column('type', css_class='form-group col-md-2 mb-0'),
+                Column('price', css_class='form-group col-md-2 mb-0'),
+                Column('quantity', css_class='form-group col-md-1 mb-0'),
+                Column('discount', css_class='form-group col-md-1 mb-0'),
+                Column('tax', css_class='form-group col-md-2 mb-0'),
+                css_class='form-row'),
+            
+                Submit('add_item', _('Add Item'), css_class='btn btn-primary fa fa-plus-circle'),
+        ),))
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        print(cleaned_data)
+
+        price = cleaned_data.get('price')
+        discount = cleaned_data.get('discount')
+        product = cleaned_data.get('product')
+        
+        try:
+            pr = Product.objects.get(name=product)
+            min_price = pr.min_sell_price
+
+            if price < min_price:
+                self.errors['price'] = self.error_class(_("""
+                Price is lower than the product Minimum selling price {}.""".format(min_price)))
+
+        except Product.DoesNotExist:
+            min_price = 0
+
+        if discount is None:
+            self.errors['discount'] = self.error_class(_("""
+            discount must be between 0 and 99.99."""))
+        elif discount > 100 or discount < 0:
+            self.errors['discount'] = self.error_class(_("""
+            discount must be between 0 and 100."""))
+
+    def clean_invoicing(self):
+        return None
+
+    class Meta:
+        model = InvoicingItem
+        fields = "__all__"
+
+

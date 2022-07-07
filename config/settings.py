@@ -35,7 +35,9 @@ SECRET_KEY = 'nxbt(-1(#@54=3mj$wcipto5_+wk2d*!m2wq(6tmknm+6(i%%6'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['*']
+
+ALLOWED_HOSTS = ['.vercel.app']
 
 INTERNAL_IPS = [
     # ...
@@ -116,18 +118,20 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'mysql.connector.django',
-        'NAME': 'data',
-        'USER': 'root',
-        'PASSWORD': 'abc123@123',
-        'PORT': '3306',
-        'OPTIONS': {
-          'autocommit': True,
-        },
-    }
-}
+DATABASES = {}
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'mysql.connector.django',
+#         'NAME': 'data',
+#         'USER': 'root',
+#         'PASSWORD': 'abc123@123',
+#         'PORT': '3306',
+#         'OPTIONS': {
+#           'autocommit': True,
+#         },
+#     }
+# }
 
 
 # Password validation

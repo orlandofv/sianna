@@ -5,7 +5,7 @@ import sys
 import os
 
 from django.db.models import DecimalField
-from django.db.models import Sum, Value as V, F
+from django.db.models import Sum, Value as V, F, Q
 from django.db.models.functions import Coalesce
 from django.db.models.functions import Coalesce
 from django.db import connection, IntegrityError
@@ -26,16 +26,17 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.contrib.staticfiles.finders import find
 from django.templatetags.static import static
+from django.forms import ValidationError
 
 from config import utilities
 from asset_app.forms import CostumerForm
 from asset_app.models import Costumer
 from .models import (Gallery, Product, Tax, Warehouse, Invoice, PaymentTerm, PaymentMethod, Receipt, 
-InvoiceItem, Category, ReceiptInvoice, Document, Invoicing)
+InvoiceItem, Category, ReceiptInvoice, Document, Invoicing, InvoicingItem, DocumentPayment)
 from users.models import User
 from .forms import (ProductForm, TaxForm, PaymentTermForm, 
 PaymentMethodForm, ReceiptForm, InvoiceItemForm, InvoiceForm, CategoryForm, 
-DocumentForm, InvoicingForm)
+DocumentForm, InvoicingForm, InvoicingItemForm)
 
 from warehouse.models import Warehouse
 from warehouse.forms import WarehouseForm
@@ -43,7 +44,9 @@ from asset_app.models import (Costumer, Settings)
 from stock.models import Stock
 from stock.forms import StockSearchForm
 
-from utilities import increment_document_number
+from utilities import increment_invoice_number, increment_document_number
+
+PRODUCT_SAVED = False
 
 
 ########################## Category ##########################
@@ -513,6 +516,71 @@ def invoice_list_view(request):
 
     return render(request, 'isis/listviews/invoice_list.html', context) 
 
+def get_product_name(id):
+    try:
+        product = Product.objects.get(id=id)
+        return product
+    except Product.DoesNotExist:
+        return None
+
+
+def get_product_id(product_name):
+    try:
+        product = Product.objects.get(name=product_name)
+        return product
+    except Product.DoesNotExist:
+        return None
+
+
+def get_or_save_product(request, product_id, tax, warehouse):
+
+    print(product_id)
+    # Session that controls if the product was added dinamically or not 
+    # Sessions work as global variables
+    new_product = request.session.get('new_product')
+
+    print('New product ', new_product)
+    try:
+        # Workaround to avoid product duplication error on DB
+        if new_product:
+            product = Product.objects.filter(name=product_id).first()
+            request.session['new_product'] = False
+        else:
+            product = Product.objects.filter(id=int(product_id)).first()
+    except (Product.DoesNotExist, ValueError) as e:
+        print(e)
+        product = None
+    
+    print(product)
+
+    if not product:
+        print('No product')
+        if request.user.is_staff:
+            import random
+
+            user = request.user
+            chars = 'ABCDEFGHIJKLMNOPKRSTUVXYZabcdefghijklmnopkqrstuvxwz1234567890'
+            code = ''.join(random.choice(chars) for i in range(8))
+            type = request.POST.get('type') or 'PRODUCT'
+            sell_price = request.POST.get('price') or '0'
+            tax_object = Tax.objects.get(rate=tax) or '0'
+
+            category = Category.objects.all().first()
+
+            slug = slugify(product_id)
+            product = Product(code=code, name=product_id, slug=slug, tax=tax_object, warehouse=warehouse, 
+            created_by=user, category=category, modified_by=request.user, type=type, sell_price=sell_price)
+            product.save()
+
+            print('Product saved ', product)
+            # Session that controls if the product was added dinamically or not 
+            request.session['new_product'] = True
+
+        else:
+            messages.error(request, _("Please contact Administrator to add new Products!"))
+        
+    return product
+
 
 @login_required
 def invoice_create_view(request):
@@ -561,7 +629,7 @@ def invoice_create_view(request):
             instance.created_by = instance.modified_by = request.user
             instance.date_created = instance.date_modified = datetime.datetime.now()
     
-            document_number = increment_document_number(Invoice)
+            document_number = increment_invoice_number(Invoice)
 
             instance.number = document_number
             name = '{} {}'.format(_('Invoice'), document_number)
@@ -596,7 +664,7 @@ def invoice_update_view(request, slug):
     invoice = get_object_or_404(Invoice, slug=slug)
 
     if invoice.is_finished():
-        messages.warning(request,_('Invoice is closed.'))
+        messages.warning(request,_('Invoice is closed and cannot be edited.'))
         return redirect('isis:invoice_list')
 
     form = InvoiceForm(request.POST or None, instance=invoice)
@@ -734,37 +802,6 @@ def invoice_detail_view(request, slug):
     return render(request, "isis/detailviews/invoice_detail_view.html", context)
 
 
-def get_or_save_product(request, product_name, tax, warehouse):
-
-    try:
-        product = Product.objects.get(name=product_name)
-    except Product.DoesNotExist:
-        product = None
-    
-    print(product)
-
-    if not product:
-        if request.user.is_staff:
-            import random
-
-            user = request.user
-            chars = 'ABCDEFGHIJKLMNOPKRSTUVXYZabcdefghijklmnopkqrstuvxwz1234567890'
-            code = ''.join(random.choice(chars) for i in range(8))
-            type = request.POST.get('type') or 'PRODUCT'
-            sell_price = request.POST.get('price') or '0'
-            tax_object = Tax.objects.get(rate=tax) or '0'
-
-            category = Category.objects.all().first()
-
-            slug = slugify(product_name)
-            product = Product(code=code, name=product_name, slug=slug, tax=tax_object, warehouse=warehouse, 
-            created_by=user, category=category, modified_by=request.user, type=type, sell_price=sell_price)
-            product.save()
-        else:
-            messages.error(request, _("Please contact Administrator to add new Products!"))
-        
-    return product
-
 def get_static(path):
     if settings.DEBUG:
         return find(path)
@@ -876,7 +913,7 @@ def invoice_item_create_view(request, slug):
     invoice = get_object_or_404(Invoice, slug=slug)
     
     if invoice.is_finished():
-        messages.warning(request,_('Invoice is closed.'))
+        messages.warning(request,_('Invoice is closed and cannot be edited.'))
         return redirect('isis:invoice_list')
 
     items = InvoiceItem.objects.filter(invoice=invoice)
@@ -934,14 +971,16 @@ def invoice_item_create_view(request, slug):
 
 
 def increase_decrease_invoice_totals(invoice_id):
+    """
+    Modifies (Decreases or increases) Invoice totals when item is deleted
+    """
+
     items = InvoiceItem.objects.filter(invoice=invoice_id)
 
     tax_total = items.aggregate(tax=Coalesce(Sum('tax_total'), V(0), output_field=DecimalField()))
     discount_total = items.aggregate(discount=Coalesce(Sum('discount_total'), V(0), output_field=DecimalField()))
     sub_total = items.aggregate(subtotal=Coalesce(Sum('sub_total'), V(0), output_field=DecimalField()))
     total = items.aggregate(total=Coalesce(Sum('total'), V(0), output_field=DecimalField()))
-
-    print(tax_total, discount_total, sub_total, total)
 
     inv = Invoice.objects.filter(id=invoice_id).update(
     debit=total['total'],
@@ -951,7 +990,8 @@ def increase_decrease_invoice_totals(invoice_id):
     total_discount=discount_total['discount']
     )
 
-    print(inv)
+    return inv
+
 
 def get_invoice_from_items(item_id):
     try:
@@ -1187,7 +1227,7 @@ def receipt_invoice_view(request, slug):
     receipt = get_object_or_404(Receipt, slug=slug)
 
     if receipt.is_finished():
-        messages.warning(request,_('Receipt is closed.'))
+        messages.warning(request,_('Receipt is closed and cannot be edited.'))
         return redirect('isis:receipt_list')
 
     invoices = Invoice.objects.filter(costumer=receipt.costumer,
@@ -1259,7 +1299,7 @@ def receipt_create_view(request):
             instance.credit = 0
             instance.debit = 0
 
-            document_number = increment_document_number(Receipt)
+            document_number = increment_invoice_number(Receipt)
 
             instance.number = document_number
             name = '{} {}'.format(_('Receipt'), document_number)
@@ -1484,49 +1524,100 @@ def invoicing_create_view(request):
         warehouse_form = WarehouseForm(request.POST)
         payment_term_form = PaymentTermForm(request.POST)
         payment_method_form = PaymentMethodForm(request.POST)
+        document_form = DocumentForm(request.POST)
 
-        if form.is_valid() or costumer_form.is_valid() or warehouse_form.is_valid() \
-            or payment_method_form.is_valid() or payment_term_form.is_valid():
-            if request.POST.get('save_costumer') or request.POST.get('save_costumer_new'):
+        if request.POST.get('save_costumer') is not None \
+            or request.POST.get('save_costumer_new') is not None:
+            print(costumer_form.is_valid())
+
+            if costumer_form.is_valid():
                 instance = costumer_form.save(commit=False)
                 instance.created_by = instance.modified_by = request.user
                 instance.date_created = instance.date_modified = datetime.datetime.now()
+                if request.POST.get('parent') is None or request.POST.get('parent') == "":
+                    instance.parent = 0
+                else:
+                    instance.parent = int(request.POST.get('parent'))
                 instance = instance.save()
 
                 return redirect('isis:invoicing_create')
-            
-            if request.POST.get('save_warehouse') or request.POST.get('save_warehouse_new'):
-                instance = warehouse_form.save(commit=False)
-                instance.created_by = instance.modified_by = request.user
-                instance.date_created = instance.date_modified = datetime.datetime.now()
-                instance = instance.save()
-
+            else:
+                for error in costumer_form.errors.values():
+                    messages.error(request, error)
                 return redirect('isis:invoicing_create')
-            
-            if request.POST.get('save_payment_method') or request.POST.get('save_payment_method_new'):
-                instance = payment_method_form.save(commit=False)
-                instance.created_by = instance.modified_by = request.user
-                instance.date_created = instance.date_modified = datetime.datetime.now()
-                instance = instance.save()
 
+        if request.POST.get('save_warehouse') or request.POST.get('save_warehouse_new'):
+            if warehouse_form.is_valid():
+                    instance = warehouse_form.save(commit=False)
+                    instance.created_by = instance.modified_by = request.user
+                    instance.date_created = instance.date_modified = datetime.datetime.now()
+                    if request.POST.get('parent') is None or request.POST.get('parent') == "":
+                        instance.parent = 0
+                    else:
+                        instance.parent = int(request.POST.get('parent'))
+                    instance = instance.save()
+
+                    return redirect('isis:invoicing_create')
+            else:
+                for error in warehouse_form.errors.values():
+                    messages.error(request, error)
                 return redirect('isis:invoicing_create')
+
+        if request.POST.get('save_payment_method') \
+            or request.POST.get('save_payment_method_new'):
+            if  payment_method_form.is_valid():
             
-            if request.POST.get('save_payment_term') or request.POST.get('save_payment_method_term'):
+                    instance = payment_method_form.save(commit=False)
+                    instance.created_by = instance.modified_by = request.user
+                    instance.date_created = instance.date_modified = datetime.datetime.now()
+                    instance = instance.save()
+
+                    return redirect('isis:invoicing_create')
+            else:
+                for error in payment_method_form.errors.values():
+                    messages.error(request, error)
+                return redirect('isis:invoicing_create')
+
+        if request.POST.get('save_payment_term') or \
+            request.POST.get('save_payment_term_new'):
+            if payment_term_form.is_valid():
                 instance = payment_term_form.save(commit=False)
                 instance.created_by = instance.modified_by = request.user
                 instance.date_created = instance.date_modified = datetime.datetime.now()
                 instance = instance.save()
 
                 return redirect('isis:invoicing_create')
-            
+            else:
+                for error in payment_term_form.errors.values():
+                    messages.error(request, error)
+                return redirect('isis:invoicing_create')
+        
+        if request.POST.get('save_document') or request.POST.get('save_document_new'):
+            if document_form.is_valid():
+                instance = document_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:invoicing_create')
+            else:
+                for error in document_form.errors.values():
+                    messages.error(request, error)
+                return redirect('isis:invoicing_create')
+                
+        if form.is_valid():
+
             instance = form.save(commit=False)
             instance.created_by = instance.modified_by = request.user
             instance.date_created = instance.date_modified = datetime.datetime.now()
-    
-            document_number = increment_document_number(Invoicing)
+
+            document = request.POST.get('document')
+
+            document_number = increment_document_number(Invoicing, int(document))
 
             instance.number = document_number
-            name = '{} {}'.format(_('Invoicing'), document_number)
+
+            name = '{} {}'.format(Document.objects.get(id=int(document)), document_number)
             instance.name = name
             slug = slugify(name)
             instance.slug = slug
@@ -1546,72 +1637,118 @@ def invoicing_create_view(request):
         warehouse_form = WarehouseForm()
         payment_term_form = PaymentTermForm()
         payment_method_form = PaymentMethodForm()
+        document_form = DocumentForm()
 
         context = {'form': form, 'costumer_form': costumer_form, 
         'warehouse_form': warehouse_form, 'payment_term_form': payment_term_form,
-        'payment_method_form': payment_method_form}
+        'payment_method_form': payment_method_form, 'document_form': document_form}
         return render(request, 'isis/createviews/invoicing_create.html', context)
 
 
 @login_required
 def invoicing_update_view(request, slug):
     invoicing = get_object_or_404(Invoicing, slug=slug)
-
+    
     if invoicing.is_finished():
-        messages.warning(request,_('Invoicing is closed.'))
+        messages.warning(request,_('Document is closed and cannot be edited.'))
         return redirect('isis:invoicing_list')
 
     form = InvoicingForm(request.POST or None, instance=invoicing)
+    # Disable document select input
+    form.fields['document'].disabled = True 
+
     costumer_form = CostumerForm(request.POST or None)
     warehouse_form = WarehouseForm(request.POST or None)
     payment_term_form = PaymentTermForm(request.POST or None)
     payment_method_form = PaymentMethodForm(request.POST or None)
-
-    invoicing_number = invoicing.number
+    document_form = DocumentForm(request.POST or None)
 
     if request.method == 'POST':
-
-        if form.is_valid() or costumer_form.is_valid() or warehouse_form.is_valid():
-            if request.POST.get('save_costumer') or request.POST.get('save_costumer_new'):
+        if request.POST.get('save_costumer') is not None \
+            or request.POST.get('save_costumer_new') is not None:
+    
+            if costumer_form.is_valid():
                 instance = costumer_form.save(commit=False)
                 instance.created_by = instance.modified_by = request.user
                 instance.date_created = instance.date_modified = datetime.datetime.now()
+                if request.POST.get('parent') is None or request.POST.get('parent') == "":
+                    instance.parent = 0
+                else:
+                    instance.parent = int(request.POST.get('parent'))
                 instance = instance.save()
 
-                return redirect('isis:invoicing_create')
-            
-            if request.POST.get('save_warehouse') or request.POST.get('save_warehouse_new'):
+                return redirect('isis:invoicing_update', slug=slug)
+            else:
+                for error in costumer_form.errors.values():
+                    messages.error(request, error)
+                return redirect('isis:invoicing_update', slug=slug)
+
+        if request.POST.get('save_warehouse') or request.POST.get('save_warehouse_new'):
+            if warehouse_form.is_valid():
                 instance = warehouse_form.save(commit=False)
                 instance.created_by = instance.modified_by = request.user
                 instance.date_created = instance.date_modified = datetime.datetime.now()
+                if request.POST.get('parent') is None or request.POST.get('parent') == "":
+                    instance.parent = 0
+                else:
+                    instance.parent = int(request.POST.get('parent'))
                 instance = instance.save()
 
-                return redirect('isis:invoicing_create')
+                return redirect('isis:invoicing_update', slug=slug)
+            else:
+                for error in warehouse_form.errors.values():
+                    messages.error(request, error)
+                return redirect('isis:invoicing_update', slug=slug)
 
-            if request.POST.get('save_payment_method') or request.POST.get('save_payment_method_new'):
+        if request.POST.get('save_payment_method') \
+            or request.POST.get('save_payment_method_new'):
+            if  payment_method_form.is_valid():
+        
                 instance = payment_method_form.save(commit=False)
                 instance.created_by = instance.modified_by = request.user
                 instance.date_created = instance.date_modified = datetime.datetime.now()
                 instance = instance.save()
 
-                return redirect('isis:invoicing_create')
-            
-            if request.POST.get('save_payment_term') or request.POST.get('save_payment_method_term'):
+                return redirect('isis:invoicing_update', slug=slug)
+            else:
+                for error in payment_method_form.errors.values():
+                    messages.error(request, error)
+                return redirect('isis:invoicing_update', slug=slug)
+
+        if request.POST.get('save_payment_term') or \
+            request.POST.get('save_payment_term_new'):
+            if payment_term_form.is_valid():
                 instance = payment_term_form.save(commit=False)
                 instance.created_by = instance.modified_by = request.user
                 instance.date_created = instance.date_modified = datetime.datetime.now()
                 instance = instance.save()
 
-                return redirect('isis:invoicing_create')
-            
+                return redirect('isis:invoicing_update', slug=slug)
+            else:
+                for error in payment_term_form.errors.values():
+                    messages.error(request, error)
+                return redirect('isis:invoicing_update', slug=slug)
+        
+        if request.POST.get('save_document') or request.POST.get('save_document_new'):
+            if document_form.is_valid():
+                instance = document_form.save(commit=False)
+                instance.created_by = instance.modified_by = request.user
+                instance.date_created = instance.date_modified = datetime.datetime.now()
+                instance = instance.save()
+
+                return redirect('isis:invoicing_update', slug=slug)
+            else:
+                for error in document_form.errors.values():
+                    messages.error(request, error)
+                return redirect('isis:invoicing_update', slug=slug)
+                
+        if form.is_valid():
+
             instance = form.save(commit=False)
             instance.modified_by = request.user
-            instance.slug = slugify(instance.name)
             instance.date_modified = datetime.datetime.now()
-            instance.number = invoicing_number
             instance = instance.save()
-            messages.success(request, _("Invoicing updated successfully!"))
-            
+
             return redirect('isis:invoicing_item_create', slug=slug)
         else:
             for error in form.errors.values():
@@ -1620,7 +1757,7 @@ def invoicing_update_view(request, slug):
 
     context = {'form': form, 'costumer_form': costumer_form, 
         'warehouse_form': warehouse_form, 'payment_term_form': payment_term_form,
-        'payment_method_form': payment_method_form}
+        'payment_method_form': payment_method_form, 'document_form': document_form}
     return render(request, 'isis/createviews/invoicing_create.html', context)
 
 
@@ -1633,7 +1770,7 @@ def invoicing_delete_view(request):
             if id != '':
                 try:
                     Invoicing.objects.filter(id__in=selected_ids).delete()
-                    # Set parent to No parent in invoicings with deleted parents
+                    # Set parent to No parent in invoicing with deleted parents
                     Invoicing.objects.filter(parent__in=selected_ids).update(parent=0)
                 except Exception as e:
                     messages.warning(request, _("Not Deleted! {}".format(e)))
@@ -1694,4 +1831,199 @@ def invoicing_detail_view(request, slug):
     context["total_debt"] = total_debt
     
     return render(request, "isis/detailviews/invoicing_detail_view.html", context)
+
+
+@login_required
+def invoicing_item_delete_view(request):
+    
+    if request.is_ajax():
+        selected_ids = request.POST['check_box_item_ids']
+        selected_ids = json.loads(selected_ids)
+        
+        print(selected_ids)
+        if len(selected_ids) == 1 and selected_ids[0] == 'None':
+            return redirect('isis:invoicing_item_create')
+
+        if len(selected_ids) > 1:
+            item = InvoicingItem.objects.filter(id=int(selected_ids[1])).first()
+        else:
+            item = InvoicingItem.objects.filter(id=int(selected_ids[0])).first()
+
+        try:
+            InvoicingItem.objects.filter(id__in=selected_ids).delete()
+            increase_decrease_invoicing_totals(item.invoicing_id)
+        except Exception as e:
+            messages.warning(request, _("Not Deleted! {}.".format(e)))
+            print(e)
+            return redirect('isis:invoicing_create')
+        return redirect('isis:invoicing_create')
+
+
+@login_required
+def invoicing_item_create_view(request, slug):
+    """
+    Creates or Adds Invoicing Items
+    """
+    invoicing = get_object_or_404(Invoicing, slug=slug)
+    
+    if invoicing.is_finished():
+        messages.warning(request,_('Document is closed and cannot be edited.'))
+        return redirect('isis:invoicing_list')
+
+    items = InvoicingItem.objects.filter(invoicing=invoicing)
+
+    tax_total = items.aggregate(tax=Coalesce(Sum('tax_total'), V(0), output_field=DecimalField()))
+    discount_total = items.aggregate(discount=Coalesce(Sum('discount_total'), V(0), output_field=DecimalField()))
+    sub_total = items.aggregate(subtotal=Coalesce(Sum('sub_total'), V(0), output_field=DecimalField()))
+    total = items.aggregate(total=Coalesce(Sum('total'), V(0), output_field=DecimalField()))
+
+    if request.method == 'POST':
+        form = InvoicingItemForm(request.POST)
+
+        if request.POST.get('validate'):
+            document = '{} - {}'.format(_('Invoicing'), invoicing.id)
+
+            # Records stock movement 
+            if invoicing.finished_status == 0:
+                for i in items:
+                    manage_stock(request, document, i.product, -i.quantity, invoicing.warehouse, invoicing.costumer, 
+                "Costumer Invoicing")
+            
+            # Changes the Invoicing status to finished_status
+            inv = Invoicing.objects.filter(id=invoicing.id).update(finished_status=1)
+            
+            if invoicing.document.track_payment == 1:
+                return redirect('isis:document_payment', slug=slug)
+            else:
+                return redirect('isis:invoicing_show', slug=slug)         
+        else:
+            # Records a line to Invoicing
+            name = request.POST.get('product')
+            quantity = Decimal(request.POST.get('quantity'))
+            tax = Decimal(request.POST.get('tax'))
+            discount = Decimal(request.POST.get('discount'))
+            price = Decimal(request.POST.get('price'))
+            warehouse = invoicing.warehouse
+
+            # Gets or saves the product information
+            product_object = get_or_save_product(request, name, tax, warehouse)
+            print(product_object)
+
+            if not product_object:
+                return redirect('isis:invoicing_item_create', slug=slug)
+
+            # save the data and after fetch the object in instance
+            instance = InvoicingItem(invoicing=invoicing, tax=tax, quantity=quantity,
+            discount= discount, price=price, product=product_object) 
+            instance.save()
+            
+            increase_decrease_invoicing_totals(invoicing.id)
+
+        return redirect('isis:invoicing_item_create', slug=slug)
+    else:
+        form = InvoicingItemForm(None)
+        return render(request, 'isis/createviews/invoicing_item_create.html', 
+        {'invoicing': invoicing, 'form': form, 'items': items, 'tax_total': tax_total, 
+        'discount_total': discount_total, 'sub_total': sub_total, 'total': total})
+
+
+@login_required
+def invoicing_show(request, slug):
+    """
+    Displays Invoicing for printing, export, ...
+    """
+    invoicing = get_object_or_404(Invoicing, slug=slug)
+    items = InvoicingItem.objects.filter(invoicing=invoicing)
+
+    tax_total = items.aggregate(Sum('tax_total'))
+    discount_total = items.aggregate(Sum('discount_total'))
+    sub_total = items.aggregate(Sum('sub_total'))
+    total = items.aggregate(Sum('total'))
+
+    costumer = Costumer.objects.get(id=invoicing.costumer.id)
+    company = Settings.objects.first()
+
+    context = {'invoicing': invoicing, 'items': items, 'tax_total': tax_total, 
+    'discount_total': discount_total, 'sub_total': sub_total, 
+    'total': total, 'costumer': costumer, 'company': company}
+
+    instance = Invoicing.objects.filter(id=invoicing.id).update(finished_status=1)
+    return render(request, 'isis/documents/invoicing.html', context) 
+
+
+def increase_decrease_invoicing_totals(invoicing_id):
+    """
+    Modifies (Decreases or increases) Invoicing totals when item is deleted
+    """
+
+    items = InvoicingItem.objects.filter(invoicing=invoicing_id)
+
+    tax_total = items.aggregate(tax=Coalesce(Sum('tax_total'), V(0), output_field=DecimalField()))
+    discount_total = items.aggregate(discount=Coalesce(Sum('discount_total'), V(0), output_field=DecimalField()))
+    sub_total = items.aggregate(subtotal=Coalesce(Sum('sub_total'), V(0), output_field=DecimalField()))
+    total = items.aggregate(total=Coalesce(Sum('total'), V(0), output_field=DecimalField()))
+
+    inv = Invoicing.objects.filter(id=invoicing_id).update(
+    debit=total['total'],
+    total=total['total'],
+    subtotal=sub_total['subtotal'],
+    total_tax=tax_total['tax'],
+    total_discount=discount_total['discount']
+    )
+
+    return inv
+
+
+def document_payment_view(request, slug):
+    invoicing = get_object_or_404(Invoicing, slug=slug)
+    payment_method = PaymentMethod.objects.filter(active_status=1)
+
+    if request.method == "POST":
+        data = dict(request.POST)
+
+        print(request.POST)
+
+        i = 0
+        for d in data['amount']:
+            
+            # compute Total paid amount 
+            # Get the list containing the total paid amount
+            l = data['amount']
+            t = sum([Decimal(i) for i in l if i.isdecimal()])
+            
+            if t < Decimal(invoicing.total):
+                messages.error(request, _('Paid amount is less than total, it must be equal to total amount.'))
+                return redirect('isis:document_payment', slug=slug)
+            elif t > Decimal(invoicing.total):
+                messages.error(request, _('Paid amount is more than total, it must be equal to total amount.'))
+                return redirect('isis:document_payment', slug=slug)
+
+            # if theres a payment amount entered in input
+            if d:
+                notes = data['notes'][i]
+                file = data['file'][i]
+                payment_method_ = PaymentMethod.objects.filter(id=int(data['payment_id'][i])).first()
+
+                print(i)
+                print(data['payment_id'][i])
+
+                payment = DocumentPayment.objects.create(invoicing=invoicing, 
+                payment_method=payment_method_, amount=Decimal(d), 
+                notes=notes, file=file)
+                
+                i += 1
+
+        # We a going to use date_modified for payment date
+        Invoicing.objects.filter(id=invoicing.id).update(date_modified= datetime.datetime.now(), 
+        finished_status=1, paid_status=1, debit=0, credit=invoicing.total)
+
+        messages.success(request, _("Payment entered successfully"))
+        invoicing_show(request, slug)
+        return redirect('isis:invoicing_show', slug=slug)
+
+    context = {}
+    context['invoicing'] = invoicing
+    context['payment_method'] = payment_method
+
+    return render(request, 'isis/modals/document_payment_modal.html', context)
 

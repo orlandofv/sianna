@@ -1,0 +1,180 @@
+{% extends 'index.html' %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% load i18n %}
+{% load humanize %}
+
+{% block title %} {{ block.super }} | {% trans 'Invoicing Details' %} {% endblock title %}
+
+{% block breadcrumb %}
+    {% include 'breadcrumb.html' with title='Invoicing Details' path='<a href="/invoicing/"> Invoicings</a>' dest='Details'  %}
+{% endblock breadcrumb %}
+
+{% block content %}
+    
+    <div class="contentContainer">
+        <div class="row">
+            <div class="col-md-12">
+                <h1
+                {% if invoicing.is_paid %}
+                    style="color: green;"
+                {% else %}
+                    style="color: orange;"
+                {% endif %}
+                >{{ invoicing.name }}</h1>
+                <a href="{% url 'isis:invoicing_create' %}" 
+                    class="fa fa-plus-circle btn btn-primary">
+                   
+                </a> 
+                <a href="{% url 'isis:invoicing_update' invoicing.slug %}" 
+                    class="fa fa-pencil btn btn-secondary">
+                     
+                </a> 
+                <a href="{% url 'isis:invoicing_list' %}" 
+                    class="fa fa-list btn btn-info">
+                    {% trans 'List' %} 
+                </a>
+                
+                <button class="btn btn-primary fa fa-copy" onclick="cloneInvoicing('{% url 'isis:invoicing_create' %}');">
+                    Clone
+                </button>
+                <hr>
+                <table class="table table-small">
+                <tr><td width="15%">{% trans 'Total' %}: <td>{{ invoicing.total | floatformat:2 |intcomma }}</td></tr>
+                <tr><td>{% trans 'Paid' %}: </td> <td>{{ invoicing.credit | floatformat:2 |intcomma }}</td></tr>
+                <tr><td>{% trans 'Debit' %}: </td> <td>{{ invoicing.debit | floatformat:2 |intcomma }}</td></tr>
+                <tr><td>{% trans 'Costumer' %}: </td> <td>{{ invoicing.costumer }}</td></tr>
+                <tr><td>{% trans 'Date' %}: </td> <td>{{ invoicing.date }}</td></tr>
+                <tr><td>{% trans 'Due Date' %}: </td> <td>{{ invoicing.due_date }}</td></tr>
+                <tr><td>{% trans 'Payment Method' %}: </td> <td>{{ invoicing.payment_method }}</td></tr>
+                <tr><td>{% trans 'Payment Term' %}: </td> <td>{{ invoicing.payment_term }}</td></tr>
+                <tr><td>{% trans 'Paid Status' %}:  </td>
+                    <td>
+                        {{ invoicing.payment_status }}
+                    </td>
+                </tr>
+                
+                <tr><td> {% trans 'Delivered Status' %}:  </td>
+                    <td>
+                        {{ invoicing.delivery_status }}
+                    </td>
+                </tr>
+                
+                <tr><td>{% trans 'Finished Status' %}: </td> 
+                    <td>
+                        {% if invoicing.finished_status %}
+                            {% trans "Validated" %}
+                        {% else %}
+                            {% trans "Not Validated" %}
+                        {% endif %}
+                    </td>
+                </tr>
+                
+                <tr><td>{% trans 'Active' %}: </td>
+                    <td>  
+                        {% if invoicing.active_status %} {% trans 'Active' %}
+                        {% else %} {% trans 'Canceled' %}
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <tr><td>{% trans 'Notes' %}: </td> <td>{{ invoicing.notes }}</td></tr>
+            </table>
+                
+            <p>{% trans 'Created on' %}: <i>{{ invoicing.date_created}}</i></p>
+            <p>{% trans 'Creted by' %}: <i>{{ invoicing.created_by }}</i></p>
+            <p>{% trans 'Modified on' %}: <i>{{ invoicing.date_modified }}</i></p>
+            <p>{% trans 'Modified by' %}: <i>{{ invoicing.modified_by }}</i></p>
+            </div>
+        </div>
+        
+        {% if paid_invoicings %}
+        <div class="panel panel-primary mt-2">
+            <div class="panel-title">Last 5 Costumer Paid Invoicings</div>
+            <div class='card-body'>
+                {% for paid in paid_invoicings %}
+                    <a href="{% url 'isis:invoicing_details' paid.slug %}" 
+                    class="fa fa-book btn btn-default card-text">
+                        {{ paid }}
+                    </a> 
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if not_paid_invoicings %}
+        <div class="panel panel-warning mt-2">
+            <div class="panel-title">Costumer Noit Paid Invoicings</div>
+            <div class='card-body'>
+                {% for not_paid in not_paid_invoicings %}
+                    <a href="{% url 'isis:invoicing_details' not_paid.slug %}" 
+                    class="fa fa-book btn btn-warning card-text">
+                        {{ not_paid }}
+                    </a> 
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if overdue_invoicings %}
+        <div class="panel panel-warning mt-2">
+            <div class="panel-title"><a href="#">Costumer Overdue Invoicings 
+                Mailbox <span class="btn btn-primary">{{ overdue_invoicings | length }}</td></a></div>
+            <div class='card-body'>
+                {% for overdue_paid in overdue_invoicings %}
+                    <a href="{% url 'isis:invoicing_details' overdue_paid.slug %}" 
+                    class="fa fa-book btn btn-danger card-text">
+                        {{ overdue_paid }}
+                    </a> 
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if payments %}
+            <div class="panel panel-primary mt-2">
+                <div class="panel-title">{% trans "Payments" %}</div>
+                <div class='card-body'>
+                    <table class='table table-small'>
+                        <thead>
+                            <tr>
+                                <th>{% trans "Receipt" %}</th>
+                                <th>{% trans "Date" %}</th>
+                                <th class="text-end">{% trans "Total" %}</th>
+                                <th class="text-end">{% trans "Paid" %}</th>
+                                <th class="text-end">{% trans "Ramaining" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in payments %}
+                                <tr>
+                                    <td>    
+                                        <a href="{% url 'isis:receipt_details' item.receipt.slug %}" 
+                                        class="fa fa-book btn btn-default card-text">
+                                            {{ item.receipt.name }}
+                                        </a>
+                                    </td> 
+                                    <td>{{ item.receipt.date_created }}</td>
+                                    <td class="text-end">{{ item.debit | floatformat:2 |intcomma }}</td>
+                                    <td class="text-end">{{ item.paid | floatformat:2 |intcomma }}</td>
+                                    <td class="text-end">{{ item.remaining | floatformat:2 |intcomma }}</td>
+                                </tr>
+                            {% endfor %}
+                            <tr>
+                                <th>{% trans "Totals" %}</th>
+                                <th></th>
+                                <th class="text-end">{{ total.total | floatformat:2 |intcomma }}</th>
+                                <th class="text-end">{{ total_paid.total | floatformat:2 |intcomma }}</th>
+                                <th class="text-end">{{ total_debt.total | floatformat:2 |intcomma }}</th>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+        
+    </div>
+{% endblock content %}

@@ -5,15 +5,18 @@ from django.urls import path
 from .views import (product_create_view, product_list_view, product_update_view, product_delete_view, 
 product_detail_view, product_dashboard_view, tax_create_view, tax_list_view, tax_update_view, tax_delete_view,
 tax_detail_view, invoice_create_view, invoice_list_view, invoice_update_view, invoice_delete_view, 
-invoice_detail_view, receipt_create_view, ReceiptListView, receipt_update_view, receipt_delete_view, 
+invoice_item_create_view, invoice_item_delete_view, invoice_detail_view, invoice_show, 
+receipt_create_view, ReceiptListView, receipt_update_view, receipt_delete_view, 
 receipt_detail_view, receipt_show,
 payment_method_create_view, payment_method_list_view, receipt_invoice_view, 
 payment_method_update_view, payment_method_delete_view, 
 payment_term_create_view, payment_term_list_view, payment_term_update_view, payment_term_delete_view, 
-invoice_item_create_view, invoice_item_delete_view, invoice_show, load_sell_prices,
-category_create_view, CategoryListView, category_update_view, category_delete_view,
+load_sell_prices, category_create_view, CategoryListView, category_update_view, category_delete_view,
 category_detail_view,
 DocumentListView, document_update_view, document_delete_view, document_create_view, document_detail_view,
+invoicing_list_view, invoicing_create_view, invoicing_update_view, invoicing_delete_view, 
+invoicing_item_create_view, invoicing_item_delete_view, invoicing_detail_view, invoicing_show,
+document_payment_view
 )
 
 app_name = 'isis'
@@ -63,6 +66,15 @@ urlpatterns = [
     path('documents/<slug:slug>/update/', document_update_view, name='document_update'),
     path('documents/delete/', document_delete_view, name='document_delete'),
     path('documents/<slug:slug>/', document_detail_view, name='document_details'),
+    path('invoicing/new/', invoicing_create_view, name='invoicing_create'),
+    path('invoicing/', invoicing_list_view, name='invoicing_list'),
+    path('invoicing/<slug:slug>/update/', invoicing_update_view, name='invoicing_update'),
+    path('invoicing/delete/', invoicing_delete_view, name='invoicing_delete'),
+    path('invoicing/<slug:slug>/details/', invoicing_detail_view, name='invoicing_details'),
+    path('invoicing/<slug:slug>/items/', invoicing_item_create_view, name='invoicing_item_create'),
+    path('invoicing/items/delete/', invoicing_item_delete_view, name='invoicing_item_delete'),
+    path('invoicing/<slug:slug>/show/', invoicing_show, name='invoicing_show'),
+    path('invoicing/<slug:slug>/payment/', document_payment_view, name='document_payment'),
 
     path('ajax/load-prices/', load_sell_prices, name='ajax_load_prices'),
 ]

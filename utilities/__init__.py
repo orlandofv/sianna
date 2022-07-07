@@ -19,9 +19,21 @@ def handle_uploaded_file(f, dest):
             
             
 # increments numbering in docs ex: Invoice, Receipt, and so on
-def increment_document_number(model):
+def increment_invoice_number(model):
     # Returns the first object matched by the queryset, or None if there is no matching object. 
     i = model.objects.order_by('-id').first()
+    if i is not None:
+        document_number = i.number + 1
+    else:
+        document_number = 1
+
+    return document_number
+
+
+# increments numbering in docs ex: Invoice, Receipt, and so on
+def increment_document_number(model, document):
+    # Returns the first object matched by the queryset, or None if there is no matching object. 
+    i = model.objects.filter(document_id=document).order_by('-id').first()
     if i is not None:
         document_number = i.number + 1
     else:

@@ -29,3 +29,11 @@ def increment_document_number(model):
 
     return document_number
 
+def get_form_errors(form):
+    errors = []
+    for error in form.errors:
+        errors.append(error)
+    return errors
+
+
+

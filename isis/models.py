@@ -21,6 +21,11 @@ DEACTIVATED  = 0
 
 STATUSES = ((ACTIVE, _('Active')), (DEACTIVATED , _('Deactivated')))
 
+DEFAULT = 1
+NOT_DEFAULT = 0
+
+DEFAULT_CHOICES = ((DEFAULT, _('Yes')), (NOT_DEFAULT, _('No')))
+
 class Tax(models.Model):
     
     name = models.CharField(max_length=25, unique=True)
@@ -218,6 +223,22 @@ class PaymentTerm(models.Model):
     date_modified = models.DateTimeField(editable=False, default=timezone.now)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
     modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    active_status = models.IntegerField(choices=STATUSES, default=ACTIVE)
+    default = models.IntegerField(choices=DEFAULT_CHOICES, default=NOT_DEFAULT)
+
+    def is_default(self):
+        if self.default == 1:
+            return True
+        else:
+            return False
+
+    @property
+    def get_default(self):
+        if self.is_default():
+            return _('Yes')
+        else:
+            return _('No')
+
 
     def __str__(self):
         return self.name
@@ -242,6 +263,21 @@ class PaymentMethod(models.Model):
     date_modified = models.DateTimeField(editable=False, default=timezone.now)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
     modified_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="+")
+    active_status = models.IntegerField(choices=STATUSES, default=ACTIVE)
+    default = models.IntegerField(choices=DEFAULT_CHOICES, default=NOT_DEFAULT)
+
+    def is_default(self):
+        if self.default == 1:
+            return True
+        else:
+            return False
+
+    @property
+    def get_default(self):
+        if self.is_default():
+            return _('Yes')
+        else:
+            return _('No')
 
     def __str__(self):
         return self.name
@@ -283,13 +319,13 @@ class Document(models.Model):
     upload_to = 'media', blank=True)
 
     def __str__(self):
-        return self.get_name
+        return self.get_name()
 
     def get_name(self):
         if self.short_name:
-            return self.short_name
+            return str(self.short_name)
         else:
-            return self.name
+            return str(self.name)
 
     def get_payment_status(self):
         if self.track_payment == 1:
@@ -330,7 +366,7 @@ class Invoicing(models.Model):
     
     name =  models.CharField(max_length=50, unique=True)
     document =  models.ForeignKey(Document, verbose_name=_('Document'), on_delete=models.PROTECT)
-    number = models.IntegerField(unique=True)
+    number = models.IntegerField(default=0)
     slug = models.SlugField(unique=True, null=False, editable=False)
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.PROTECT, default=1)
     payment_term = models.ForeignKey(PaymentTerm, on_delete=models.PROTECT, default=1)
@@ -425,7 +461,7 @@ class Invoicing(models.Model):
         return reverse('invoice_details', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs): # new
-        invoice = '{} {}'.format(_('Invoice'), self.number)
+        invoice = '{} {}'.format(str(self.document), self.number)
         self.name = invoice
 
         if not self.slug:
@@ -661,4 +697,57 @@ class ReceiptInvoice(models.Model):
         verbose_name = _('Receipt Invoice')
         verbose_name_plural = _('Receipt Invoices')
         unique_together = ['receipt', 'invoice']
+
+
+class InvoicingItem(models.Model):
+    invoicing = models.ForeignKey(Invoicing, on_delete=models.PROTECT)
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    tax = models.DecimalField(max_digits=4, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=4, decimal_places=2, default=0)
+    price = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    quantity = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    tax_total = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    discount_total = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    sub_total = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    total = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+        
+    def __str__(self):
+        return '{} {}'.format(self.invoicing, self.product)
+    
+    def save(self, *args, **kwargs): # new
+        
+        # Discount is saved on db as whole number so we must divide by 100
+        total = round(self.quantity * self.price, 6)
+        print('Total: ', total)
+
+        discount = round(self.discount * Decimal(0.01) * total, 6)
+        print('Discount ', discount)
+
+        sub_total = round(total - discount, 6)
+        print('Subtotal ', sub_total)
+
+        tax = round(sub_total * self.tax * Decimal(0.01), 6)
+        print('Tax ', tax)
+
+        grand_total = sub_total + tax
+        print('Grand Total ', grand_total)
+
+        self.tax_total = tax
+        self.discount_total = discount
+        self.sub_total = sub_total
+        self.total = grand_total
+
+        return super().save(*args, **kwargs)
+
+
+class DocumentPayment(models.Model):
+    invoicing = models.ForeignKey(Invoicing, on_delete=models.PROTECT)
+    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.PROTECT)
+    amount = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    notes = models.CharField(max_length=255, blank=True)
+    file = models.ImageField(_('Add File'), 
+    upload_to = 'media', blank=True)
+
+    def __str__(self):
+        return '{} - {}'.format(str(self.invoicing), str(self.payment_method))
 

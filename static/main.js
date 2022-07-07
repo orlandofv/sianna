@@ -212,3 +212,30 @@ $(document).ready(function() {
     });    
 });
 
+
+function findTotal(){
+    var sum = 0;
+    console.log(sum);
+
+		//iterate through each textboxes and add the values
+		$('input[name="amount"]').each(function() {
+
+			//add only if the value is number
+			if(!isNaN(this.value) && this.value.length!=0) {
+				sum += parseFloat(this.value);
+			}
+
+		});
+        console.log(sum);
+		//.toFixed() method will roundoff the final sum to 2 decimal places
+        var total = $('#total_value').val();
+        console.log(total);
+        
+        if (sum > total){
+            var change = sum - total;
+            $('input[name="change"]').val(change.toFixed(2));
+        }
+        else{
+            $('input[name="change"]').val(0);
+        }
+};
